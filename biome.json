@@ -7,15 +7,12 @@
     },
     "files": {
         "ignoreUnknown": false,
-        "ignore": [
-            "**/tsconfig*.json",
-            "dist",
-            "node_modules"
-        ]
+        "ignore": ["**/tsconfig*.json", "dist", "node_modules"]
     },
     "formatter": {
         "enabled": true,
-        "indentStyle": "tab"
+        "indentStyle": "space",
+        "indentWidth": 4
     },
     "organizeImports": {
         "enabled": true
@@ -25,9 +22,7 @@
         "rules": {
             "recommended": false
         },
-        "ignore": [
-            "dist"
-        ]
+        "ignore": ["dist"]
     },
     "javascript": {
         "formatter": {
@@ -36,9 +31,7 @@
     },
     "overrides": [
         {
-            "include": [
-                "**/*.{ts,tsx}"
-            ],
+            "include": ["**/*.{ts,tsx}"],
             "linter": {
                 "rules": {
                     "complexity": {
@@ -101,17 +94,13 @@
             }
         },
         {
-            "include": [
-                "**/*.{ts,tsx}"
-            ],
+            "include": ["**/*.{ts,tsx}"],
             "javascript": {
                 "globals": []
             }
         },
         {
-            "include": [
-                "**/*.{ts,tsx}"
-            ],
+            "include": ["**/*.{ts,tsx}"],
             "linter": {
                 "rules": {
                     "complexity": {
@@ -148,9 +137,7 @@
             }
         },
         {
-            "include": [
-                "**/*.{ts,tsx}"
-            ],
+            "include": ["**/*.{ts,tsx}"],
             "linter": {
                 "rules": {
                     "complexity": {
@@ -175,9 +162,7 @@
             }
         },
         {
-            "include": [
-                "**/*.{ts,tsx}"
-            ],
+            "include": ["**/*.{ts,tsx}"],
             "javascript": {
                 "globals": [
                     "onscrollend",
