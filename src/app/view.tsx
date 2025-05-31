@@ -62,10 +62,16 @@ function View() {
                     style={buttonStyle}
                     onClick={() => navigate("/admin/elections/new")}
                     onMouseEnter={(e) => {
-                        Object.assign((e.target as HTMLElement).style, buttonHoverStyle);
+                        Object.assign(
+                            (e.target as HTMLElement).style,
+                            buttonHoverStyle,
+                        );
                     }}
                     onMouseLeave={(e) => {
-                        Object.assign((e.target as HTMLElement).style, buttonStyle);
+                        Object.assign(
+                            (e.target as HTMLElement).style,
+                            buttonStyle,
+                        );
                     }}
                 >
                     選挙を開催する
@@ -75,10 +81,16 @@ function View() {
                     style={buttonStyle}
                     onClick={() => navigate("/vote")}
                     onMouseEnter={(e) => {
-                        Object.assign((e.target as HTMLElement).style, buttonHoverStyle);
+                        Object.assign(
+                            (e.target as HTMLElement).style,
+                            buttonHoverStyle,
+                        );
                     }}
                     onMouseLeave={(e) => {
-                        Object.assign((e.target as HTMLElement).style, buttonStyle);
+                        Object.assign(
+                            (e.target as HTMLElement).style,
+                            buttonStyle,
+                        );
                     }}
                 >
                     選挙に投票する
@@ -88,10 +100,16 @@ function View() {
                     style={buttonStyle}
                     onClick={() => navigate("/results")}
                     onMouseEnter={(e) => {
-                        Object.assign((e.target as HTMLElement).style, buttonHoverStyle);
+                        Object.assign(
+                            (e.target as HTMLElement).style,
+                            buttonHoverStyle,
+                        );
                     }}
                     onMouseLeave={(e) => {
-                        Object.assign((e.target as HTMLElement).style, buttonStyle);
+                        Object.assign(
+                            (e.target as HTMLElement).style,
+                            buttonStyle,
+                        );
                     }}
                 >
                     結果を確認する
