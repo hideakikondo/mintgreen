@@ -24,6 +24,15 @@ function View() {
         backgroundColor: "#f8f9ff",
     };
 
+    const sectionHeadingStyle = {
+        fontSize: "1.4em",
+        fontWeight: "600",
+        color: "#333",
+        marginTop: "2rem",
+        marginBottom: "1rem",
+        textAlign: "center" as const,
+    };
+
     return (
         <div
             style={{
@@ -58,6 +67,7 @@ function View() {
                     maxWidth: "600px",
                 }}
             >
+                <h2 style={sectionHeadingStyle}>有権者メニュー</h2>
                 <button
                     style={buttonStyle}
                     onClick={() => navigate("/register")}
@@ -75,25 +85,6 @@ function View() {
                     }}
                 >
                     有権者登録
-                </button>
-
-                <button
-                    style={buttonStyle}
-                    onClick={() => navigate("/admin/elections/new")}
-                    onMouseEnter={(e) => {
-                        Object.assign(
-                            (e.target as HTMLElement).style,
-                            buttonHoverStyle,
-                        );
-                    }}
-                    onMouseLeave={(e) => {
-                        Object.assign(
-                            (e.target as HTMLElement).style,
-                            buttonStyle,
-                        );
-                    }}
-                >
-                    選挙を開催する
                 </button>
 
                 <button
@@ -132,6 +123,27 @@ function View() {
                     }}
                 >
                     結果を確認する
+                </button>
+
+                <h2 style={sectionHeadingStyle}>管理者メニュー</h2>
+
+                <button
+                    style={buttonStyle}
+                    onClick={() => navigate("/admin/elections/new")}
+                    onMouseEnter={(e) => {
+                        Object.assign(
+                            (e.target as HTMLElement).style,
+                            buttonHoverStyle,
+                        );
+                    }}
+                    onMouseLeave={(e) => {
+                        Object.assign(
+                            (e.target as HTMLElement).style,
+                            buttonStyle,
+                        );
+                    }}
+                >
+                    選挙を開催する
                 </button>
 
                 <button
