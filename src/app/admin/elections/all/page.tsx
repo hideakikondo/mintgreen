@@ -147,7 +147,10 @@ export default function AllElectionsPage() {
                                     <span
                                         style={{
                                             backgroundColor: color,
-                                            color: "white",
+                                            color:
+                                                color === "#666"
+                                                    ? "#333"
+                                                    : "white",
                                             padding: "0.2em 0.6em",
                                             borderRadius: "12px",
                                             fontSize: "0.8em",
@@ -223,6 +226,7 @@ export default function AllElectionsPage() {
                                                 key={candidate.candidate_id}
                                                 style={{
                                                     backgroundColor: "#f5f5f5",
+                                                    color: "#333",
                                                     padding: "0.3em 0.6em",
                                                     borderRadius: "6px",
                                                     fontSize: "0.9em",
