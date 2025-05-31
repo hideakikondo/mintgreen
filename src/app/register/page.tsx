@@ -84,6 +84,7 @@ export default function VoterRegistrationPage() {
                         formData.identification_number.trim(),
                     address: formData.address?.trim() || null,
                     date_of_birth: formData.date_of_birth || null,
+                    user_email: user.email,
                     is_eligible: true,
                 });
 
