@@ -56,6 +56,9 @@ export default function AuthChecker({
                     onClick={async () => {
                         await supabase.auth.signInWithOAuth({
                             provider: "google",
+                            options: {
+                                redirectTo: window.location.origin + "/admin",
+                            },
                         });
                     }}
                     style={{
