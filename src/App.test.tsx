@@ -5,7 +5,7 @@ import App from "./App";
 describe("App", () => {
     it("renders headline", () => {
         render(<App />);
-        expect(screen.getByText("Vite + React")).toBeInTheDocument();
+        expect(screen.getByText("Mintgreen 選挙システム")).toBeInTheDocument();
     });
 
     it("renders count button", () => {

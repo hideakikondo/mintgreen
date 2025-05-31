@@ -9,7 +9,7 @@ import View from "./view";
 describe("View", () => {
     it("renders headline", () => {
         render(<View />);
-        expect(screen.getByText("Vite + React")).toBeInTheDocument();
+        expect(screen.getByText("Mintgreen 選挙システム")).toBeInTheDocument();
     });
 
     it("renders count button", () => {
