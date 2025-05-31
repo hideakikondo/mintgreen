@@ -81,5 +81,44 @@ export default function AuthChecker({
         console.log("管理者権限チェック:", user.email);
     }
 
-    return <>{children}</>;
+    return (
+        <div>
+            <div
+                style={{
+                    position: "fixed",
+                    top: "1rem",
+                    right: "1rem",
+                    backgroundColor: "white",
+                    padding: "0.5rem 1rem",
+                    borderRadius: "8px",
+                    boxShadow: "0 2px 4px rgba(0,0,0,0.1)",
+                    display: "flex",
+                    alignItems: "center",
+                    gap: "1rem",
+                    zIndex: 1000,
+                }}
+            >
+                <span style={{ fontSize: "0.9em", color: "#666" }}>
+                    {user.email}
+                </span>
+                <button
+                    onClick={async () => {
+                        await supabase.auth.signOut();
+                    }}
+                    style={{
+                        backgroundColor: "#ff4757",
+                        color: "white",
+                        border: "none",
+                        padding: "0.4em 0.8em",
+                        borderRadius: "6px",
+                        cursor: "pointer",
+                        fontSize: "0.9em",
+                    }}
+                >
+                    サインアウト
+                </button>
+            </div>
+            {children}
+        </div>
+    );
 }
