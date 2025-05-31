@@ -1,13 +1,7 @@
-import type { User } from "@supabase/supabase-js";
-import { useEffect, useState } from "react";
 import { useNavigate } from "react-router-dom";
-import { supabase } from "../lib/supabaseClient";
 
 function View() {
     const navigate = useNavigate();
-    const [, setUser] = useState<User | null>(null);
-    const [isRegistered, setIsRegistered] = useState<boolean>(false);
-    const [loading, setLoading] = useState(true);
 
     const buttonStyle = {
         width: "100%",
@@ -38,72 +32,6 @@ function View() {
         marginBottom: "1rem",
         textAlign: "center" as const,
     };
-
-    useEffect(() => {
-        const getSession = async () => {
-            const {
-                data: { session },
-            } = await supabase.auth.getSession();
-            setUser(session?.user ?? null);
-
-            if (session?.user?.email) {
-                await checkRegistrationStatus(session.user.email);
-            } else {
-                setIsRegistered(false);
-            }
-            setLoading(false);
-        };
-
-        getSession();
-
-        const {
-            data: { subscription },
-        } = supabase.auth.onAuthStateChange(async (_event, session) => {
-            setUser(session?.user ?? null);
-
-            if (session?.user?.email) {
-                await checkRegistrationStatus(session.user.email);
-            } else {
-                setIsRegistered(false);
-            }
-            setLoading(false);
-        });
-
-        return () => subscription.unsubscribe();
-    }, []);
-
-    const checkRegistrationStatus = async (email: string) => {
-        try {
-            const { data: existingVoter } = await supabase
-                .from("voters")
-                .select("voter_id")
-                .eq("user_email", email)
-                .single();
-
-            setIsRegistered(!!existingVoter);
-        } catch (error) {
-            console.error("Registration status check error:", error);
-            setIsRegistered(false);
-        }
-    };
-
-    if (loading) {
-        return (
-            <div
-                style={{
-                    minHeight: "100vh",
-                    backgroundColor: "#f5f7fa",
-                    display: "flex",
-                    flexDirection: "column",
-                    alignItems: "center",
-                    justifyContent: "center",
-                    padding: "2rem",
-                }}
-            >
-                <h2>読み込み中...</h2>
-            </div>
-        );
-    }
 
     return (
         <div
@@ -141,38 +69,22 @@ function View() {
             >
                 <h2 style={sectionHeadingStyle}>有権者メニュー</h2>
                 <button
-                    style={{
-                        ...buttonStyle,
-                        backgroundColor: isRegistered
-                            ? "#ccc"
-                            : buttonStyle.backgroundColor,
-                        cursor: isRegistered ? "not-allowed" : "pointer",
-                    }}
-                    onClick={() => !isRegistered && navigate("/register")}
-                    disabled={isRegistered}
+                    style={buttonStyle}
+                    onClick={() => navigate("/register")}
                     onMouseEnter={(e) => {
-                        if (!isRegistered) {
-                            Object.assign(
-                                (e.target as HTMLElement).style,
-                                buttonHoverStyle,
-                            );
-                        }
+                        Object.assign(
+                            (e.target as HTMLElement).style,
+                            buttonHoverStyle,
+                        );
                     }}
                     onMouseLeave={(e) => {
-                        if (!isRegistered) {
-                            Object.assign((e.target as HTMLElement).style, {
-                                ...buttonStyle,
-                                backgroundColor: isRegistered
-                                    ? "#ccc"
-                                    : buttonStyle.backgroundColor,
-                                cursor: isRegistered
-                                    ? "not-allowed"
-                                    : "pointer",
-                            });
-                        }
+                        Object.assign(
+                            (e.target as HTMLElement).style,
+                            buttonStyle,
+                        );
                     }}
                 >
-                    {isRegistered ? "登録済み" : "有権者登録"}
+                    有権者登録
                 </button>
 
                 <button

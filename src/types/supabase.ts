@@ -69,7 +69,6 @@ export type Database = {
                     identification_number: string;
                     is_eligible: boolean | null;
                     name: string;
-                    user_email: string | null;
                     voter_id: string;
                 };
                 Insert: {
@@ -78,7 +77,6 @@ export type Database = {
                     identification_number: string;
                     is_eligible?: boolean | null;
                     name: string;
-                    user_email?: string | null;
                     voter_id?: string;
                 };
                 Update: {
@@ -87,7 +85,6 @@ export type Database = {
                     identification_number?: string;
                     is_eligible?: boolean | null;
                     name?: string;
-                    user_email?: string | null;
                     voter_id?: string;
                 };
                 Relationships: [];

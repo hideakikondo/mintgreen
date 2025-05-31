@@ -1,23 +1,19 @@
-import { render, screen, waitFor } from "@testing-library/react";
+import { render, screen } from "@testing-library/react";
 import { describe, expect, it } from "vitest";
 import App from "./App";
 
 describe("App", () => {
-    it("renders main title", async () => {
+    it("renders main title", () => {
         render(<App />);
-        await waitFor(() => {
-            expect(
-                screen.getByText("オンライン投票アプリ (Prototype)"),
-            ).toBeInTheDocument();
-        });
+        expect(
+            screen.getByText("オンライン投票アプリ (Prototype)"),
+        ).toBeInTheDocument();
     });
 
-    it("renders all three main buttons", async () => {
+    it("renders all three main buttons", () => {
         render(<App />);
-        await waitFor(() => {
-            expect(screen.getByText("選挙を開催する")).toBeInTheDocument();
-            expect(screen.getByText("選挙に投票する")).toBeInTheDocument();
-            expect(screen.getByText("結果を確認する")).toBeInTheDocument();
-        });
+        expect(screen.getByText("選挙を開催する")).toBeInTheDocument();
+        expect(screen.getByText("選挙に投票する")).toBeInTheDocument();
+        expect(screen.getByText("結果を確認する")).toBeInTheDocument();
     });
 });
