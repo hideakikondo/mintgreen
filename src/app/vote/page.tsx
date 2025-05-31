@@ -1,4 +1,5 @@
 import { useEffect, useState } from "react";
+import { useNavigate } from "react-router-dom";
 import { supabase } from "../../lib/supabaseClient";
 import type { Tables } from "../../types/supabase";
 
@@ -20,6 +21,7 @@ export default function VotePageComponent() {
     );
     const [submitting, setSubmitting] = useState(false);
     const [submitSuccess, setSubmitSuccess] = useState<string | null>(null);
+    const navigate = useNavigate();
 
     useEffect(() => {
         fetchOngoingElections();
@@ -222,6 +224,12 @@ export default function VotePageComponent() {
                 >
                     投票画面
                 </h1>
+
+                <div style={{ textAlign: "center", marginBottom: "2rem" }}>
+                    <button onClick={() => navigate("/")} style={buttonStyle}>
+                        トップに戻る
+                    </button>
+                </div>
 
                 {error && (
                     <div
