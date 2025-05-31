@@ -101,7 +101,7 @@ export default function NewElectionPage() {
                 }
                 style={{
                     backgroundColor: isSubmitting ? "#ccc" : "#646cff",
-                    color: "white",
+                    color: isSubmitting ? "#666" : "white",
                     border: "none",
                     padding: "1em 2em",
                     borderRadius: "8px",
