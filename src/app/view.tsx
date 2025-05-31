@@ -60,6 +60,25 @@ function View() {
             >
                 <button
                     style={buttonStyle}
+                    onClick={() => navigate("/register")}
+                    onMouseEnter={(e) => {
+                        Object.assign(
+                            (e.target as HTMLElement).style,
+                            buttonHoverStyle,
+                        );
+                    }}
+                    onMouseLeave={(e) => {
+                        Object.assign(
+                            (e.target as HTMLElement).style,
+                            buttonStyle,
+                        );
+                    }}
+                >
+                    有権者登録
+                </button>
+
+                <button
+                    style={buttonStyle}
                     onClick={() => navigate("/admin/elections/new")}
                     onMouseEnter={(e) => {
                         Object.assign(

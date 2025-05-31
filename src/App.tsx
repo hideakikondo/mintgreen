@@ -2,6 +2,7 @@ import { Route, BrowserRouter as Router, Routes } from "react-router-dom";
 import "./App.css";
 import EditElectionPage from "./app/admin/elections/[electionId]/edit/page";
 import NewElectionPage from "./app/admin/elections/new/page";
+import VoterRegistrationPage from "./app/register/page";
 import View from "./app/view";
 import VotePageComponent from "./app/vote/page";
 import ElectionResults from "./components/ElectionResults";
@@ -20,6 +21,7 @@ function App() {
         <Router>
             <Routes>
                 <Route path="/" element={<View />} />
+                <Route path="/register" element={<VoterRegistrationPage />} />
                 <Route path="/vote" element={<VotePage />} />
                 <Route path="/results" element={<ResultsPage />} />
                 <Route path="/admin/*" element={<AdminLayout />}>
