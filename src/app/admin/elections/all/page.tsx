@@ -74,6 +74,7 @@ export default function AllElectionsPage() {
         padding: "1.5rem",
         marginBottom: "1.5rem",
         boxShadow: "0 2px 4px rgba(0,0,0,0.1)",
+        color: "#333",
     };
 
     const buttonStyle = {
