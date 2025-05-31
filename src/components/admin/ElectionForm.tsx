@@ -51,7 +51,7 @@ export default function ElectionForm({
                     }
                     required
                     style={inputStyle}
-                    placeholder="例: 2025年度学生会長選挙"
+                    placeholder="第n回マスコットキャラクター選挙"
                 />
             </div>
 
