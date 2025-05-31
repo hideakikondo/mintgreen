@@ -128,6 +128,7 @@ export default function VoterRegistrationPage() {
         boxShadow: "0 2px 4px rgba(0,0,0,0.1)",
         maxWidth: "600px",
         width: "100%",
+        color: "#333",
     };
 
     if (loading) {
