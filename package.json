@@ -5,10 +5,10 @@
     "type": "module",
     "scripts": {
         "dev": "npx vite",
-        "build": "tsc -b && vite build",
+        "build": "npx tsc -b && npx vite build",
         "lint": "npx @biomejs/biome check .",
         "format": "npx @biomejs/biome format --write .",
-        "preview": "vite preview",
+        "preview": "npx vite preview",
         "test": "vitest run"
     },
     "dependencies": {
