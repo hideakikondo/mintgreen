@@ -1,4 +1,5 @@
 import { render, screen } from "@testing-library/react";
+import { BrowserRouter } from "react-router-dom";
 import { describe, expect, it } from "vitest";
 import "./setup";
 import View from "./view";
@@ -7,15 +8,25 @@ import View from "./view";
  * メインビューコンポーネントのテスト
  */
 describe("View", () => {
-    it("renders headline", () => {
-        render(<View />);
-        expect(screen.getByText("Mintgreen 選挙システム")).toBeInTheDocument();
+    it("renders main title", () => {
+        render(
+            <BrowserRouter>
+                <View />
+            </BrowserRouter>,
+        );
+        expect(
+            screen.getByText("オンライン投票アプリ (Prototype)"),
+        ).toBeInTheDocument();
     });
 
-    it("renders count button", () => {
-        render(<View />);
-        expect(
-            screen.getByRole("button", { name: /count is 0/i }),
-        ).toBeInTheDocument();
+    it("renders all three main buttons", () => {
+        render(
+            <BrowserRouter>
+                <View />
+            </BrowserRouter>,
+        );
+        expect(screen.getByText("選挙を開催する")).toBeInTheDocument();
+        expect(screen.getByText("選挙に投票する")).toBeInTheDocument();
+        expect(screen.getByText("結果を確認する")).toBeInTheDocument();
     });
 });

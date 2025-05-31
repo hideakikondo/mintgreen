@@ -3,15 +3,17 @@ import { describe, expect, it } from "vitest";
 import App from "./App";
 
 describe("App", () => {
-    it("renders headline", () => {
-        render(<App />);
-        expect(screen.getByText("Mintgreen 選挙システム")).toBeInTheDocument();
-    });
-
-    it("renders count button", () => {
+    it("renders main title", () => {
         render(<App />);
         expect(
-            screen.getByRole("button", { name: /count is 0/i }),
+            screen.getByText("オンライン投票アプリ (Prototype)"),
         ).toBeInTheDocument();
+    });
+
+    it("renders all three main buttons", () => {
+        render(<App />);
+        expect(screen.getByText("選挙を開催する")).toBeInTheDocument();
+        expect(screen.getByText("選挙に投票する")).toBeInTheDocument();
+        expect(screen.getByText("結果を確認する")).toBeInTheDocument();
     });
 });
