@@ -1,6 +1,7 @@
 import { Route, BrowserRouter as Router, Routes } from "react-router-dom";
 import "./App.css";
 import EditElectionPage from "./app/admin/elections/[electionId]/edit/page";
+import AllElectionsPage from "./app/admin/elections/all/page";
 import NewElectionPage from "./app/admin/elections/new/page";
 import VoterRegistrationPage from "./app/register/page";
 import View from "./app/view";
@@ -29,6 +30,10 @@ function App() {
                     <Route
                         path="elections/:electionId/edit"
                         element={<EditElectionPage />}
+                    />
+                    <Route
+                        path="elections/all"
+                        element={<AllElectionsPage />}
                     />
                 </Route>
             </Routes>
