@@ -1,54 +1,121 @@
-import { useState } from "react";
-import viteLogo from "/vite.svg";
-import reactLogo from "./assets/react.svg";
-import "./App.css";
+import { useNavigate } from "react-router-dom";
 
 function View() {
-    const [count, setCount] = useState(0);
+    const navigate = useNavigate();
+
+    const buttonStyle = {
+        width: "100%",
+        maxWidth: "600px",
+        padding: "1.5em 2em",
+        margin: "1rem 0",
+        backgroundColor: "white",
+        border: "2px solid #e0e0e0",
+        borderRadius: "12px",
+        fontSize: "1.2em",
+        fontWeight: "500",
+        cursor: "pointer",
+        transition: "all 0.2s ease",
+        color: "#333",
+    };
+
+    const buttonHoverStyle = {
+        ...buttonStyle,
+        borderColor: "#646cff",
+        backgroundColor: "#f8f9ff",
+    };
 
     return (
-        <>
-            <div>
-                <a href="https://vite.dev" target="_blank">
-                    <img src={viteLogo} className="logo" alt="Vite logo" />
-                </a>
-                <a href="https://react.dev" target="_blank">
-                    <img
-                        src={reactLogo}
-                        className="logo react"
-                        alt="React logo"
-                    />
-                </a>
-            </div>
-            <h1>Mintgreen 選挙システム</h1>
-            <div className="card">
-                <button onClick={() => setCount((count) => count + 1)}>
-                    count is {count}
+        <div
+            style={{
+                minHeight: "100vh",
+                backgroundColor: "#f5f7fa",
+                display: "flex",
+                flexDirection: "column",
+                alignItems: "center",
+                justifyContent: "center",
+                padding: "2rem",
+            }}
+        >
+            <h1
+                style={{
+                    fontSize: "2rem",
+                    fontWeight: "600",
+                    color: "#333",
+                    marginBottom: "3rem",
+                    textAlign: "center",
+                }}
+            >
+                オンライン投票アプリ (Prototype)
+            </h1>
+
+            <div
+                style={{
+                    display: "flex",
+                    flexDirection: "column",
+                    alignItems: "center",
+                    gap: "1rem",
+                    width: "100%",
+                    maxWidth: "600px",
+                }}
+            >
+                <button
+                    style={buttonStyle}
+                    onClick={() => navigate("/admin/elections/new")}
+                    onMouseEnter={(e) => {
+                        Object.assign(
+                            (e.target as HTMLElement).style,
+                            buttonHoverStyle,
+                        );
+                    }}
+                    onMouseLeave={(e) => {
+                        Object.assign(
+                            (e.target as HTMLElement).style,
+                            buttonStyle,
+                        );
+                    }}
+                >
+                    選挙を開催する
                 </button>
-                <p>
-                    Edit <code>src/app/view.tsx</code> and save to test HMR
-                </p>
-                <div style={{ marginTop: "2rem" }}>
-                    <a
-                        href="/admin/elections/new"
-                        style={{
-                            display: "inline-block",
-                            backgroundColor: "#646cff",
-                            color: "white",
-                            padding: "0.8em 1.5em",
-                            textDecoration: "none",
-                            borderRadius: "8px",
-                            fontWeight: "500",
-                        }}
-                    >
-                        管理者ページ
-                    </a>
-                </div>
+
+                <button
+                    style={buttonStyle}
+                    onClick={() => navigate("/vote")}
+                    onMouseEnter={(e) => {
+                        Object.assign(
+                            (e.target as HTMLElement).style,
+                            buttonHoverStyle,
+                        );
+                    }}
+                    onMouseLeave={(e) => {
+                        Object.assign(
+                            (e.target as HTMLElement).style,
+                            buttonStyle,
+                        );
+                    }}
+                >
+                    選挙に投票する
+                </button>
+
+                <button
+                    style={buttonStyle}
+                    onClick={() => navigate("/results")}
+                    onMouseEnter={(e) => {
+                        Object.assign(
+                            (e.target as HTMLElement).style,
+                            buttonHoverStyle,
+                        );
+                    }}
+                    onMouseLeave={(e) => {
+                        Object.assign(
+                            (e.target as HTMLElement).style,
+                            buttonStyle,
+                        );
+                    }}
+                >
+                    結果を確認する
+                </button>
             </div>
-            <p className="read-the-docs">
-                Click on the Vite and React logos to learn more
-            </p>
-        </>
+        </div>
     );
 }
 
