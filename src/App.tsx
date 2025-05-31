@@ -4,6 +4,7 @@ import EditElectionPage from "./app/admin/elections/[electionId]/edit/page";
 import NewElectionPage from "./app/admin/elections/new/page";
 import View from "./app/view";
 import VotePageComponent from "./app/vote/page";
+import ElectionResults from "./components/ElectionResults";
 import AdminLayout from "./components/admin/AdminLayout";
 
 function VotePage() {
@@ -11,12 +12,7 @@ function VotePage() {
 }
 
 function ResultsPage() {
-    return (
-        <div style={{ padding: "2rem", textAlign: "center" }}>
-            <h2>結果ページ</h2>
-            <p>結果表示機能は今後実装予定です</p>
-        </div>
-    );
+    return <ElectionResults />;
 }
 
 function App() {
