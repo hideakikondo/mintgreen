@@ -13,7 +13,7 @@ describe("App", () => {
     it("renders all three main buttons", () => {
         render(<App />);
         expect(screen.getByText("選挙を開催する")).toBeInTheDocument();
-        expect(screen.getByText("選挙に投票する")).toBeInTheDocument();
+        expect(screen.getByText("変更案を評価")).toBeInTheDocument();
         expect(screen.getByText("結果を確認する")).toBeInTheDocument();
     });
 });

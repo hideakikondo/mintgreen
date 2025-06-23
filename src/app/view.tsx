@@ -89,7 +89,7 @@ function View() {
 
                 <button
                     style={buttonStyle}
-                    onClick={() => navigate("/vote")}
+                    onClick={() => navigate("/issue-vote")}
                     onMouseEnter={(e) => {
                         Object.assign(
                             (e.target as HTMLElement).style,
@@ -103,7 +103,7 @@ function View() {
                         );
                     }}
                 >
-                    選挙に投票する
+                    変更案を評価
                 </button>
 
                 <button
