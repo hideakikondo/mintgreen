@@ -14,6 +14,7 @@ Mintgreenは、React 19、TypeScript、Vite、Supabaseを使用して構築さ�
 - **投票機能**: 有権者による安全な投票の実施
 - **結果表示**: リアルタイムでの投票結果の確認
 - **管理者機能**: 選挙全体の管理と監視
+- **GitHub Issues評価**: GitHub Pull Requestsの自動同期と投票機能
 
 ## 技術スタック
 
@@ -69,6 +70,9 @@ Supabaseプロジェクトで以下のテーブルを作成してください：
 - `elections` (選挙情報)
 - `candidates` (候補者情報)
 - `votes` (投票記録)
+- `github_issues` (GitHub Issues/PRs情報)
+- `issue_votes` (Issue投票記録)
+- `issue_comments` (Issueコメント)
 
 ## 開発
 
@@ -97,7 +101,39 @@ npm run format
 
 # テスト実行
 npm run test
+
+# GitHub PRs同期（手動実行）
+npm run sync-prs
 ```
+
+## GitHub Actions
+
+### Pull Requests自動同期
+
+このプロジェクトでは、GitHub Actionsを使用して毎日自動的に指定されたリポジトリのPull Requestsを管理し、Supabaseの`github_issues`テーブルに同期します。
+
+**主な機能:**
+- オープンなPull Requestsの自動同期
+- クローズされたPull Requestsの自動削除
+- 重複チェックと更新日時による差分同期
+
+#### 設定方法
+
+1. GitHubリポジトリの「Settings」→「Secrets and variables」→「Actions」で以下のSecretsを設定：
+   - `GITHUB_TOKEN`: GitHub Personal Access Token (repo権限が必要)
+   - `SUPABASE_URL`: SupabaseプロジェクトのURL
+   - `SUPABASE_SERVICE_KEY`: Supabaseのサービスキー（anon keyではなく）
+
+2. ワークフローは毎日午前9時（UTC）= 日本時間18時に自動実行されます
+
+3. 手動実行も可能：「Actions」タブから「Sync GitHub Pull Requests」ワークフローを選択し、「Run workflow」をクリック
+
+#### 監視対象リポジトリ
+
+現在の監視対象：
+- `team-mirai/policy`
+
+他のリポジトリを追加する場合は、`scripts/sync-github-prs.js`の`REPOSITORIES`配列を編集してください。
 
 ## プロジェクト構造
 
