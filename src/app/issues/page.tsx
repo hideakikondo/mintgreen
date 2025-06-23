@@ -56,16 +56,18 @@ export default function IssuesPageComponent() {
             const voteCountsMap: Record<string, { good: number; bad: number }> =
                 {};
 
-            allVotes?.forEach((vote) => {
-                if (!voteCountsMap[vote.issue_id]) {
-                    voteCountsMap[vote.issue_id] = { good: 0, bad: 0 };
-                }
-                if (vote.vote_type === "good") {
-                    voteCountsMap[vote.issue_id].good++;
-                } else if (vote.vote_type === "bad") {
-                    voteCountsMap[vote.issue_id].bad++;
-                }
-            });
+            allVotes?.forEach(
+                (vote: { issue_id: string | number; vote_type: string }) => {
+                    if (!voteCountsMap[vote.issue_id]) {
+                        voteCountsMap[vote.issue_id] = { good: 0, bad: 0 };
+                    }
+                    if (vote.vote_type === "good") {
+                        voteCountsMap[vote.issue_id].good++;
+                    } else if (vote.vote_type === "bad") {
+                        voteCountsMap[vote.issue_id].bad++;
+                    }
+                },
+            );
 
             for (const issue of issuesData || []) {
                 const voteCounts = voteCountsMap[issue.issue_id] || {
