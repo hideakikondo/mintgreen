@@ -44,6 +44,48 @@ async function fetchOpenPRs(owner, repo) {
 }
 
 /**
+ * GitHub APIから全てのPull Requestsを取得（ページネーション対応）
+ * @param {string} owner リポジトリオーナー
+ * @param {string} repo リポジトリ名
+ * @returns {Promise<Array>} Pull Requestsの配列
+ */
+async function fetchAllPRs(owner, repo) {
+    const allPRs = [];
+    let page = 1;
+    const perPage = 100;
+
+    while (true) {
+        const response = await fetch(
+            `https://api.github.com/repos/${owner}/${repo}/pulls?state=all&page=${page}&per_page=${perPage}`,
+            {
+                headers: {
+                    Authorization: `Bearer ${GITHUB_TOKEN}`,
+                    Accept: "application/vnd.github.v3+json",
+                    "User-Agent": "mintgreen-pr-sync",
+                },
+            },
+        );
+
+        if (!response.ok) {
+            throw new Error(
+                `GitHub API error: ${response.status} ${response.statusText}`,
+            );
+        }
+
+        const prs = await response.json();
+        if (prs.length === 0) break;
+
+        allPRs.push(...prs);
+
+        if (prs.length < perPage) break;
+
+        page++;
+    }
+
+    return allPRs;
+}
+
+/**
  * Pull RequestをSupabaseデータベースに同期
  * @param {Object} pr Pull Requestオブジェクト
  * @param {string} owner リポジトリオーナー
@@ -116,6 +158,72 @@ async function syncPRToDatabase(pr, owner, repo) {
 }
 
 /**
+ * クローズされたPRをデータベースから削除
+ * @param {string} owner リポジトリオーナー
+ * @param {string} repo リポジトリ名
+ * @param {Array} allPRs 全てのPRsの配列
+ * @returns {Promise<number>} 削除された件数
+ */
+async function deleteClosedPRs(owner, repo, allPRs) {
+    try {
+        const { data: existingIssues, error: selectError } = await supabase
+            .from("github_issues")
+            .select("issue_id, github_issue_number")
+            .eq("repository_owner", owner)
+            .eq("repository_name", repo);
+
+        if (selectError) {
+            throw selectError;
+        }
+
+        if (!existingIssues || existingIssues.length === 0) {
+            console.log(`${owner}/${repo}: データベースに既存のPRはありません`);
+            return 0;
+        }
+
+        const currentPRNumbers = new Set(allPRs.map((pr) => pr.number));
+
+        const prsToDelete = existingIssues.filter(
+            (issue) => !currentPRNumbers.has(issue.github_issue_number),
+        );
+
+        if (prsToDelete.length === 0) {
+            console.log(`${owner}/${repo}: 削除対象のPRはありません`);
+            return 0;
+        }
+
+        console.log(
+            `${owner}/${repo}: ${prsToDelete.length} 件のPRを削除します`,
+        );
+
+        let deletedCount = 0;
+        for (const prToDelete of prsToDelete) {
+            const { error: deleteError } = await supabase
+                .from("github_issues")
+                .delete()
+                .eq("issue_id", prToDelete.issue_id);
+
+            if (deleteError) {
+                console.error(
+                    `PR #${prToDelete.github_issue_number} の削除に失敗:`,
+                    deleteError.message,
+                );
+            } else {
+                console.log(
+                    `PR #${prToDelete.github_issue_number} (${owner}/${repo}) を削除しました`,
+                );
+                deletedCount++;
+            }
+        }
+
+        return deletedCount;
+    } catch (error) {
+        console.error(`${owner}/${repo} のPR削除処理でエラー:`, error.message);
+        return 0;
+    }
+}
+
+/**
  * メイン処理
  */
 async function main() {
@@ -123,17 +231,25 @@ async function main() {
     console.log(`監視対象リポジトリ: ${REPOSITORIES.join(", ")}`);
 
     let totalSynced = 0;
+    let totalDeleted = 0;
     let totalErrors = 0;
 
     for (const repository of REPOSITORIES) {
         const [owner, repo] = repository.split("/");
-        console.log(`\n${repository} のPRsを取得中...`);
+        console.log(`\n${repository} の処理を開始...`);
 
         try {
-            const prs = await fetchOpenPRs(owner, repo);
-            console.log(`${prs.length} 件のオープンPRsが見つかりました`);
+            console.log("全てのPRsを取得中...");
+            const allPRs = await fetchAllPRs(owner, repo);
+            console.log(`${allPRs.length} 件のPRsが見つかりました`);
 
-            for (const pr of prs) {
+            const deletedCount = await deleteClosedPRs(owner, repo, allPRs);
+            totalDeleted += deletedCount;
+
+            const openPRs = allPRs.filter((pr) => pr.state === "open");
+            console.log(`${openPRs.length} 件のオープンPRsを同期します`);
+
+            for (const pr of openPRs) {
                 try {
                     const success = await syncPRToDatabase(pr, owner, repo);
                     if (success) {
@@ -150,12 +266,14 @@ async function main() {
                 }
             }
         } catch (error) {
-            console.error(`${repository} のPRs取得でエラー:`, error.message);
+            console.error(`${repository} の処理でエラー:`, error.message);
             totalErrors++;
         }
     }
 
-    console.log(`\n同期完了: ${totalSynced} 件成功, ${totalErrors} 件エラー`);
+    console.log(
+        `\n同期完了: ${totalSynced} 件同期, ${totalDeleted} 件削除, ${totalErrors} 件エラー`,
+    );
 
     if (totalErrors > 0) {
         console.log("エラーが発生しましたが、処理は継続されました");
