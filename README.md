@@ -110,7 +110,12 @@ npm run sync-prs
 
 ### Pull Requests自動同期
 
-このプロジェクトでは、GitHub Actionsを使用して毎日自動的に指定されたリポジトリのオープンなPull Requestsを取得し、Supabaseの`github_issues`テーブルに同期します。
+このプロジェクトでは、GitHub Actionsを使用して毎日自動的に指定されたリポジトリのPull Requestsを管理し、Supabaseの`github_issues`テーブルに同期します。
+
+**主な機能:**
+- オープンなPull Requestsの自動同期
+- クローズされたPull Requestsの自動削除
+- 重複チェックと更新日時による差分同期
 
 #### 設定方法
 
