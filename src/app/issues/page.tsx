@@ -47,25 +47,37 @@ export default function IssuesPageComponent() {
 
             const issuesWithVotes: IssueWithVotes[] = [];
 
+            const { data: allVotes, error: votesError } = await supabase
+                .from("issue_votes")
+                .select("issue_id, vote_type");
+
+            if (votesError) throw votesError;
+
+            const voteCountsMap: Record<string, { good: number; bad: number }> =
+                {};
+
+            allVotes?.forEach((vote) => {
+                if (!voteCountsMap[vote.issue_id]) {
+                    voteCountsMap[vote.issue_id] = { good: 0, bad: 0 };
+                }
+                if (vote.vote_type === "good") {
+                    voteCountsMap[vote.issue_id].good++;
+                } else if (vote.vote_type === "bad") {
+                    voteCountsMap[vote.issue_id].bad++;
+                }
+            });
+
             for (const issue of issuesData || []) {
-                const { data: goodVotes } = await supabase
-                    .from("issue_votes")
-                    .select("*", { count: "exact", head: true })
-                    .eq("issue_id", issue.issue_id)
-                    .eq("vote_type", "good");
-
-                const { data: badVotes } = await supabase
-                    .from("issue_votes")
-                    .select("*", { count: "exact", head: true })
-                    .eq("issue_id", issue.issue_id)
-                    .eq("vote_type", "bad");
-
+                const voteCounts = voteCountsMap[issue.issue_id] || {
+                    good: 0,
+                    bad: 0,
+                };
                 let userVote: Tables<"issue_votes"> | null = null;
 
                 issuesWithVotes.push({
                     issue,
-                    goodVotes: goodVotes?.length || 0,
-                    badVotes: badVotes?.length || 0,
+                    goodVotes: voteCounts.good,
+                    badVotes: voteCounts.bad,
                     userVote,
                 });
             }
