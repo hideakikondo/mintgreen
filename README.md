@@ -110,7 +110,7 @@ npm run sync-prs
 
 ### Pull Requests自動同期
 
-このプロジェクトでは、GitHub Actionsを使用して毎日自動的にオープンなPull Requestsを取得し、Supabaseの`github_issues`テーブルに同期します。
+このプロジェクトでは、GitHub Actionsを使用して毎日自動的に指定されたリポジトリのオープンなPull Requestsを取得し、Supabaseの`github_issues`テーブルに同期します。
 
 #### 設定方法
 
@@ -126,7 +126,7 @@ npm run sync-prs
 #### 監視対象リポジトリ
 
 現在の監視対象：
-- `hideakikondo/mintgreen`
+- `team-mirai/policy`
 
 他のリポジトリを追加する場合は、`scripts/sync-github-prs.js`の`REPOSITORIES`配列を編集してください。
 

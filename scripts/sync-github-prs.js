@@ -14,7 +14,7 @@ if (!GITHUB_TOKEN || !SUPABASE_URL || !SUPABASE_SERVICE_KEY) {
 
 const supabase = createClient(SUPABASE_URL, SUPABASE_SERVICE_KEY);
 
-const REPOSITORIES = ["hideakikondo/mintgreen"];
+const REPOSITORIES = ["team-mirai/policy"];
 
 /**
  * GitHub APIからオープンなPull Requestsを取得
