@@ -138,6 +138,123 @@ export type Database = {
                     },
                 ];
             };
+            github_issues: {
+                Row: {
+                    issue_id: string;
+                    github_issue_number: number;
+                    repository_owner: string;
+                    repository_name: string;
+                    title: string;
+                    body: string | null;
+                    branch_name: string | null;
+                    created_at: string;
+                    updated_at: string;
+                };
+                Insert: {
+                    issue_id?: string;
+                    github_issue_number: number;
+                    repository_owner: string;
+                    repository_name: string;
+                    title: string;
+                    body?: string | null;
+                    branch_name?: string | null;
+                    created_at?: string;
+                    updated_at?: string;
+                };
+                Update: {
+                    issue_id?: string;
+                    github_issue_number?: number;
+                    repository_owner?: string;
+                    repository_name?: string;
+                    title?: string;
+                    body?: string | null;
+                    branch_name?: string | null;
+                    created_at?: string;
+                    updated_at?: string;
+                };
+                Relationships: [];
+            };
+            issue_votes: {
+                Row: {
+                    vote_id: string;
+                    issue_id: string;
+                    voter_id: string;
+                    vote_type: Database["public"]["Enums"]["vote_type"];
+                    created_at: string;
+                };
+                Insert: {
+                    vote_id?: string;
+                    issue_id: string;
+                    voter_id: string;
+                    vote_type: Database["public"]["Enums"]["vote_type"];
+                    created_at?: string;
+                };
+                Update: {
+                    vote_id?: string;
+                    issue_id?: string;
+                    voter_id?: string;
+                    vote_type?: Database["public"]["Enums"]["vote_type"];
+                    created_at?: string;
+                };
+                Relationships: [
+                    {
+                        foreignKeyName: "issue_votes_issue_id_fkey";
+                        columns: ["issue_id"];
+                        isOneToOne: false;
+                        referencedRelation: "github_issues";
+                        referencedColumns: ["issue_id"];
+                    },
+                    {
+                        foreignKeyName: "issue_votes_voter_id_fkey";
+                        columns: ["voter_id"];
+                        isOneToOne: false;
+                        referencedRelation: "voters";
+                        referencedColumns: ["voter_id"];
+                    },
+                ];
+            };
+            issue_comments: {
+                Row: {
+                    comment_id: string;
+                    issue_id: string;
+                    voter_id: string;
+                    comment_text: string;
+                    github_comment_id: number | null;
+                    created_at: string;
+                };
+                Insert: {
+                    comment_id?: string;
+                    issue_id: string;
+                    voter_id: string;
+                    comment_text: string;
+                    github_comment_id?: number | null;
+                    created_at?: string;
+                };
+                Update: {
+                    comment_id?: string;
+                    issue_id?: string;
+                    voter_id?: string;
+                    comment_text?: string;
+                    github_comment_id?: number | null;
+                    created_at?: string;
+                };
+                Relationships: [
+                    {
+                        foreignKeyName: "issue_comments_issue_id_fkey";
+                        columns: ["issue_id"];
+                        isOneToOne: false;
+                        referencedRelation: "github_issues";
+                        referencedColumns: ["issue_id"];
+                    },
+                    {
+                        foreignKeyName: "issue_comments_voter_id_fkey";
+                        columns: ["voter_id"];
+                        isOneToOne: false;
+                        referencedRelation: "voters";
+                        referencedColumns: ["voter_id"];
+                    },
+                ];
+            };
         };
         Views: {
             [_ in never]: never;
@@ -146,7 +263,7 @@ export type Database = {
             [_ in never]: never;
         };
         Enums: {
-            [_ in never]: never;
+            vote_type: "good" | "bad";
         };
         CompositeTypes: {
             [_ in never]: never;
