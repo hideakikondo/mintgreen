@@ -3,6 +3,7 @@ import "./App.css";
 import EditElectionPage from "./app/admin/elections/[electionId]/edit/page";
 import AllElectionsPage from "./app/admin/elections/all/page";
 import NewElectionPage from "./app/admin/elections/new/page";
+import IssuesPageComponent from "./app/issues/page";
 import VoterRegistrationPage from "./app/register/page";
 import View from "./app/view";
 import VotePageComponent from "./app/vote/page";
@@ -11,6 +12,10 @@ import AdminLayout from "./components/admin/AdminLayout";
 
 function VotePage() {
     return <VotePageComponent />;
+}
+
+function IssuesPage() {
+    return <IssuesPageComponent />;
 }
 
 function ResultsPage() {
@@ -24,6 +29,7 @@ function App() {
                 <Route path="/" element={<View />} />
                 <Route path="/register" element={<VoterRegistrationPage />} />
                 <Route path="/vote" element={<VotePage />} />
+                <Route path="/issues" element={<IssuesPage />} />
                 <Route path="/results" element={<ResultsPage />} />
                 <Route path="/admin/*" element={<AdminLayout />}>
                     <Route path="elections/new" element={<NewElectionPage />} />
