@@ -148,7 +148,7 @@ function View() {
 
                 <button
                     style={buttonStyle}
-                    onClick={() => navigate("/admin/elections/all")}
+                    onClick={() => navigate("/issues")}
                     onMouseEnter={(e) => {
                         Object.assign(
                             (e.target as HTMLElement).style,
@@ -162,7 +162,7 @@ function View() {
                         );
                     }}
                 >
-                    開催中の選挙一覧
+                    GitHub Issue一覧
                 </button>
             </div>
         </div>
