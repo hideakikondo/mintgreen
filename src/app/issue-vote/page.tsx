@@ -59,7 +59,7 @@ export default function IssueVotePageComponent() {
             if (votesError) throw votesError;
 
             const votesMap: Record<string, "good" | "bad"> = {};
-            votesData?.forEach((vote) => {
+            votesData?.forEach((vote: any) => {
                 votesMap[vote.issue_id] = vote.vote_type as "good" | "bad";
             });
 

@@ -69,7 +69,7 @@ export default function ElectionResults() {
                 }
 
                 const results = (candidates || [])
-                    .map((candidate) => ({
+                    .map((candidate: any) => ({
                         candidate,
                         voteCount: voteCounts[candidate.candidate_id] || 0,
                         percentage:
@@ -79,7 +79,7 @@ export default function ElectionResults() {
                                   100
                                 : 0,
                     }))
-                    .sort((a, b) => b.voteCount - a.voteCount);
+                    .sort((a: any, b: any) => b.voteCount - a.voteCount);
 
                 electionResults.push({
                     election,

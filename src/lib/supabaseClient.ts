@@ -33,34 +33,10 @@ if (useLocalDb || !supabaseUrl || supabaseUrl === "https://test.supabase.co") {
             },
         } as any;
     } else {
-        try {
-            await sqliteClient.initialize();
-            client = sqliteClient as any;
-        } catch (error) {
-            console.error(
-                "SQLite initialization failed, falling back to mock client:",
-                error,
-            );
-            client = {
-                from: () => ({
-                    select: () => Promise.resolve({ data: [], error: null }),
-                    insert: () => Promise.resolve({ data: null, error: null }),
-                    update: () => Promise.resolve({ data: [], error: null }),
-                    delete: () => Promise.resolve({ data: null, error: null }),
-                }),
-                auth: {
-                    getSession: async () => ({
-                        data: { session: null },
-                        error: null,
-                    }),
-                    onAuthStateChange: () => ({
-                        data: { subscription: { unsubscribe: () => {} } },
-                    }),
-                    signInWithOAuth: async () => {},
-                    signOut: async () => {},
-                },
-            } as any;
-        }
+        sqliteClient.initialize().catch((error) => {
+            console.error("SQLite initialization failed:", error);
+        });
+        client = sqliteClient as any;
     }
 } else {
     console.log("Using Supabase database");

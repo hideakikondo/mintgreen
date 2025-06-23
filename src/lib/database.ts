@@ -41,10 +41,13 @@ export class SQLiteClient implements DatabaseClient {
 }
 
 class SQLiteQueryBuilder {
-    constructor(
-        private db: any,
-        private table: string,
-    ) {}
+    private db: any;
+    private table: string;
+
+    constructor(db: any, table: string) {
+        this.db = db;
+        this.table = table;
+    }
 
     select(columns = "*") {
         return new SQLiteSelectBuilder(this.db, this.table, columns);
@@ -67,12 +70,15 @@ class SQLiteSelectBuilder {
     private conditions: string[] = [];
     private orderBy: string = "";
     private limitOne = false;
+    private db: any;
+    private table: string;
+    private columns: string;
 
-    constructor(
-        private db: any,
-        private table: string,
-        private columns: string,
-    ) {}
+    constructor(db: any, table: string, columns: string) {
+        this.db = db;
+        this.table = table;
+        this.columns = columns;
+    }
 
     eq(column: string, value: any) {
         this.conditions.push(`${column} = ${this.formatValue(value)}`);
@@ -186,11 +192,15 @@ class SQLiteSelectBuilder {
 }
 
 class SQLiteInsertBuilder {
-    constructor(
-        private db: any,
-        private table: string,
-        private data: any,
-    ) {}
+    private db: any;
+    private table: string;
+    private data: any;
+
+    constructor(db: any, table: string, data: any) {
+        this.db = db;
+        this.table = table;
+        this.data = data;
+    }
 
     select() {
         return {
@@ -306,12 +316,15 @@ class SQLiteInsertBuilder {
 
 class SQLiteUpdateBuilder {
     private conditions: string[] = [];
+    private db: any;
+    private table: string;
+    private data: any;
 
-    constructor(
-        private db: any,
-        private table: string,
-        private data: any,
-    ) {}
+    constructor(db: any, table: string, data: any) {
+        this.db = db;
+        this.table = table;
+        this.data = data;
+    }
 
     eq(column: string, value: any) {
         this.conditions.push(`${column} = ${this.formatValue(value)}`);
@@ -358,11 +371,13 @@ class SQLiteUpdateBuilder {
 
 class SQLiteDeleteBuilder {
     private conditions: string[] = [];
+    private db: any;
+    private table: string;
 
-    constructor(
-        private db: any,
-        private table: string,
-    ) {}
+    constructor(db: any, table: string) {
+        this.db = db;
+        this.table = table;
+    }
 
     eq(column: string, value: any) {
         this.conditions.push(`${column} = ${this.formatValue(value)}`);
