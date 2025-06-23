@@ -1,30 +1,82 @@
 import { createClient } from "@supabase/supabase-js";
 import { type Database } from "../types/supabase";
+import { type DatabaseClient, SQLiteClient } from "./database";
 
-// SuperBaseのプロジェクトURLとanon公開キーは、
-// SuperBaseダッシュボードの「Project Settings」-> 「API」で確認できます。
-const supabaseUrl = import.meta.env.VITE_SUPABASE_URL!;
-const supabaseAnonKey = import.meta.env.VITE_SUPABASE_ANON_KEY!;
+const supabaseUrl = import.meta.env.VITE_SUPABASE_URL;
+const supabaseAnonKey = import.meta.env.VITE_SUPABASE_ANON_KEY;
+const useLocalDb = import.meta.env.VITE_USE_LOCAL_DB === "true";
 
-// 環境変数が設定されているか確認（テスト環境では警告のみ）
-if (!supabaseUrl) {
+let client: DatabaseClient;
+
+if (useLocalDb || !supabaseUrl || supabaseUrl === "https://test.supabase.co") {
+    console.log("Using SQLite local database");
+    const sqliteClient = new SQLiteClient();
+
     if (typeof process !== "undefined" && process.env.NODE_ENV === "test") {
-        console.warn("VITE_SUPABASE_URL is not defined in test environment");
+        client = {
+            from: () => ({
+                select: () => Promise.resolve({ data: [], error: null }),
+                insert: () => Promise.resolve({ data: null, error: null }),
+                update: () => Promise.resolve({ data: [], error: null }),
+                delete: () => Promise.resolve({ data: null, error: null }),
+            }),
+            auth: {
+                getSession: async () => ({
+                    data: { session: null },
+                    error: null,
+                }),
+                onAuthStateChange: () => ({
+                    data: { subscription: { unsubscribe: () => {} } },
+                }),
+                signInWithOAuth: async () => {},
+                signOut: async () => {},
+            },
+        } as any;
     } else {
-        throw new Error("VITE_SUPABASE_URL is not defined");
+        try {
+            await sqliteClient.initialize();
+            client = sqliteClient as any;
+        } catch (error) {
+            console.error(
+                "SQLite initialization failed, falling back to mock client:",
+                error,
+            );
+            client = {
+                from: () => ({
+                    select: () => Promise.resolve({ data: [], error: null }),
+                    insert: () => Promise.resolve({ data: null, error: null }),
+                    update: () => Promise.resolve({ data: [], error: null }),
+                    delete: () => Promise.resolve({ data: null, error: null }),
+                }),
+                auth: {
+                    getSession: async () => ({
+                        data: { session: null },
+                        error: null,
+                    }),
+                    onAuthStateChange: () => ({
+                        data: { subscription: { unsubscribe: () => {} } },
+                    }),
+                    signInWithOAuth: async () => {},
+                    signOut: async () => {},
+                },
+            } as any;
+        }
     }
-}
-if (!supabaseAnonKey) {
-    if (typeof process !== "undefined" && process.env.NODE_ENV === "test") {
-        console.warn(
-            "VITE_SUPABASE_ANON_KEY is not defined in test environment",
-        );
-    } else {
-        throw new Error("VITE_SUPABASE_ANON_KEY is not defined");
+} else {
+    console.log("Using Supabase database");
+    if (!supabaseAnonKey) {
+        if (typeof process !== "undefined" && process.env.NODE_ENV === "test") {
+            console.warn(
+                "VITE_SUPABASE_ANON_KEY is not defined in test environment",
+            );
+        } else {
+            throw new Error("VITE_SUPABASE_ANON_KEY is not defined");
+        }
     }
+
+    const finalUrl = supabaseUrl || "https://test.supabase.co";
+    const finalKey = supabaseAnonKey || "test-anon-key";
+    client = createClient<Database>(finalUrl, finalKey) as any;
 }
 
-const finalUrl = supabaseUrl || "https://test.supabase.co";
-const finalKey = supabaseAnonKey || "test-anon-key";
-
-export const supabase = createClient<Database>(finalUrl, finalKey);
+export const supabase = client;
