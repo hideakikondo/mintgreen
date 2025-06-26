@@ -157,8 +157,6 @@ function View() {
                 >
                     結果を確認する
                 </button> */}
-
-
             </div>
         </div>
     );
