@@ -4,14 +4,13 @@ function View() {
     const navigate = useNavigate();
 
     const buttonStyle = {
-        width: "100%",
-        maxWidth: "600px",
-        padding: "1.5em 2em",
-        margin: "1rem 0",
+        width: "300px",
+        padding: "1.2em 2em",
+        margin: "1rem 1rem",
         backgroundColor: "white",
         border: "2px solid #e0e0e0",
         borderRadius: "12px",
-        fontSize: "1.2em",
+        fontSize: "1.1em",
         fontWeight: "500",
         cursor: "pointer",
         transition: "all 0.2s ease",
@@ -24,14 +23,14 @@ function View() {
         backgroundColor: "#f8f9ff",
     };
 
-    const sectionHeadingStyle = {
-        fontSize: "1.4em",
-        fontWeight: "600",
-        color: "#333",
-        marginTop: "2rem",
-        marginBottom: "1rem",
-        textAlign: "center" as const,
-    };
+    // const sectionHeadingStyle = {
+    //     fontSize: "1.4em",
+    //     fontWeight: "600",
+    //     color: "#333",
+    //     marginTop: "2rem",
+    //     marginBottom: "1rem",
+    //     textAlign: "center" as const,
+    // };
 
     return (
         <div
@@ -54,39 +53,21 @@ function View() {
                     textAlign: "center",
                 }}
             >
-                オンライン投票アプリ (Prototype)
+                いどばたご意見板
             </h1>
 
             <div
                 style={{
                     display: "flex",
-                    flexDirection: "column",
+                    flexDirection: "row",
                     alignItems: "center",
-                    gap: "1rem",
+                    justifyContent: "center",
+                    gap: "2rem",
                     width: "100%",
-                    maxWidth: "600px",
+                    maxWidth: "800px",
+                    flexWrap: "wrap",
                 }}
             >
-                <h2 style={sectionHeadingStyle}>有権者メニュー</h2>
-                <button
-                    style={buttonStyle}
-                    onClick={() => navigate("/register")}
-                    onMouseEnter={(e) => {
-                        Object.assign(
-                            (e.target as HTMLElement).style,
-                            buttonHoverStyle,
-                        );
-                    }}
-                    onMouseLeave={(e) => {
-                        Object.assign(
-                            (e.target as HTMLElement).style,
-                            buttonStyle,
-                        );
-                    }}
-                >
-                    有権者登録
-                </button>
-
                 <button
                     style={buttonStyle}
                     onClick={() => navigate("/issue-vote")}
@@ -108,6 +89,58 @@ function View() {
 
                 <button
                     style={buttonStyle}
+                    onClick={() => navigate("/issues")}
+                    onMouseEnter={(e) => {
+                        Object.assign(
+                            (e.target as HTMLElement).style,
+                            buttonHoverStyle,
+                        );
+                    }}
+                    onMouseLeave={(e) => {
+                        Object.assign(
+                            (e.target as HTMLElement).style,
+                            buttonStyle,
+                        );
+                    }}
+                >
+                    変更案一覧
+                </button>
+            </div>
+
+            <div
+                style={{
+                    display: "flex",
+                    flexDirection: "row",
+                    alignItems: "center",
+                    justifyContent: "center",
+                    gap: "2rem",
+                    width: "100%",
+                    maxWidth: "800px",
+                    flexWrap: "wrap",
+                }}
+            >
+                {/* <h2 style={sectionHeadingStyle}></h2>
+                <button
+                    style={buttonStyle}
+                    onClick={() => navigate("/register")}
+                    onMouseEnter={(e) => {
+                        Object.assign(
+                            (e.target as HTMLElement).style,
+                            buttonHoverStyle,
+                        );
+                    }}
+                    onMouseLeave={(e) => {
+                        Object.assign(
+                            (e.target as HTMLElement).style,
+                            buttonStyle,
+                        );
+                    }}
+                >
+                    ログイン
+                </button> */}
+
+                {/* <button
+                    style={buttonStyle}
                     onClick={() => navigate("/results")}
                     onMouseEnter={(e) => {
                         Object.assign(
@@ -123,11 +156,9 @@ function View() {
                     }}
                 >
                     結果を確認する
-                </button>
+                </button> */}
 
-                <h2 style={sectionHeadingStyle}>管理者メニュー</h2>
-
-                <button
+                {/* <button
                     style={buttonStyle}
                     onClick={() => navigate("/admin/elections/new")}
                     onMouseEnter={(e) => {
@@ -144,26 +175,7 @@ function View() {
                     }}
                 >
                     選挙を開催する
-                </button>
-
-                <button
-                    style={buttonStyle}
-                    onClick={() => navigate("/issues")}
-                    onMouseEnter={(e) => {
-                        Object.assign(
-                            (e.target as HTMLElement).style,
-                            buttonHoverStyle,
-                        );
-                    }}
-                    onMouseLeave={(e) => {
-                        Object.assign(
-                            (e.target as HTMLElement).style,
-                            buttonStyle,
-                        );
-                    }}
-                >
-                    GitHub Issue一覧
-                </button>
+                </button> */}
             </div>
         </div>
     );
