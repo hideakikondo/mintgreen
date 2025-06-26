@@ -1,7 +1,15 @@
+import { useState } from "react";
 import { useNavigate } from "react-router-dom";
+import { useAuth } from "../contexts/AuthContext";
 
 function View() {
     const navigate = useNavigate();
+    const { isAuthenticated, voter, login, logout, loading } = useAuth();
+    const [showLoginForm, setShowLoginForm] = useState(false);
+    const [displayName, setDisplayName] = useState("");
+    const [password, setPassword] = useState("");
+    const [loginError, setLoginError] = useState<string | null>(null);
+    const [loggingIn, setLoggingIn] = useState(false);
 
     const buttonStyle = {
         width: "300px",
@@ -22,6 +30,75 @@ function View() {
         borderColor: "#646cff",
         backgroundColor: "#f8f9ff",
     };
+
+    const inputStyle = {
+        width: "100%",
+        padding: "0.6em",
+        borderRadius: "8px",
+        border: "1px solid #ccc",
+        fontSize: "1em",
+        marginBottom: "1rem",
+    };
+
+    const cardStyle = {
+        backgroundColor: "white",
+        border: "2px solid #e0e0e0",
+        borderRadius: "12px",
+        padding: "1.5rem",
+        marginBottom: "2rem",
+        boxShadow: "0 2px 4px rgba(0,0,0,0.1)",
+        color: "#333",
+        maxWidth: "400px",
+    };
+
+    const handleEvaluateClick = () => {
+        if (isAuthenticated) {
+            navigate("/issue-vote");
+        } else {
+            setShowLoginForm(true);
+        }
+    };
+
+    const handleLoginSubmit = async (e: React.FormEvent) => {
+        e.preventDefault();
+        if (!displayName.trim() || !password.trim()) return;
+
+        setLoggingIn(true);
+        setLoginError(null);
+
+        const result = await login(displayName.trim(), password.trim());
+
+        if (result.success) {
+            setShowLoginForm(false);
+            setDisplayName("");
+            setPassword("");
+            navigate("/issue-vote");
+        } else {
+            setLoginError(result.error || "ログインに失敗しました");
+        }
+
+        setLoggingIn(false);
+    };
+
+    const handleLogout = () => {
+        logout();
+    };
+
+    if (loading) {
+        return (
+            <div
+                style={{
+                    minHeight: "100vh",
+                    backgroundColor: "#f5f7fa",
+                    display: "flex",
+                    alignItems: "center",
+                    justifyContent: "center",
+                }}
+            >
+                <h2>読み込み中...</h2>
+            </div>
+        );
+    }
 
     // const sectionHeadingStyle = {
     //     fontSize: "1.4em",
@@ -56,6 +133,128 @@ function View() {
                 いどばたご意見板
             </h1>
 
+            {isAuthenticated && voter && (
+                <div
+                    style={{
+                        ...cardStyle,
+                        textAlign: "center",
+                        marginBottom: "2rem",
+                    }}
+                >
+                    <p style={{ marginBottom: "1rem" }}>
+                        {voter.display_name} さん、こんにちは
+                    </p>
+                    <button
+                        onClick={handleLogout}
+                        style={{
+                            backgroundColor: "#666",
+                            color: "white",
+                            border: "none",
+                            padding: "0.5em 1em",
+                            borderRadius: "6px",
+                            cursor: "pointer",
+                            fontSize: "0.9em",
+                        }}
+                    >
+                        ログアウト
+                    </button>
+                </div>
+            )}
+
+            {showLoginForm && !isAuthenticated && (
+                <div style={cardStyle}>
+                    <h2 style={{ marginBottom: "1rem", textAlign: "center" }}>
+                        ログイン
+                    </h2>
+                    {loginError && (
+                        <div
+                            style={{
+                                backgroundColor: "#ffebee",
+                                color: "#c62828",
+                                padding: "1rem",
+                                borderRadius: "8px",
+                                marginBottom: "1rem",
+                            }}
+                        >
+                            {loginError}
+                        </div>
+                    )}
+                    <form onSubmit={handleLoginSubmit}>
+                        <input
+                            type="text"
+                            placeholder="表示名"
+                            value={displayName}
+                            onChange={(e) => setDisplayName(e.target.value)}
+                            style={inputStyle}
+                            required
+                        />
+                        <input
+                            type="password"
+                            placeholder="パスワード"
+                            value={password}
+                            onChange={(e) => setPassword(e.target.value)}
+                            style={inputStyle}
+                            required
+                        />
+                        <div style={{ display: "flex", gap: "0.5rem" }}>
+                            <button
+                                type="submit"
+                                disabled={loggingIn}
+                                style={{
+                                    backgroundColor: loggingIn
+                                        ? "#ccc"
+                                        : "#646cff",
+                                    color: "white",
+                                    border: "none",
+                                    padding: "0.8em 1em",
+                                    borderRadius: "8px",
+                                    cursor: loggingIn
+                                        ? "not-allowed"
+                                        : "pointer",
+                                    fontSize: "1em",
+                                    flex: 1,
+                                }}
+                            >
+                                {loggingIn ? "ログイン中..." : "ログイン"}
+                            </button>
+                            <button
+                                type="button"
+                                onClick={() => setShowLoginForm(false)}
+                                style={{
+                                    backgroundColor: "#666",
+                                    color: "white",
+                                    border: "none",
+                                    padding: "0.8em 1em",
+                                    borderRadius: "8px",
+                                    cursor: "pointer",
+                                    fontSize: "1em",
+                                }}
+                            >
+                                キャンセル
+                            </button>
+                        </div>
+                    </form>
+                    <div style={{ textAlign: "center", marginTop: "1rem" }}>
+                        <button
+                            onClick={() => {
+                                setShowLoginForm(false);
+                                navigate("/register");
+                            }}
+                            style={{
+                                background: "none",
+                                border: "none",
+                                color: "#646cff",
+                                cursor: "pointer",
+                                textDecoration: "underline",
+                                fontSize: "0.9em",
+                            }}
+                        >
+                            アカウントをお持ちでない方はこちら
+                        </button>
+                    </div>
+                </div>
+            )}
+
             <div
                 style={{
                     display: "flex",
@@ -70,7 +269,7 @@ function View() {
             >
                 <button
                     style={buttonStyle}
-                    onClick={() => navigate("/issue-vote")}
+                    onClick={handleEvaluateClick}
                     onMouseEnter={(e) => {
                         Object.assign(
                             (e.target as HTMLElement).style,
