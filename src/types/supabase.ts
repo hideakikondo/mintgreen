@@ -11,27 +11,21 @@ export type Database = {
         Tables: {
             voters: {
                 Row: {
-                    address: string | null;
-                    date_of_birth: string | null;
-                    identification_number: string;
+                    display_name: string;
+                    password: string;
                     is_eligible: boolean | null;
-                    name: string;
                     voter_id: string;
                 };
                 Insert: {
-                    address?: string | null;
-                    date_of_birth?: string | null;
-                    identification_number: string;
+                    display_name: string;
+                    password: string;
                     is_eligible?: boolean | null;
-                    name: string;
                     voter_id?: string;
                 };
                 Update: {
-                    address?: string | null;
-                    date_of_birth?: string | null;
-                    identification_number?: string;
+                    display_name?: string;
+                    password?: string;
                     is_eligible?: boolean | null;
-                    name?: string;
                     voter_id?: string;
                 };
                 Relationships: [];
