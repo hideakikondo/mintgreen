@@ -241,7 +241,7 @@ export default function VoterRegistrationPage() {
                             color: "#666",
                         }}
                     >
-                        これで選挙に参加することができます。
+                        これでGitHub Issues投票に参加することができます。
                     </p>
                     <button onClick={() => navigate("/")} style={buttonStyle}>
                         ホームに戻る

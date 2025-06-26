@@ -13,28 +13,8 @@ export default function AdminLayout() {
                         marginBottom: "2rem",
                     }}
                 >
-                    <h1>選挙管理システム</h1>
+                    <h1>管理システム</h1>
                     <nav style={{ marginTop: "1rem" }}>
-                        <Link
-                            to="/admin/elections/all"
-                            style={{
-                                color: "#646cff",
-                                marginRight: "1rem",
-                                textDecoration: "none",
-                            }}
-                        >
-                            選挙一覧
-                        </Link>
-                        <Link
-                            to="/admin/elections/new"
-                            style={{
-                                color: "#646cff",
-                                marginRight: "1rem",
-                                textDecoration: "none",
-                            }}
-                        >
-                            新しい選挙を作成
-                        </Link>
                         <Link
                             to="/"
                             style={{

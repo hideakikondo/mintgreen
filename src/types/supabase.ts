@@ -9,59 +9,6 @@ export type Json =
 export type Database = {
     public: {
         Tables: {
-            candidates: {
-                Row: {
-                    candidate_id: string;
-                    election_id: string;
-                    name: string;
-                    political_party: string | null;
-                };
-                Insert: {
-                    candidate_id?: string;
-                    election_id: string;
-                    name: string;
-                    political_party?: string | null;
-                };
-                Update: {
-                    candidate_id?: string;
-                    election_id?: string;
-                    name?: string;
-                    political_party?: string | null;
-                };
-                Relationships: [
-                    {
-                        foreignKeyName: "candidates_election_id_fkey";
-                        columns: ["election_id"];
-                        isOneToOne: false;
-                        referencedRelation: "elections";
-                        referencedColumns: ["election_id"];
-                    },
-                ];
-            };
-            elections: {
-                Row: {
-                    description: string | null;
-                    election_id: string;
-                    end_date: string;
-                    start_date: string;
-                    title: string;
-                };
-                Insert: {
-                    description?: string | null;
-                    election_id?: string;
-                    end_date: string;
-                    start_date: string;
-                    title: string;
-                };
-                Update: {
-                    description?: string | null;
-                    election_id?: string;
-                    end_date?: string;
-                    start_date?: string;
-                    title?: string;
-                };
-                Relationships: [];
-            };
             voters: {
                 Row: {
                     address: string | null;
@@ -89,55 +36,7 @@ export type Database = {
                 };
                 Relationships: [];
             };
-            votes: {
-                Row: {
-                    candidate_id: string;
-                    election_id: string;
-                    is_valid: boolean | null;
-                    timestamp: string | null;
-                    vote_id: string;
-                    voter_id: string;
-                };
-                Insert: {
-                    candidate_id: string;
-                    election_id: string;
-                    is_valid?: boolean | null;
-                    timestamp?: string | null;
-                    vote_id?: string;
-                    voter_id: string;
-                };
-                Update: {
-                    candidate_id?: string;
-                    election_id?: string;
-                    is_valid?: boolean | null;
-                    timestamp?: string | null;
-                    vote_id?: string;
-                    voter_id?: string;
-                };
-                Relationships: [
-                    {
-                        foreignKeyName: "votes_candidate_id_fkey";
-                        columns: ["candidate_id"];
-                        isOneToOne: false;
-                        referencedRelation: "candidates";
-                        referencedColumns: ["candidate_id"];
-                    },
-                    {
-                        foreignKeyName: "votes_election_id_fkey";
-                        columns: ["election_id"];
-                        isOneToOne: false;
-                        referencedRelation: "elections";
-                        referencedColumns: ["election_id"];
-                    },
-                    {
-                        foreignKeyName: "votes_voter_id_fkey";
-                        columns: ["voter_id"];
-                        isOneToOne: false;
-                        referencedRelation: "voters";
-                        referencedColumns: ["voter_id"];
-                    },
-                ];
-            };
+
             github_issues: {
                 Row: {
                     issue_id: string;
