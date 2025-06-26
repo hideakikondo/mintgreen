@@ -157,25 +157,6 @@ function View() {
                 >
                     結果を確認する
                 </button> */}
-
-                {/* <button
-                    style={buttonStyle}
-                    onClick={() => navigate("/admin/elections/new")}
-                    onMouseEnter={(e) => {
-                        Object.assign(
-                            (e.target as HTMLElement).style,
-                            buttonHoverStyle,
-                        );
-                    }}
-                    onMouseLeave={(e) => {
-                        Object.assign(
-                            (e.target as HTMLElement).style,
-                            buttonStyle,
-                        );
-                    }}
-                >
-                    選挙を開催する
-                </button> */}
             </div>
         </div>
     );
