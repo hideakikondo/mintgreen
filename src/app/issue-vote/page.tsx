@@ -1,15 +1,13 @@
-import React, { useEffect, useState } from "react";
+import { useEffect, useState } from "react";
 import { useNavigate } from "react-router-dom";
 import { supabase } from "../../lib/supabaseClient";
 import type { Tables } from "../../types/supabase";
+import { useAuth } from "../../contexts/AuthContext";
 
 export default function IssueVotePageComponent() {
     const [issues, setIssues] = useState<Tables<"github_issues">[]>([]);
     const [loading, setLoading] = useState(true);
     const [error, setError] = useState<string | null>(null);
-    const [displayName, setDisplayName] = useState("");
-    const [password, setPassword] = useState("");
-    const [voter, setVoter] = useState<Tables<"voters"> | null>(null);
     const [selectedVotes, setSelectedVotes] = useState<
         Record<string, "good" | "bad">
     >({});
@@ -19,24 +17,18 @@ export default function IssueVotePageComponent() {
     const [submitting, setSubmitting] = useState(false);
     const [submitSuccess, setSubmitSuccess] = useState<string | null>(null);
     const navigate = useNavigate();
+    const { voter, isAuthenticated, loading: authLoading } = useAuth();
 
     useEffect(() => {
-        const checkAuth = () => {
-            if (!voter) {
-                navigate("/register");
+        if (!authLoading) {
+            if (!isAuthenticated) {
+                navigate("/");
                 return;
             }
-        };
-
-        checkAuth();
-        fetchIssues();
-    }, [navigate, voter]);
-
-    useEffect(() => {
-        if (voter) {
+            fetchIssues();
             fetchExistingVotes();
         }
-    }, [voter]);
+    }, [navigate, isAuthenticated, authLoading]);
 
     const fetchIssues = async () => {
         try {
@@ -75,36 +67,6 @@ export default function IssueVotePageComponent() {
             setExistingVotes(votesMap);
         } catch (err) {
             console.error("既存投票取得エラー:", err);
-        }
-    };
-
-    const handleVoterAuthSubmit = async (e: React.FormEvent) => {
-        e.preventDefault();
-        if (!displayName.trim() || !password.trim()) return;
-
-        try {
-            const { data: voterData, error: voterError } = await supabase
-                .from("voters")
-                .select("*")
-                .eq("display_name", displayName.trim())
-                .eq("password", password.trim())
-                .single();
-
-            if (voterError) {
-                setError("表示名またはパスワードが正しくありません");
-                return;
-            }
-
-            if (!voterData.is_eligible) {
-                setError("この投票者は投票資格がありません");
-                return;
-            }
-
-            setVoter(voterData);
-            setError(null);
-        } catch (err) {
-            console.error("投票者認証エラー:", err);
-            setError("投票者の認証に失敗しました");
         }
     };
 
@@ -185,15 +147,6 @@ export default function IssueVotePageComponent() {
         } finally {
             setSubmitting(false);
         }
-    };
-
-    const inputStyle = {
-        width: "100%",
-        padding: "0.6em",
-        borderRadius: "8px",
-        border: "1px solid #ccc",
-        fontSize: "1em",
-        marginBottom: "1rem",
     };
 
     const buttonStyle = {
@@ -317,231 +270,181 @@ export default function IssueVotePageComponent() {
                     </div>
                 )}
 
-                {!voter ? (
+                <div style={cardStyle}>
+                    <h2 style={{ marginBottom: "0.5rem" }}>投票者情報</h2>
+                    <p style={{ color: "#666", marginBottom: "0" }}>
+                        {voter?.display_name} さん、こんにちは
+                    </p>
+                </div>
+
+                {issues.length === 0 ? (
                     <div style={cardStyle}>
-                        <h2 style={{ marginBottom: "1rem" }}>投票者認証</h2>
-                        <p style={{ marginBottom: "1rem", color: "#666" }}>
-                            変更案を評価するには、表示名とパスワードを入力してください
+                        <h2>評価可能な変更案はありません</h2>
+                        <p style={{ color: "#666" }}>
+                            評価可能な変更案が追加されるまでお待ちください
                         </p>
-                        <form onSubmit={handleVoterAuthSubmit}>
-                            <input
-                                type="text"
-                                placeholder="表示名"
-                                value={displayName}
-                                onChange={(e) => setDisplayName(e.target.value)}
-                                style={inputStyle}
-                                required
-                            />
-                            <input
-                                type="password"
-                                placeholder="パスワード"
-                                value={password}
-                                onChange={(e) => setPassword(e.target.value)}
-                                style={inputStyle}
-                                required
-                            />
-                            <button type="submit" style={buttonStyle}>
-                                認証
-                            </button>
-                        </form>
                     </div>
                 ) : (
                     <>
-                        <div style={cardStyle}>
-                            <h2 style={{ marginBottom: "0.5rem" }}>
-                                投票者情報
-                            </h2>
-                            <p style={{ color: "#666", marginBottom: "0" }}>
-                                {voter.display_name} さん、こんにちは
-                            </p>
-                        </div>
+                        {issues.map((issue) => {
+                            const existingVote = existingVotes[issue.issue_id];
+                            const selectedVote = selectedVotes[issue.issue_id];
 
-                        {issues.length === 0 ? (
-                            <div style={cardStyle}>
-                                <h2>評価可能な変更案はありません</h2>
-                                <p style={{ color: "#666" }}>
-                                    評価可能な変更案が追加されるまでお待ちください
-                                </p>
-                            </div>
-                        ) : (
-                            <>
-                                {issues.map((issue) => {
-                                    const existingVote =
-                                        existingVotes[issue.issue_id];
-                                    const selectedVote =
-                                        selectedVotes[issue.issue_id];
-
-                                    return (
+                            return (
+                                <div key={issue.issue_id} style={cardStyle}>
+                                    <div style={{ marginBottom: "1rem" }}>
                                         <div
-                                            key={issue.issue_id}
-                                            style={cardStyle}
+                                            style={{
+                                                fontSize: "0.9em",
+                                                color: "#666",
+                                                marginBottom: "0.5rem",
+                                            }}
                                         >
-                                            <div
-                                                style={{ marginBottom: "1rem" }}
-                                            >
-                                                <div
-                                                    style={{
-                                                        fontSize: "0.9em",
-                                                        color: "#666",
-                                                        marginBottom: "0.5rem",
-                                                    }}
-                                                >
-                                                    {issue.repository_owner}/
-                                                    {issue.repository_name} #
-                                                    {issue.github_issue_number}
-                                                    {issue.branch_name &&
-                                                        ` (${issue.branch_name})`}
-                                                </div>
-                                                <h3
-                                                    style={{
-                                                        marginBottom: "1rem",
-                                                        fontSize: "1.3em",
-                                                        fontWeight: "600",
-                                                    }}
-                                                >
-                                                    {issue.title}
-                                                </h3>
-                                                {issue.body && (
-                                                    <div
-                                                        style={{
-                                                            color: "#666",
-                                                            marginBottom:
-                                                                "1rem",
-                                                            lineHeight: "1.5",
-                                                            maxHeight: "100px",
-                                                            overflow: "hidden",
-                                                            display:
-                                                                "-webkit-box",
-                                                            WebkitLineClamp: 3,
-                                                            WebkitBoxOrient:
-                                                                "vertical" as const,
-                                                        }}
-                                                    >
-                                                        {issue.body}
-                                                    </div>
-                                                )}
-                                                <div
-                                                    style={{
-                                                        fontSize: "0.8em",
-                                                        color: "#888",
-                                                        marginBottom: "1.5rem",
-                                                    }}
-                                                >
-                                                    作成日:{" "}
-                                                    {new Date(
-                                                        issue.created_at,
-                                                    ).toLocaleString()}
-                                                </div>
-                                            </div>
-
-                                            {existingVote && (
-                                                <div
-                                                    style={{
-                                                        backgroundColor:
-                                                            "#f0f8ff",
-                                                        padding: "0.8rem",
-                                                        borderRadius: "6px",
-                                                        marginBottom: "1rem",
-                                                        fontSize: "0.9em",
-                                                        color: "#1976d2",
-                                                    }}
-                                                >
-                                                    現在の評価:{" "}
-                                                    {existingVote === "good"
-                                                        ? "👍 Good"
-                                                        : "👎 Bad"}
-                                                </div>
-                                            )}
-
+                                            {issue.repository_owner}/
+                                            {issue.repository_name} #
+                                            {issue.github_issue_number}
+                                            {issue.branch_name &&
+                                                ` (${issue.branch_name})`}
+                                        </div>
+                                        <h3
+                                            style={{
+                                                marginBottom: "1rem",
+                                                fontSize: "1.3em",
+                                                fontWeight: "600",
+                                            }}
+                                        >
+                                            {issue.title}
+                                        </h3>
+                                        {issue.body && (
                                             <div
                                                 style={{
-                                                    display: "flex",
-                                                    alignItems: "center",
-                                                    justifyContent:
-                                                        "space-between",
-                                                    flexWrap: "wrap",
-                                                    gap: "1rem",
+                                                    color: "#666",
+                                                    marginBottom: "1rem",
+                                                    lineHeight: "1.5",
+                                                    maxHeight: "100px",
+                                                    overflow: "hidden",
+                                                    display: "-webkit-box",
+                                                    WebkitLineClamp: 3,
+                                                    WebkitBoxOrient:
+                                                        "vertical" as const,
                                                 }}
                                             >
-                                                <div
-                                                    style={{
-                                                        display: "flex",
-                                                        gap: "0.5rem",
-                                                    }}
-                                                >
-                                                    <button
-                                                        style={
-                                                            selectedVote ===
-                                                                "good" ||
-                                                            existingVote ===
-                                                                "good"
-                                                                ? selectedGoodButtonStyle
-                                                                : goodButtonStyle
-                                                        }
-                                                        onClick={() =>
-                                                            handleVoteSelect(
-                                                                issue.issue_id,
-                                                                "good",
-                                                            )
-                                                        }
-                                                    >
-                                                        👍 Good
-                                                    </button>
-                                                    <button
-                                                        style={
-                                                            selectedVote ===
-                                                                "bad" ||
-                                                            existingVote ===
-                                                                "bad"
-                                                                ? selectedBadButtonStyle
-                                                                : badButtonStyle
-                                                        }
-                                                        onClick={() =>
-                                                            handleVoteSelect(
-                                                                issue.issue_id,
-                                                                "bad",
-                                                            )
-                                                        }
-                                                    >
-                                                        👎 Bad
-                                                    </button>
-                                                </div>
-
-                                                {selectedVote && (
-                                                    <button
-                                                        onClick={() =>
-                                                            handleVoteSubmit(
-                                                                issue.issue_id,
-                                                            )
-                                                        }
-                                                        disabled={submitting}
-                                                        style={{
-                                                            ...buttonStyle,
-                                                            backgroundColor:
-                                                                submitting
-                                                                    ? "#ccc"
-                                                                    : "#646cff",
-                                                            cursor: submitting
-                                                                ? "not-allowed"
-                                                                : "pointer",
-                                                        }}
-                                                    >
-                                                        {submitting
-                                                            ? "送信中..."
-                                                            : existingVote ===
-                                                                selectedVote
-                                                              ? "投票取消"
-                                                              : existingVote
-                                                                ? "投票変更"
-                                                                : "投票する"}
-                                                    </button>
-                                                )}
+                                                {issue.body}
                                             </div>
+                                        )}
+                                        <div
+                                            style={{
+                                                fontSize: "0.8em",
+                                                color: "#888",
+                                                marginBottom: "1.5rem",
+                                            }}
+                                        >
+                                            作成日:{" "}
+                                            {new Date(
+                                                issue.created_at,
+                                            ).toLocaleString()}
                                         </div>
-                                    );
-                                })}
-                            </>
-                        )}
+                                    </div>
+
+                                    {existingVote && (
+                                        <div
+                                            style={{
+                                                backgroundColor: "#f0f8ff",
+                                                padding: "0.8rem",
+                                                borderRadius: "6px",
+                                                marginBottom: "1rem",
+                                                fontSize: "0.9em",
+                                                color: "#1976d2",
+                                            }}
+                                        >
+                                            現在の評価:{" "}
+                                            {existingVote === "good"
+                                                ? "👍 Good"
+                                                : "👎 Bad"}
+                                        </div>
+                                    )}
+
+                                    <div
+                                        style={{
+                                            display: "flex",
+                                            alignItems: "center",
+                                            justifyContent: "space-between",
+                                            flexWrap: "wrap",
+                                            gap: "1rem",
+                                        }}
+                                    >
+                                        <div
+                                            style={{
+                                                display: "flex",
+                                                gap: "0.5rem",
+                                            }}
+                                        >
+                                            <button
+                                                style={
+                                                    selectedVote === "good" ||
+                                                    existingVote === "good"
+                                                        ? selectedGoodButtonStyle
+                                                        : goodButtonStyle
+                                                }
+                                                onClick={() =>
+                                                    handleVoteSelect(
+                                                        issue.issue_id,
+                                                        "good",
+                                                    )
+                                                }
+                                            >
+                                                👍 Good
+                                            </button>
+                                            <button
+                                                style={
+                                                    selectedVote === "bad" ||
+                                                    existingVote === "bad"
+                                                        ? selectedBadButtonStyle
+                                                        : badButtonStyle
+                                                }
+                                                onClick={() =>
+                                                    handleVoteSelect(
+                                                        issue.issue_id,
+                                                        "bad",
+                                                    )
+                                                }
+                                            >
+                                                👎 Bad
+                                            </button>
+                                        </div>
+
+                                        {selectedVote && (
+                                            <button
+                                                onClick={() =>
+                                                    handleVoteSubmit(
+                                                        issue.issue_id,
+                                                    )
+                                                }
+                                                disabled={submitting}
+                                                style={{
+                                                    ...buttonStyle,
+                                                    backgroundColor: submitting
+                                                        ? "#ccc"
+                                                        : "#646cff",
+                                                    cursor: submitting
+                                                        ? "not-allowed"
+                                                        : "pointer",
+                                                }}
+                                            >
+                                                {submitting
+                                                    ? "送信中..."
+                                                    : existingVote ===
+                                                        selectedVote
+                                                      ? "投票取消"
+                                                      : existingVote
+                                                        ? "投票変更"
+                                                        : "投票する"}
+                                            </button>
+                                        )}
+                                    </div>
+                                </div>
+                            );
+                        })}
                     </>
                 )}
             </div>
