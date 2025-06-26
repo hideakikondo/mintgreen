@@ -20,8 +20,16 @@ export default function IssueVotePageComponent() {
     const navigate = useNavigate();
 
     useEffect(() => {
+        const checkAuth = () => {
+            if (!voter) {
+                navigate("/register");
+                return;
+            }
+        };
+
+        checkAuth();
         fetchIssues();
-    }, []);
+    }, [navigate, voter]);
 
     useEffect(() => {
         if (voter) {
