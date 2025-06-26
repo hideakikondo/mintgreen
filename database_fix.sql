@@ -1,11 +1,16 @@
 
+
+
 SELECT 'Before changes - Current RLS policies:' as info;
 SELECT schemaname, tablename, policyname, permissive, roles, cmd, qual, with_check
 FROM pg_policies 
 WHERE tablename = 'voters';
 
 SELECT 'Before changes - Table structure:' as info;
-\d voters;
+SELECT column_name, data_type, is_nullable, column_default
+FROM information_schema.columns 
+WHERE table_name = 'voters' 
+ORDER BY ordinal_position;
 
 ALTER TABLE voters 
 ALTER COLUMN voter_id SET DEFAULT gen_random_uuid();
@@ -40,7 +45,10 @@ FROM pg_policies
 WHERE tablename = 'voters';
 
 SELECT 'After changes - Updated table structure:' as info;
-\d voters;
+SELECT column_name, data_type, is_nullable, column_default
+FROM information_schema.columns 
+WHERE table_name = 'voters' 
+ORDER BY ordinal_position;
 
 SELECT 'Testing voter registration:' as info;
 INSERT INTO voters (display_name, password, is_eligible) 
