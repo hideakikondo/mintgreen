@@ -7,7 +7,8 @@ export default function IssueVotePageComponent() {
     const [issues, setIssues] = useState<Tables<"github_issues">[]>([]);
     const [loading, setLoading] = useState(true);
     const [error, setError] = useState<string | null>(null);
-    const [voterIdNumber, setVoterIdNumber] = useState("");
+    const [displayName, setDisplayName] = useState("");
+    const [password, setPassword] = useState("");
     const [voter, setVoter] = useState<Tables<"voters"> | null>(null);
     const [selectedVotes, setSelectedVotes] = useState<
         Record<string, "good" | "bad">
@@ -77,19 +78,20 @@ export default function IssueVotePageComponent() {
         }
     };
 
-    const handleVoterIdSubmit = async (e: React.FormEvent) => {
+    const handleVoterAuthSubmit = async (e: React.FormEvent) => {
         e.preventDefault();
-        if (!voterIdNumber.trim()) return;
+        if (!displayName.trim() || !password.trim()) return;
 
         try {
             const { data: voterData, error: voterError } = await supabase
                 .from("voters")
                 .select("*")
-                .eq("identification_number", voterIdNumber.trim())
+                .eq("display_name", displayName.trim())
+                .eq("password", password.trim())
                 .single();
 
             if (voterError) {
-                setError("投票者IDが見つかりません");
+                setError("表示名またはパスワードが正しくありません");
                 return;
             }
 
@@ -101,8 +103,8 @@ export default function IssueVotePageComponent() {
             setVoter(voterData);
             setError(null);
         } catch (err) {
-            console.error("投票者確認エラー:", err);
-            setError("投票者の確認に失敗しました");
+            console.error("投票者認証エラー:", err);
+            setError("投票者の認証に失敗しました");
         }
     };
 
@@ -317,23 +319,29 @@ export default function IssueVotePageComponent() {
 
                 {!voter ? (
                     <div style={cardStyle}>
-                        <h2 style={{ marginBottom: "1rem" }}>投票者確認</h2>
+                        <h2 style={{ marginBottom: "1rem" }}>投票者認証</h2>
                         <p style={{ marginBottom: "1rem", color: "#666" }}>
-                            変更案を評価するには、投票者IDを入力してください
+                            変更案を評価するには、表示名とパスワードを入力してください
                         </p>
-                        <form onSubmit={handleVoterIdSubmit}>
+                        <form onSubmit={handleVoterAuthSubmit}>
                             <input
                                 type="text"
-                                placeholder="投票者ID（身分証明書番号）"
-                                value={voterIdNumber}
-                                onChange={(e) =>
-                                    setVoterIdNumber(e.target.value)
-                                }
+                                placeholder="表示名"
+                                value={displayName}
+                                onChange={(e) => setDisplayName(e.target.value)}
+                                style={inputStyle}
+                                required
+                            />
+                            <input
+                                type="password"
+                                placeholder="パスワード"
+                                value={password}
+                                onChange={(e) => setPassword(e.target.value)}
                                 style={inputStyle}
                                 required
                             />
                             <button type="submit" style={buttonStyle}>
-                                確認
+                                認証
                             </button>
                         </form>
                     </div>
@@ -344,7 +352,7 @@ export default function IssueVotePageComponent() {
                                 投票者情報
                             </h2>
                             <p style={{ color: "#666", marginBottom: "0" }}>
-                                {voter.name} さん、こんにちは
+                                {voter.display_name} さん、こんにちは
                             </p>
                         </div>
 

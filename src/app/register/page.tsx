@@ -1,43 +1,18 @@
-import type { User } from "@supabase/supabase-js";
-import { useEffect, useState } from "react";
+import { useState } from "react";
 import { useNavigate } from "react-router-dom";
 import { supabase } from "../../lib/supabaseClient";
 
-export default function VoterRegistrationPage() {
+export default function ProfileRegistrationPage() {
     const navigate = useNavigate();
-    const [user, setUser] = useState<User | null>(null);
-    const [loading, setLoading] = useState(true);
     const [submitting, setSubmitting] = useState(false);
     const [error, setError] = useState<string | null>(null);
     const [success, setSuccess] = useState(false);
     const [formData, setFormData] = useState({
-        name: "",
-        identification_number: "",
-        address: "",
-        date_of_birth: "",
+        display_name: "",
+        password: "",
+        password_confirmation: "",
         is_eligible: true,
     });
-
-    useEffect(() => {
-        const getSession = async () => {
-            const {
-                data: { session },
-            } = await supabase.auth.getSession();
-            setUser(session?.user ?? null);
-            setLoading(false);
-        };
-
-        getSession();
-
-        const {
-            data: { subscription },
-        } = supabase.auth.onAuthStateChange((_event, session) => {
-            setUser(session?.user ?? null);
-            setLoading(false);
-        });
-
-        return () => subscription.unsubscribe();
-    }, []);
 
     const handleInputChange = (field: string, value: string | boolean) => {
         setFormData((prev) => ({
@@ -46,14 +21,30 @@ export default function VoterRegistrationPage() {
         }));
     };
 
+    const validatePassword = (password: string): boolean => {
+        const passwordRegex =
+            /^(?=.*[a-zA-Z])(?=.*\d)(?=.*[!@#$%^&*()_+\-=\[\]{};':"\\|,.<>\/?]).{8,}$/;
+        return passwordRegex.test(password);
+    };
+
     const handleSubmit = async (e: React.FormEvent) => {
         e.preventDefault();
         if (
-            !user ||
-            !formData.name.trim() ||
-            !formData.identification_number.trim()
+            !formData.display_name.trim() ||
+            !formData.password.trim() ||
+            !formData.password_confirmation.trim()
         ) {
             setError("必須項目を入力してください");
+            return;
+        }
+
+        if (formData.password !== formData.password_confirmation) {
+            setError("パスワードが一致しません");
+            return;
+        }
+
+        if (!validatePassword(formData.password)) {
+            setError("パスワードは英数記号を含む8文字以上で入力してください");
             return;
         }
 
@@ -64,14 +55,11 @@ export default function VoterRegistrationPage() {
             const { data: existingVoter } = await supabase
                 .from("voters")
                 .select("voter_id")
-                .eq(
-                    "identification_number",
-                    formData.identification_number.trim(),
-                )
+                .eq("display_name", formData.display_name.trim())
                 .single();
 
             if (existingVoter) {
-                setError("この身分証明書番号は既に登録されています");
+                setError("この表示名は既に登録されています");
                 setSubmitting(false);
                 return;
             }
@@ -79,11 +67,8 @@ export default function VoterRegistrationPage() {
             const { error: insertError } = await supabase
                 .from("voters")
                 .insert({
-                    name: formData.name.trim(),
-                    identification_number:
-                        formData.identification_number.trim(),
-                    address: formData.address?.trim() || null,
-                    date_of_birth: formData.date_of_birth || null,
+                    display_name: formData.display_name.trim(),
+                    password: formData.password.trim(),
                     is_eligible: true,
                 });
 
@@ -91,7 +76,7 @@ export default function VoterRegistrationPage() {
 
             setSuccess(true);
         } catch (err) {
-            console.error("有権者登録エラー:", err);
+            console.error("プロフィール登録エラー:", err);
             setError("登録に失敗しました。もう一度お試しください。");
         } finally {
             setSubmitting(false);
@@ -131,14 +116,6 @@ export default function VoterRegistrationPage() {
         color: "#333",
     };
 
-    if (loading) {
-        return (
-            <div style={{ padding: "2rem", textAlign: "center" }}>
-                <h2>読み込み中...</h2>
-            </div>
-        );
-    }
-
     const supabaseUrl = import.meta.env.VITE_SUPABASE_URL;
     if (!supabaseUrl || supabaseUrl === "https://your-project.supabase.co") {
         console.log(
@@ -148,56 +125,6 @@ export default function VoterRegistrationPage() {
             <div style={{ padding: "2rem", textAlign: "center" }}>
                 <h2>開発環境</h2>
                 <p>Supabaseが設定されていません</p>
-            </div>
-        );
-    }
-
-    if (!user) {
-        return (
-            <div
-                style={{
-                    minHeight: "100vh",
-                    backgroundColor: "#f5f7fa",
-                    display: "flex",
-                    flexDirection: "column",
-                    alignItems: "center",
-                    justifyContent: "center",
-                    padding: "2rem",
-                }}
-            >
-                <div style={cardStyle}>
-                    <h1 style={{ textAlign: "center", marginBottom: "2rem" }}>
-                        有権者登録
-                    </h1>
-                    <h2 style={{ marginBottom: "1rem" }}>ログインが必要です</h2>
-                    <p style={{ marginBottom: "2rem", color: "#666" }}>
-                        有権者登録を行うには、まずGoogleアカウントでログインしてください。
-                    </p>
-                    <button
-                        onClick={async () => {
-                            await supabase.auth.signInWithOAuth({
-                                provider: "google",
-                                options: {
-                                    redirectTo:
-                                        window.location.origin + "/register",
-                                },
-                            });
-                        }}
-                        style={buttonStyle}
-                    >
-                        Googleでログイン
-                    </button>
-                    <button
-                        onClick={() => navigate("/")}
-                        style={{
-                            ...buttonStyle,
-                            backgroundColor: "#666",
-                            marginTop: "1rem",
-                        }}
-                    >
-                        ホームに戻る
-                    </button>
-                </div>
             </div>
         );
     }
@@ -232,7 +159,7 @@ export default function VoterRegistrationPage() {
                             fontSize: "1.1em",
                         }}
                     >
-                        有権者登録が正常に完了しました。
+                        プロフィール登録が正常に完了しました。
                     </p>
                     <p
                         style={{
@@ -265,21 +192,8 @@ export default function VoterRegistrationPage() {
         >
             <div style={cardStyle}>
                 <h1 style={{ textAlign: "center", marginBottom: "2rem" }}>
-                    有権者登録
+                    プロフィール登録
                 </h1>
-
-                <div
-                    style={{
-                        marginBottom: "2rem",
-                        padding: "1rem",
-                        backgroundColor: "#f0f8ff",
-                        borderRadius: "8px",
-                    }}
-                >
-                    <p style={{ margin: 0, color: "#666" }}>
-                        ログイン中: {user.email}
-                    </p>
-                </div>
 
                 {error && (
                     <div
@@ -304,13 +218,16 @@ export default function VoterRegistrationPage() {
                                 fontWeight: "500",
                             }}
                         >
-                            氏名 <span style={{ color: "#c62828" }}>*</span>
+                            表示名 <span style={{ color: "#c62828" }}>*</span>
                         </label>
                         <input
                             type="text"
-                            value={formData.name}
+                            value={formData.display_name}
                             onChange={(e) =>
-                                handleInputChange("name", e.target.value)
+                                handleInputChange(
+                                    "display_name",
+                                    e.target.value,
+                                )
                             }
                             style={inputStyle}
                             placeholder="山田太郎"
@@ -326,20 +243,17 @@ export default function VoterRegistrationPage() {
                                 fontWeight: "500",
                             }}
                         >
-                            身分証明書番号{" "}
+                            パスワード{" "}
                             <span style={{ color: "#c62828" }}>*</span>
                         </label>
                         <input
-                            type="text"
-                            value={formData.identification_number}
+                            type="password"
+                            value={formData.password}
                             onChange={(e) =>
-                                handleInputChange(
-                                    "identification_number",
-                                    e.target.value,
-                                )
+                                handleInputChange("password", e.target.value)
                             }
                             style={inputStyle}
-                            placeholder="運転免許証番号、マイナンバーカード番号など"
+                            placeholder="英数記号を含む8文字以上"
                             required
                         />
                         <p
@@ -353,27 +267,6 @@ export default function VoterRegistrationPage() {
                         </p>
                     </div>
 
-                    <div style={{ marginBottom: "1rem" }}>
-                        <label
-                            style={{
-                                display: "block",
-                                marginBottom: "0.5rem",
-                                fontWeight: "500",
-                            }}
-                        >
-                            住所（任意）
-                        </label>
-                        <input
-                            type="text"
-                            value={formData.address || ""}
-                            onChange={(e) =>
-                                handleInputChange("address", e.target.value)
-                            }
-                            style={inputStyle}
-                            placeholder="東京都渋谷区..."
-                        />
-                    </div>
-
                     <div style={{ marginBottom: "2rem" }}>
                         <label
                             style={{
@@ -382,18 +275,21 @@ export default function VoterRegistrationPage() {
                                 fontWeight: "500",
                             }}
                         >
-                            生年月日（任意）
+                            パスワード確認{" "}
+                            <span style={{ color: "#c62828" }}>*</span>
                         </label>
                         <input
-                            type="date"
-                            value={formData.date_of_birth || ""}
+                            type="password"
+                            value={formData.password_confirmation}
                             onChange={(e) =>
                                 handleInputChange(
-                                    "date_of_birth",
+                                    "password_confirmation",
                                     e.target.value,
                                 )
                             }
                             style={inputStyle}
+                            placeholder="パスワードを再入力してください"
+                            required
                         />
                     </div>
 
@@ -406,7 +302,7 @@ export default function VoterRegistrationPage() {
                             cursor: submitting ? "not-allowed" : "pointer",
                         }}
                     >
-                        {submitting ? "登録中..." : "有権者登録"}
+                        {submitting ? "登録中..." : "プロフィール登録"}
                     </button>
                 </form>
 
