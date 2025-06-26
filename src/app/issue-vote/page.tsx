@@ -1,8 +1,8 @@
 import { useEffect, useState } from "react";
 import { useNavigate } from "react-router-dom";
+import { useAuth } from "../../contexts/AuthContext";
 import { supabase } from "../../lib/supabaseClient";
 import type { Tables } from "../../types/supabase";
-import { useAuth } from "../../contexts/AuthContext";
 
 export default function IssueVotePageComponent() {
     const [issues, setIssues] = useState<Tables<"github_issues">[]>([]);
