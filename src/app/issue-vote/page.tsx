@@ -441,6 +441,20 @@ export default function IssueVotePageComponent() {
                                                         : "投票する"}
                                             </button>
                                         )}
+
+                                        <a
+                                            href={`https://github.com/${issue.repository_owner}/${issue.repository_name}/issues/${issue.github_issue_number}`}
+                                            target="_blank"
+                                            rel="noopener noreferrer"
+                                            style={{
+                                                ...buttonStyle,
+                                                backgroundColor: "#24292e",
+                                                textDecoration: "none",
+                                                display: "inline-block",
+                                            }}
+                                        >
+                                            🔗 GitHubで開く
+                                        </a>
                                     </div>
                                 </div>
                             );
