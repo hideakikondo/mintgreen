@@ -41,15 +41,43 @@ function View() {
         marginBottom: "1rem",
     };
 
-    const cardStyle = {
+    const overlayStyle = {
+        position: "fixed" as const,
+        top: 0,
+        left: 0,
+        right: 0,
+        bottom: 0,
+        backgroundColor: "rgba(0, 0, 0, 0.5)",
+        display: "flex",
+        alignItems: "center",
+        justifyContent: "center",
+        zIndex: 1000,
+    };
+
+    const modalStyle = {
         backgroundColor: "white",
         border: "2px solid #e0e0e0",
         borderRadius: "12px",
-        padding: "1.5rem",
-        marginBottom: "2rem",
-        boxShadow: "0 2px 4px rgba(0,0,0,0.1)",
+        padding: "2rem",
+        boxShadow: "0 4px 20px rgba(0,0,0,0.15)",
         color: "#333",
         maxWidth: "400px",
+        width: "90%",
+        maxHeight: "90vh",
+        overflow: "auto",
+    };
+
+    const logoutOverlayStyle = {
+        position: "fixed" as const,
+        top: "20px",
+        right: "20px",
+        backgroundColor: "white",
+        border: "2px solid #e0e0e0",
+        borderRadius: "12px",
+        padding: "1rem",
+        boxShadow: "0 4px 12px rgba(0,0,0,0.15)",
+        color: "#333",
+        zIndex: 999,
     };
 
     const handleEvaluateClick = () => {
@@ -145,15 +173,9 @@ function View() {
             </div>
 
             {isAuthenticated && voter && (
-                <div
-                    style={{
-                        ...cardStyle,
-                        textAlign: "center",
-                        marginBottom: "2rem",
-                    }}
-                >
-                    <p style={{ marginBottom: "1rem" }}>
-                        {voter.display_name} さん、こんにちは
+                <div style={logoutOverlayStyle}>
+                    <p style={{ marginBottom: "1rem", fontSize: "0.9em" }}>
+                        {voter.display_name} さん
                     </p>
                     <button
                         onClick={handleLogout}
@@ -165,6 +187,7 @@ function View() {
                             borderRadius: "6px",
                             cursor: "pointer",
                             fontSize: "0.9em",
+                            width: "100%",
                         }}
                     >
                         ログアウト
@@ -173,95 +196,109 @@ function View() {
             )}
 
             {showLoginForm && !isAuthenticated && (
-                <div style={cardStyle}>
-                    <h2 style={{ marginBottom: "1rem", textAlign: "center" }}>
-                        ログイン
-                    </h2>
-                    {loginError && (
-                        <div
+                <div
+                    style={overlayStyle}
+                    onClick={(e) => {
+                        if (e.target === e.currentTarget) {
+                            setShowLoginForm(false);
+                        }
+                    }}
+                >
+                    <div style={modalStyle}>
+                        <h2
                             style={{
-                                backgroundColor: "#ffebee",
-                                color: "#c62828",
-                                padding: "1rem",
-                                borderRadius: "8px",
                                 marginBottom: "1rem",
+                                textAlign: "center",
                             }}
                         >
-                            {loginError}
-                        </div>
-                    )}
-                    <form onSubmit={handleLoginSubmit}>
-                        <input
-                            type="text"
-                            placeholder="表示名"
-                            value={displayName}
-                            onChange={(e) => setDisplayName(e.target.value)}
-                            style={inputStyle}
-                            required
-                        />
-                        <input
-                            type="password"
-                            placeholder="パスワード"
-                            value={password}
-                            onChange={(e) => setPassword(e.target.value)}
-                            style={inputStyle}
-                            required
-                        />
-                        <div style={{ display: "flex", gap: "0.5rem" }}>
-                            <button
-                                type="submit"
-                                disabled={loggingIn}
+                            ログイン
+                        </h2>
+                        {loginError && (
+                            <div
                                 style={{
-                                    backgroundColor: loggingIn
-                                        ? "#ccc"
-                                        : "#646cff",
-                                    color: "white",
-                                    border: "none",
-                                    padding: "0.8em 1em",
+                                    backgroundColor: "#ffebee",
+                                    color: "#c62828",
+                                    padding: "1rem",
                                     borderRadius: "8px",
-                                    cursor: loggingIn
-                                        ? "not-allowed"
-                                        : "pointer",
-                                    fontSize: "1em",
-                                    flex: 1,
+                                    marginBottom: "1rem",
                                 }}
                             >
-                                {loggingIn ? "ログイン中..." : "ログイン"}
-                            </button>
+                                {loginError}
+                            </div>
+                        )}
+                        <form onSubmit={handleLoginSubmit}>
+                            <input
+                                type="text"
+                                placeholder="表示名"
+                                value={displayName}
+                                onChange={(e) => setDisplayName(e.target.value)}
+                                style={inputStyle}
+                                required
+                            />
+                            <input
+                                type="password"
+                                placeholder="パスワード"
+                                value={password}
+                                onChange={(e) => setPassword(e.target.value)}
+                                style={inputStyle}
+                                required
+                            />
+                            <div style={{ display: "flex", gap: "0.5rem" }}>
+                                <button
+                                    type="submit"
+                                    disabled={loggingIn}
+                                    style={{
+                                        backgroundColor: loggingIn
+                                            ? "#ccc"
+                                            : "#646cff",
+                                        color: "white",
+                                        border: "none",
+                                        padding: "0.8em 1em",
+                                        borderRadius: "8px",
+                                        cursor: loggingIn
+                                            ? "not-allowed"
+                                            : "pointer",
+                                        fontSize: "1em",
+                                        flex: 1,
+                                    }}
+                                >
+                                    {loggingIn ? "ログイン中..." : "ログイン"}
+                                </button>
+                                <button
+                                    type="button"
+                                    onClick={() => setShowLoginForm(false)}
+                                    style={{
+                                        backgroundColor: "#666",
+                                        color: "white",
+                                        border: "none",
+                                        padding: "0.8em 1em",
+                                        borderRadius: "8px",
+                                        cursor: "pointer",
+                                        fontSize: "1em",
+                                    }}
+                                >
+                                    キャンセル
+                                </button>
+                            </div>
+                        </form>
+                        <div style={{ textAlign: "center", marginTop: "1rem" }}>
                             <button
-                                type="button"
-                                onClick={() => setShowLoginForm(false)}
+                                onClick={() => {
+                                    setShowLoginForm(false);
+                                    navigate("/register");
+                                }}
                                 style={{
-                                    backgroundColor: "#666",
-                                    color: "white",
+                                    background: "none",
                                     border: "none",
-                                    padding: "0.8em 1em",
-                                    borderRadius: "8px",
+                                    color: "#646cff",
                                     cursor: "pointer",
-                                    fontSize: "1em",
+                                    textDecoration: "underline",
+                                    fontSize: "0.9em",
                                 }}
                             >
-                                キャンセル
+                                アカウントをお持ちでない方はこちら
                             </button>
                         </div>
-                    </form>
-                    <div style={{ textAlign: "center", marginTop: "1rem" }}>
-                        <button
-                            onClick={() => {
-                                setShowLoginForm(false);
-                                navigate("/register");
-                            }}
-                            style={{
-                                background: "none",
-                                border: "none",
-                                color: "#646cff",
-                                cursor: "pointer",
-                                textDecoration: "underline",
-                                fontSize: "0.9em",
-                            }}
-                        >
-                            アカウントをお持ちでない方はこちら
-                        </button>
                     </div>
                 </div>
             )}
