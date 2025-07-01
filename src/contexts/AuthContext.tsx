@@ -120,12 +120,23 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
         error?: string;
     }> => {
         try {
-            await supabase.auth.signInWithOAuth({
+            const redirectUrl =
+                import.meta.env.VITE_DEPLOYMENT_URL || window.location.origin;
+
+            const { error } = await supabase.auth.signInWithOAuth({
                 provider: "google",
                 options: {
-                    redirectTo: `${window.location.origin}/`,
+                    redirectTo: `${redirectUrl}/`,
                 },
             });
+
+            if (error) {
+                console.error("Google OAuth エラー:", error);
+                return {
+                    success: false,
+                    error: `Google認証に失敗しました: ${error.message}`,
+                };
+            }
 
             return { success: true };
         } catch (err) {
