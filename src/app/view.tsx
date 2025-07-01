@@ -263,7 +263,7 @@ function View() {
                     marginBottom: "2rem",
                 }}
             >
-                <IssueRanking maxItems={10} />
+                <IssueRanking />
             </div>
 
             <div

@@ -157,15 +157,15 @@ export default function IssueRanking({ maxItems = 5 }: IssueRankingProps) {
         color: "#666",
     };
 
-    const scoreStyle: React.CSSProperties = {
+    const voteButtonStyle: React.CSSProperties = {
         backgroundColor: "#f8f9fa",
-        padding: "0.25rem 0.5rem",
-        borderRadius: "4px",
-        fontSize: "0.8rem",
-        fontWeight: "500",
         color: "#333",
-        minWidth: "3rem",
-        textAlign: "center",
+        border: "1px solid #dee2e6",
+        padding: "0.5rem 1rem",
+        borderRadius: "4px",
+        cursor: "default",
+        fontSize: "0.9rem",
+        margin: "0 0.25rem",
     };
 
     if (loading) {
@@ -223,10 +223,20 @@ export default function IssueRanking({ maxItems = 5 }: IssueRankingProps) {
                         </div>
                     </div>
                     <div
-                        style={scoreStyle}
-                        title={`👍 ${item.totalGoodCount} (投票: ${item.goodVotes}, GitHub: ${item.issue.plus_one_count || 0}) | 👎 ${item.totalBadCount} (投票: ${item.badVotes}, GitHub: ${item.issue.minus_one_count || 0})`}
+                        style={{
+                            display: "flex",
+                            flexDirection: "column",
+                            alignItems: "center",
+                            gap: "0.5rem",
+                            minWidth: "120px",
+                        }}
                     >
-                        {item.score > 0 ? `+${item.score}` : item.score}
+                        <div style={voteButtonStyle}>
+                            👍 {item.totalGoodCount}
+                        </div>
+                        <div style={voteButtonStyle}>
+                            👎 {item.totalBadCount}
+                        </div>
                     </div>
                 </a>
             ))}
