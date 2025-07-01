@@ -104,12 +104,24 @@ export default function IssueRanking({ maxItems = 5 }: IssueRankingProps) {
             setLoading(true);
             setError(null);
 
-            const { data: issuesData, error: issuesError } = await supabase
-                .from("github_issues")
-                .select("*")
-                .order("created_at", { ascending: false });
+            let allIssuesData: Tables<"github_issues">[] = [];
+            let from = 0;
+            const batchSize = 1000;
 
-            if (issuesError) throw issuesError;
+            while (true) {
+                const { data: batchData, error: batchError } = await supabase
+                    .from("github_issues")
+                    .select("*")
+                    .order("created_at", { ascending: false })
+                    .range(from, from + batchSize - 1);
+
+                if (batchError) throw batchError;
+                if (!batchData || batchData.length === 0) break;
+
+                allIssuesData.push(...batchData);
+                if (batchData.length < batchSize) break;
+                from += batchSize;
+            }
 
             const { data: allVotes, error: votesError } = await supabase
                 .from("issue_votes")
@@ -134,7 +146,7 @@ export default function IssueRanking({ maxItems = 5 }: IssueRankingProps) {
             );
 
             const issuesWithVotes: IssueWithVotes[] = [];
-            for (const issue of issuesData || []) {
+            for (const issue of allIssuesData || []) {
                 const voteCounts = voteCountsMap[issue.issue_id] || {
                     good: 0,
                     bad: 0,
@@ -308,7 +320,7 @@ export default function IssueRanking({ maxItems = 5 }: IssueRankingProps) {
                         </div>
                     </div>
                     <CustomTooltip
-                        content={`👍 ${item.totalGoodCount} : 👎 ${item.totalBadCount}`}
+                        content={`👍 ${item.totalGoodCount} 👎 ${item.totalBadCount}`}
                     >
                         <div style={scoreStyle}>
                             {item.score > 0 ? `+${item.score}` : item.score}
