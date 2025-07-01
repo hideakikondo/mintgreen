@@ -133,8 +133,7 @@ npm run sync-prs
 src/
 ├── app/                    # ページコンポーネント
 │   ├── issues/            # GitHub Issues機能
-│   ├── issue-vote/        # Issue投票機能
-│   └── register/          # 有権者登録
+│   └── issue-vote/        # Issue投票機能
 ├── components/            # 再利用可能なコンポーネント
 │   ├── admin/            # 管理者用コンポーネント
 │   └── common/           # 共通コンポーネント

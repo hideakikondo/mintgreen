@@ -21,7 +21,7 @@ This file provides guidance to Claude Code (claude.ai/code) when working with co
 This is a React 19 + TypeScript voting application using Vite as the build tool and Supabase as the backend.
 
 **Key directories:**
-- `src/app/` - Page components organized by feature (admin, vote, register)
+- `src/app/` - Page components organized by feature (admin, vote)
 - `src/components/` - Reusable components (admin, common subdirectories)
 - `src/lib/` - Utilities and external service clients
 - `src/types/` - TypeScript type definitions
@@ -35,7 +35,7 @@ The application uses Supabase with four main tables:
 
 ### Routing Architecture
 Uses React Router with nested routes:
-- Public routes: `/`, `/register`, `/vote`, `/results`
+- Public routes: `/`, `/issues`, `/issue-vote`
 - Admin routes: `/admin/*` with nested subroutes for election management
 
 ### State Management
