@@ -6,6 +6,8 @@ interface IssueWithVotes {
     issue: Tables<"github_issues">;
     goodVotes: number;
     badVotes: number;
+    totalGoodCount: number;
+    totalBadCount: number;
     userVote?: Tables<"issue_votes"> | null;
 }
 
@@ -76,10 +78,17 @@ export default function IssuesPageComponent() {
                 };
                 let userVote: Tables<"issue_votes"> | null = null;
 
+                const totalGoodCount =
+                    voteCounts.good + (issue.plus_one_count || 0);
+                const totalBadCount =
+                    voteCounts.bad + (issue.minus_one_count || 0);
+
                 issuesWithVotes.push({
                     issue,
                     goodVotes: voteCounts.good,
                     badVotes: voteCounts.bad,
+                    totalGoodCount,
+                    totalBadCount,
                     userVote,
                 });
             }
@@ -257,153 +266,159 @@ export default function IssuesPageComponent() {
                             {issues.length} 件)
                         </div>
 
-                        {issues.map(({ issue, goodVotes, badVotes }) => (
-                            <div
-                                key={issue.issue_id}
-                                style={
-                                    isMobile
-                                        ? mobileIssueCardStyle
-                                        : issueCardStyle
-                                }
-                            >
+                        {issues.map(
+                            ({ issue, totalGoodCount, totalBadCount }) => (
                                 <div
-                                    style={{
-                                        display: "flex",
-                                        flexDirection: isMobile
-                                            ? "column"
-                                            : "row",
-                                        justifyContent: "space-between",
-                                        alignItems: isMobile
-                                            ? "flex-start"
-                                            : "flex-start",
-                                        gap: "1rem",
-                                    }}
+                                    key={issue.issue_id}
+                                    style={
+                                        isMobile
+                                            ? mobileIssueCardStyle
+                                            : issueCardStyle
+                                    }
                                 >
-                                    <div style={{ flex: 1 }}>
-                                        <div
-                                            style={{
-                                                display: "flex",
-                                                flexDirection: isMobile
-                                                    ? "column"
-                                                    : "row",
-                                                alignItems: isMobile
-                                                    ? "flex-start"
-                                                    : "center",
-                                                gap: "0.5rem",
-                                                marginBottom: "0.5rem",
-                                            }}
-                                        >
-                                            <span
-                                                style={{
-                                                    backgroundColor: "#f0f0f0",
-                                                    padding: "0.2rem 0.5rem",
-                                                    borderRadius: "4px",
-                                                    fontSize: "0.8rem",
-                                                    color: "#666",
-                                                }}
-                                            >
-                                                #{issue.github_issue_number}
-                                            </span>
-                                            <span
-                                                style={{
-                                                    backgroundColor: "#e3f2fd",
-                                                    padding: "0.2rem 0.5rem",
-                                                    borderRadius: "4px",
-                                                    fontSize: "0.8rem",
-                                                    color: "#1976d2",
-                                                }}
-                                            >
-                                                {issue.repository_owner}/
-                                                {issue.repository_name}
-                                            </span>
-                                        </div>
-                                        <h3
-                                            style={{
-                                                marginBottom: "0.5rem",
-                                                fontSize: isMobile
-                                                    ? "1rem"
-                                                    : "1.2rem",
-                                                lineHeight: "1.4",
-                                            }}
-                                        >
-                                            {issue.title}
-                                        </h3>
-                                        {issue.body && (
-                                            <p
-                                                style={{
-                                                    color: "#666",
-                                                    fontSize: "0.9rem",
-                                                    lineHeight: "1.5",
-                                                    marginBottom: "1rem",
-                                                    overflow: "hidden",
-                                                    display: "-webkit-box",
-                                                    WebkitLineClamp: 3,
-                                                    WebkitBoxOrient:
-                                                        "vertical" as const,
-                                                }}
-                                            >
-                                                {issue.body}
-                                            </p>
-                                        )}
-                                        <div
-                                            style={{
-                                                fontSize: "0.8rem",
-                                                color: "#888",
-                                                marginBottom: "1rem",
-                                            }}
-                                        >
-                                            作成日:{" "}
-                                            {new Date(
-                                                issue.created_at,
-                                            ).toLocaleDateString()}
-                                            {issue.branch_name && (
-                                                <span
-                                                    style={{
-                                                        marginLeft: "1rem",
-                                                    }}
-                                                >
-                                                    ブランチ:{" "}
-                                                    {issue.branch_name}
-                                                </span>
-                                            )}
-                                        </div>
-                                    </div>
-
                                     <div
                                         style={{
                                             display: "flex",
                                             flexDirection: isMobile
-                                                ? "row"
-                                                : "column",
-                                            alignItems: "center",
-                                            gap: "0.5rem",
-                                            minWidth: isMobile
-                                                ? "auto"
-                                                : "120px",
+                                                ? "column"
+                                                : "row",
+                                            justifyContent: "space-between",
+                                            alignItems: isMobile
+                                                ? "flex-start"
+                                                : "flex-start",
+                                            gap: "1rem",
                                         }}
                                     >
-                                        <div
-                                            style={{
-                                                ...voteButtonStyle,
-                                                cursor: "default",
-                                                backgroundColor: "#f8f9fa",
-                                            }}
-                                        >
-                                            👍 {goodVotes}
+                                        <div style={{ flex: 1 }}>
+                                            <div
+                                                style={{
+                                                    display: "flex",
+                                                    flexDirection: isMobile
+                                                        ? "column"
+                                                        : "row",
+                                                    alignItems: isMobile
+                                                        ? "flex-start"
+                                                        : "center",
+                                                    gap: "0.5rem",
+                                                    marginBottom: "0.5rem",
+                                                }}
+                                            >
+                                                <span
+                                                    style={{
+                                                        backgroundColor:
+                                                            "#f0f0f0",
+                                                        padding:
+                                                            "0.2rem 0.5rem",
+                                                        borderRadius: "4px",
+                                                        fontSize: "0.8rem",
+                                                        color: "#666",
+                                                    }}
+                                                >
+                                                    #{issue.github_issue_number}
+                                                </span>
+                                                <span
+                                                    style={{
+                                                        backgroundColor:
+                                                            "#e3f2fd",
+                                                        padding:
+                                                            "0.2rem 0.5rem",
+                                                        borderRadius: "4px",
+                                                        fontSize: "0.8rem",
+                                                        color: "#1976d2",
+                                                    }}
+                                                >
+                                                    {issue.repository_owner}/
+                                                    {issue.repository_name}
+                                                </span>
+                                            </div>
+                                            <h3
+                                                style={{
+                                                    marginBottom: "0.5rem",
+                                                    fontSize: isMobile
+                                                        ? "1rem"
+                                                        : "1.2rem",
+                                                    lineHeight: "1.4",
+                                                }}
+                                            >
+                                                {issue.title}
+                                            </h3>
+                                            {issue.body && (
+                                                <p
+                                                    style={{
+                                                        color: "#666",
+                                                        fontSize: "0.9rem",
+                                                        lineHeight: "1.5",
+                                                        marginBottom: "1rem",
+                                                        overflow: "hidden",
+                                                        display: "-webkit-box",
+                                                        WebkitLineClamp: 3,
+                                                        WebkitBoxOrient:
+                                                            "vertical" as const,
+                                                    }}
+                                                >
+                                                    {issue.body}
+                                                </p>
+                                            )}
+                                            <div
+                                                style={{
+                                                    fontSize: "0.8rem",
+                                                    color: "#888",
+                                                    marginBottom: "1rem",
+                                                }}
+                                            >
+                                                作成日:{" "}
+                                                {new Date(
+                                                    issue.created_at,
+                                                ).toLocaleDateString()}
+                                                {issue.branch_name && (
+                                                    <span
+                                                        style={{
+                                                            marginLeft: "1rem",
+                                                        }}
+                                                    >
+                                                        ブランチ:{" "}
+                                                        {issue.branch_name}
+                                                    </span>
+                                                )}
+                                            </div>
                                         </div>
+
                                         <div
                                             style={{
-                                                ...voteButtonStyle,
-                                                cursor: "default",
-                                                backgroundColor: "#f8f9fa",
+                                                display: "flex",
+                                                flexDirection: isMobile
+                                                    ? "row"
+                                                    : "column",
+                                                alignItems: "center",
+                                                gap: "0.5rem",
+                                                minWidth: isMobile
+                                                    ? "auto"
+                                                    : "120px",
                                             }}
                                         >
-                                            👎 {badVotes}
+                                            <div
+                                                style={{
+                                                    ...voteButtonStyle,
+                                                    cursor: "default",
+                                                    backgroundColor: "#f8f9fa",
+                                                }}
+                                            >
+                                                👍 {totalGoodCount}
+                                            </div>
+                                            <div
+                                                style={{
+                                                    ...voteButtonStyle,
+                                                    cursor: "default",
+                                                    backgroundColor: "#f8f9fa",
+                                                }}
+                                            >
+                                                👎 {totalBadCount}
+                                            </div>
                                         </div>
                                     </div>
                                 </div>
-                            </div>
-                        ))}
+                            ),
+                        )}
 
                         {totalPages > 1 && (
                             <div style={paginationStyle}>
