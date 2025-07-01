@@ -2,6 +2,75 @@ import React, { useEffect, useState } from "react";
 import { supabase } from "../../lib/supabaseClient";
 import type { Tables } from "../../types/supabase";
 
+interface CustomTooltipProps {
+    content: string;
+    children: React.ReactNode;
+    delay?: number;
+}
+
+function CustomTooltip({ content, children, delay = 300 }: CustomTooltipProps) {
+    const [showTooltip, setShowTooltip] = useState(false);
+    const [timeoutId, setTimeoutId] = useState<NodeJS.Timeout | null>(null);
+
+    const handleMouseEnter = () => {
+        const id = setTimeout(() => {
+            setShowTooltip(true);
+        }, delay);
+        setTimeoutId(id);
+    };
+
+    const handleMouseLeave = () => {
+        if (timeoutId) {
+            clearTimeout(timeoutId);
+            setTimeoutId(null);
+        }
+        setShowTooltip(false);
+    };
+
+    return (
+        <div
+            style={{ position: "relative", display: "inline-block" }}
+            onMouseEnter={handleMouseEnter}
+            onMouseLeave={handleMouseLeave}
+        >
+            {children}
+            {showTooltip && (
+                <div
+                    style={{
+                        position: "absolute",
+                        bottom: "100%",
+                        left: "50%",
+                        transform: "translateX(-50%)",
+                        backgroundColor: "#333",
+                        color: "white",
+                        padding: "0.5rem",
+                        borderRadius: "4px",
+                        fontSize: "0.8rem",
+                        whiteSpace: "nowrap",
+                        zIndex: 1000,
+                        marginBottom: "0.25rem",
+                    }}
+                >
+                    {content}
+                    <div
+                        style={{
+                            position: "absolute",
+                            top: "100%",
+                            left: "50%",
+                            transform: "translateX(-50%)",
+                            width: 0,
+                            height: 0,
+                            borderLeft: "5px solid transparent",
+                            borderRight: "5px solid transparent",
+                            borderTop: "5px solid #333",
+                        }}
+                    />
+                </div>
+            )}
+        </div>
+    );
+}
+
 interface IssueWithVotes {
     issue: Tables<"github_issues">;
     goodVotes: number;
@@ -22,6 +91,12 @@ export default function IssueRanking({ maxItems = 5 }: IssueRankingProps) {
 
     useEffect(() => {
         fetchRankedIssues();
+
+        const interval = setInterval(() => {
+            fetchRankedIssues();
+        }, 30000);
+
+        return () => clearInterval(interval);
     }, []);
 
     const fetchRankedIssues = async () => {
@@ -29,12 +104,24 @@ export default function IssueRanking({ maxItems = 5 }: IssueRankingProps) {
             setLoading(true);
             setError(null);
 
-            const { data: issuesData, error: issuesError } = await supabase
-                .from("github_issues")
-                .select("*")
-                .order("created_at", { ascending: false });
+            let allIssuesData: Tables<"github_issues">[] = [];
+            let from = 0;
+            const batchSize = 1000;
 
-            if (issuesError) throw issuesError;
+            while (true) {
+                const { data: batchData, error: batchError } = await supabase
+                    .from("github_issues")
+                    .select("*")
+                    .order("created_at", { ascending: false })
+                    .range(from, from + batchSize - 1);
+
+                if (batchError) throw batchError;
+                if (!batchData || batchData.length === 0) break;
+
+                allIssuesData.push(...batchData);
+                if (batchData.length < batchSize) break;
+                from += batchSize;
+            }
 
             const { data: allVotes, error: votesError } = await supabase
                 .from("issue_votes")
@@ -59,7 +146,7 @@ export default function IssueRanking({ maxItems = 5 }: IssueRankingProps) {
             );
 
             const issuesWithVotes: IssueWithVotes[] = [];
-            for (const issue of issuesData || []) {
+            for (const issue of allIssuesData || []) {
                 const voteCounts = voteCountsMap[issue.issue_id] || {
                     good: 0,
                     bad: 0,
@@ -200,7 +287,7 @@ export default function IssueRanking({ maxItems = 5 }: IssueRankingProps) {
                     marginTop: 0,
                 }}
             >
-                上位のマニュフェスト提案
+                上位のマニファスト提案
             </h3>
             {rankedIssues.map((item, index) => (
                 <a
@@ -232,12 +319,13 @@ export default function IssueRanking({ maxItems = 5 }: IssueRankingProps) {
                             #{item.issue.github_issue_number}
                         </div>
                     </div>
-                    <div
-                        style={scoreStyle}
-                        title={`👍 ${item.totalGoodCount} | 👎 ${item.totalBadCount}`}
+                    <CustomTooltip
+                        content={`👍 ${item.totalGoodCount} 👎 ${item.totalBadCount}`}
                     >
-                        {item.score > 0 ? `+${item.score}` : item.score}
-                    </div>
+                        <div style={scoreStyle}>
+                            {item.score > 0 ? `+${item.score}` : item.score}
+                        </div>
+                    </CustomTooltip>
                 </a>
             ))}
         </div>
