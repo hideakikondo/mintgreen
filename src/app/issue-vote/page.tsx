@@ -428,7 +428,7 @@ export default function IssueVotePageComponent() {
                         textAlign: "center",
                     }}
                 >
-                    変更案評価
+                    変更案確認・評価
                 </h1>
 
                 <div style={{ textAlign: "center", marginBottom: "2rem" }}>
