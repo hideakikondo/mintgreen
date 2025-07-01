@@ -2,8 +2,8 @@ name: Sync GitHub Pull Requests
 
 on:
   schedule:
-    # 5分おきに実行
-    - cron: '*/5 * * * *'
+    # 15分おきに実行（より安定）
+    - cron: '*/15 * * * *'
   workflow_dispatch: # 手動実行も可能
 
 jobs:
