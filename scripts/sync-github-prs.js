@@ -147,7 +147,9 @@ async function batchSyncPRsToDatabase(prs, owner, repo) {
 
     for (const pr of prs) {
         const reactions = await fetchPRReactions(owner, repo, pr.number);
-        console.log(`処理中: PR #${pr.number} - ${pr.title} (👍${reactions.plusOne} 👎${reactions.minusOne})`);
+        console.log(
+            `処理中: PR #${pr.number} - ${pr.title} (👍${reactions.plusOne} 👎${reactions.minusOne})`,
+        );
         issuesData.push({
             github_issue_number: pr.number,
             repository_owner: owner,
@@ -210,9 +212,10 @@ async function batchDeleteClosedPRs(owner, repo, allPRs) {
         }
 
         const currentPRNumbers = new Set(allPRs.map((pr) => pr.number));
-        const issuesToDelete = existingIssues
-            .filter((issue) => !currentPRNumbers.has(issue.github_issue_number));
-        
+        const issuesToDelete = existingIssues.filter(
+            (issue) => !currentPRNumbers.has(issue.github_issue_number),
+        );
+
         const issueIdsToDelete = issuesToDelete.map((issue) => issue.issue_id);
 
         if (issueIdsToDelete.length === 0) {
@@ -223,10 +226,12 @@ async function batchDeleteClosedPRs(owner, repo, allPRs) {
         console.log(
             `${owner}/${repo}: ${issueIdsToDelete.length} 件のPRsをバッチ削除します`,
         );
-        
+
         // 削除対象のPR詳細をログ出力
         issuesToDelete.forEach((issue) => {
-            console.log(`削除対象: PR #${issue.github_issue_number} (ID: ${issue.issue_id})`);
+            console.log(
+                `削除対象: PR #${issue.github_issue_number} (ID: ${issue.issue_id})`,
+            );
         });
 
         const { error: deleteError } = await supabase
