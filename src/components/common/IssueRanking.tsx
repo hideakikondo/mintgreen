@@ -99,15 +99,16 @@ export default function IssueRanking({ maxItems = 5 }: IssueRankingProps) {
     };
 
     const rankingStyle: React.CSSProperties = {
-        backgroundColor: "white",
-        border: "2px solid #e0e0e0",
+        backgroundColor: "var(--bg-card)",
+        border: "2px solid var(--border-strong)",
         borderRadius: "12px",
         padding: "1.5rem",
         marginBottom: "2rem",
-        boxShadow: "0 2px 4px rgba(0,0,0,0.1)",
-        color: "#333",
+        boxShadow: "var(--card-shadow)",
+        color: "var(--text-primary)",
         maxWidth: "600px",
         width: "100%",
+        transition: "all 0.3s ease",
     };
 
     const rankingItemStyle: React.CSSProperties = {
@@ -115,7 +116,7 @@ export default function IssueRanking({ maxItems = 5 }: IssueRankingProps) {
         alignItems: "center",
         justifyContent: "space-between",
         padding: "0.75rem 0",
-        borderBottom: "1px solid #f0f0f0",
+        borderBottom: "1px solid var(--border-color)",
     };
 
     const rankingIconStyle: React.CSSProperties = {
@@ -143,16 +144,16 @@ export default function IssueRanking({ maxItems = 5 }: IssueRankingProps) {
 
     const issueMetaStyle: React.CSSProperties = {
         fontSize: "0.75rem",
-        color: "#666",
+        color: "var(--text-secondary)",
     };
 
     const scoreStyle: React.CSSProperties = {
-        backgroundColor: "#f8f9fa",
+        backgroundColor: "var(--hover-bg)",
         padding: "0.25rem 0.5rem",
         borderRadius: "4px",
         fontSize: "0.8rem",
         fontWeight: "500",
-        color: "#333",
+        color: "var(--text-primary)",
         minWidth: "3rem",
         textAlign: "center",
     };
@@ -192,13 +193,15 @@ export default function IssueRanking({ maxItems = 5 }: IssueRankingProps) {
                         borderBottom:
                             index === rankedIssues.length - 1
                                 ? "none"
-                                : "1px solid #f0f0f0",
+                                : "1px solid var(--border-color)",
                         textDecoration: "none",
                         color: "inherit",
                         cursor: "pointer",
+                        transition: "all 0.2s ease",
                     }}
                     onMouseEnter={(e) => {
-                        e.currentTarget.style.backgroundColor = "#f8f9fa";
+                        e.currentTarget.style.backgroundColor =
+                            "var(--hover-bg)";
                     }}
                     onMouseLeave={(e) => {
                         e.currentTarget.style.backgroundColor = "transparent";

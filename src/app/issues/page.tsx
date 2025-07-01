@@ -104,7 +104,7 @@ export default function IssuesPageComponent() {
 
     const containerStyle: React.CSSProperties = {
         minHeight: "100vh",
-        backgroundColor: "#f5f5f5",
+        backgroundColor: "var(--bg-primary)",
         padding: "2rem 1rem",
     };
 
@@ -121,7 +121,7 @@ export default function IssuesPageComponent() {
     const headerStyle: React.CSSProperties = {
         textAlign: "center",
         marginBottom: "2rem",
-        color: "#333",
+        color: "var(--text-primary)",
         fontSize: "2rem",
     };
 
@@ -132,11 +132,12 @@ export default function IssuesPageComponent() {
     };
 
     const cardStyle: React.CSSProperties = {
-        backgroundColor: "white",
+        backgroundColor: "var(--bg-card)",
+        border: "1px solid var(--border-strong)",
         borderRadius: "8px",
         padding: "2rem",
         marginBottom: "2rem",
-        boxShadow: "0 2px 4px rgba(0,0,0,0.1)",
+        boxShadow: "var(--card-shadow)",
     };
 
     const mobileCardStyle: React.CSSProperties = {
@@ -146,12 +147,12 @@ export default function IssuesPageComponent() {
     };
 
     const issueCardStyle: React.CSSProperties = {
-        backgroundColor: "white",
+        backgroundColor: "var(--bg-card)",
         borderRadius: "8px",
         padding: "1.5rem",
         marginBottom: "1rem",
-        boxShadow: "0 2px 4px rgba(0,0,0,0.1)",
-        border: "1px solid #e0e0e0",
+        boxShadow: "var(--card-shadow)",
+        border: "1px solid var(--border-strong)",
     };
 
     const mobileIssueCardStyle: React.CSSProperties = {
@@ -171,9 +172,9 @@ export default function IssuesPageComponent() {
     };
 
     const voteButtonStyle: React.CSSProperties = {
-        backgroundColor: "#f8f9fa",
-        color: "#333",
-        border: "1px solid #dee2e6",
+        backgroundColor: "var(--bg-secondary)",
+        color: "var(--text-primary)",
+        border: "1px solid var(--border-color)",
         padding: "0.5rem 1rem",
         borderRadius: "4px",
         cursor: "pointer",
@@ -190,9 +191,9 @@ export default function IssuesPageComponent() {
     };
 
     const pageButtonStyle: React.CSSProperties = {
-        backgroundColor: "#f8f9fa",
-        color: "#333",
-        border: "1px solid #dee2e6",
+        backgroundColor: "var(--hover-bg)",
+        color: "var(--text-primary)",
+        border: "1px solid var(--border-color)",
         padding: "0.5rem 0.75rem",
         borderRadius: "4px",
         cursor: "pointer",
@@ -247,7 +248,12 @@ export default function IssuesPageComponent() {
 
                 {!loading && issues.length === 0 && (
                     <div style={isMobile ? mobileCardStyle : cardStyle}>
-                        <p style={{ textAlign: "center", color: "#666" }}>
+                        <p
+                            style={{
+                                textAlign: "center",
+                                color: "var(--text-secondary)",
+                            }}
+                        >
                             GitHub Issueが見つかりませんでした
                         </p>
                     </div>
@@ -259,7 +265,7 @@ export default function IssuesPageComponent() {
                             style={{
                                 marginBottom: "1rem",
                                 textAlign: "center",
-                                color: "#666",
+                                color: "var(--text-secondary)",
                             }}
                         >
                             ページ {currentPage} / {totalPages} (全{" "}
@@ -306,12 +312,12 @@ export default function IssuesPageComponent() {
                                                 <span
                                                     style={{
                                                         backgroundColor:
-                                                            "#f0f0f0",
+                                                            "var(--bg-secondary)",
                                                         padding:
                                                             "0.2rem 0.5rem",
                                                         borderRadius: "4px",
                                                         fontSize: "0.8rem",
-                                                        color: "#666",
+                                                        color: "var(--text-secondary)",
                                                     }}
                                                 >
                                                     #{issue.github_issue_number}
@@ -345,7 +351,7 @@ export default function IssuesPageComponent() {
                                             {issue.body && (
                                                 <p
                                                     style={{
-                                                        color: "#666",
+                                                        color: "var(--text-secondary)",
                                                         fontSize: "0.9rem",
                                                         lineHeight: "1.5",
                                                         marginBottom: "1rem",
@@ -362,7 +368,7 @@ export default function IssuesPageComponent() {
                                             <div
                                                 style={{
                                                     fontSize: "0.8rem",
-                                                    color: "#888",
+                                                    color: "var(--text-secondary)",
                                                     marginBottom: "1rem",
                                                 }}
                                             >
@@ -400,7 +406,8 @@ export default function IssuesPageComponent() {
                                                 style={{
                                                     ...voteButtonStyle,
                                                     cursor: "default",
-                                                    backgroundColor: "#f8f9fa",
+                                                    backgroundColor:
+                                                        "var(--hover-bg)",
                                                 }}
                                             >
                                                 👍 {totalGoodCount}
@@ -409,7 +416,8 @@ export default function IssuesPageComponent() {
                                                 style={{
                                                     ...voteButtonStyle,
                                                     cursor: "default",
-                                                    backgroundColor: "#f8f9fa",
+                                                    backgroundColor:
+                                                        "var(--hover-bg)",
                                                 }}
                                             >
                                                 👎 {totalBadCount}

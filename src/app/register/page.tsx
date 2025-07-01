@@ -92,9 +92,11 @@ export default function ProfileRegistrationPage() {
         width: "100%",
         padding: "0.8em",
         borderRadius: "8px",
-        border: "1px solid #ccc",
+        border: "1px solid var(--border-color)",
         fontSize: "1em",
         marginBottom: "1rem",
+        backgroundColor: "var(--bg-card)",
+        color: "var(--text-primary)",
     };
 
     const buttonStyle = {
@@ -110,15 +112,15 @@ export default function ProfileRegistrationPage() {
     };
 
     const cardStyle = {
-        backgroundColor: "white",
-        border: "2px solid #e0e0e0",
+        backgroundColor: "var(--bg-card)",
+        border: "2px solid var(--border-strong)",
         borderRadius: "12px",
         padding: "2rem",
         marginBottom: "2rem",
-        boxShadow: "0 2px 4px rgba(0,0,0,0.1)",
+        boxShadow: "var(--card-shadow)",
         maxWidth: "600px",
         width: "100%",
-        color: "#333",
+        color: "var(--text-primary)",
     };
 
     const supabaseUrl = import.meta.env.VITE_SUPABASE_URL;
@@ -139,7 +141,7 @@ export default function ProfileRegistrationPage() {
             <div
                 style={{
                     minHeight: "100vh",
-                    backgroundColor: "#f5f7fa",
+                    backgroundColor: "var(--bg-primary)",
                     display: "flex",
                     flexDirection: "column",
                     alignItems: "center",
@@ -170,7 +172,7 @@ export default function ProfileRegistrationPage() {
                         style={{
                             textAlign: "center",
                             marginBottom: "2rem",
-                            color: "#666",
+                            color: "var(--text-secondary)",
                         }}
                     >
                         これでGitHub Issues投票に参加することができます。
@@ -203,8 +205,8 @@ export default function ProfileRegistrationPage() {
                 {error && (
                     <div
                         style={{
-                            backgroundColor: "#ffebee",
-                            color: "#c62828",
+                            backgroundColor: "var(--error-bg, #ffebee)",
+                            color: "var(--error-text, #c62828)",
                             padding: "1rem",
                             borderRadius: "8px",
                             marginBottom: "2rem",
@@ -249,7 +251,11 @@ export default function ProfileRegistrationPage() {
                             }}
                         >
                             パスワード{" "}
-                            <span style={{ color: "#c62828" }}>*</span>
+                            <span
+                                style={{ color: "var(--error-text, #c62828)" }}
+                            >
+                                *
+                            </span>
                         </label>
                         <input
                             type="password"
@@ -264,7 +270,7 @@ export default function ProfileRegistrationPage() {
                         <p
                             style={{
                                 fontSize: "0.9em",
-                                color: "#666",
+                                color: "var(--text-secondary)",
                                 margin: "0 0 1rem 0",
                             }}
                         >
@@ -281,7 +287,11 @@ export default function ProfileRegistrationPage() {
                             }}
                         >
                             パスワード確認{" "}
-                            <span style={{ color: "#c62828" }}>*</span>
+                            <span
+                                style={{ color: "var(--error-text, #c62828)" }}
+                            >
+                                *
+                            </span>
                         </label>
                         <input
                             type="password"

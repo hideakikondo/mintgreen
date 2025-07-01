@@ -16,20 +16,23 @@ function View() {
         width: "300px",
         padding: "1.2em 2em",
         margin: "1rem 1rem",
-        backgroundColor: "white",
-        border: "2px solid #e0e0e0",
+        backgroundColor: "var(--bg-card)",
+        border: "2px solid var(--border-color)",
         borderRadius: "12px",
         fontSize: "1.1em",
         fontWeight: "500",
         cursor: "pointer",
-        transition: "all 0.2s ease",
-        color: "#333",
+        transition: "all 0.3s ease",
+        color: "var(--text-primary)",
+        boxShadow: "var(--card-shadow)",
     };
 
     const buttonHoverStyle = {
         ...buttonStyle,
         borderColor: "#646cff",
-        backgroundColor: "#f8f9ff",
+        backgroundColor: "var(--hover-bg)",
+        boxShadow: "var(--card-shadow-hover)",
+        transform: "translateY(-2px)",
     };
 
     const inputStyle = {
@@ -42,13 +45,13 @@ function View() {
     };
 
     const cardStyle = {
-        backgroundColor: "white",
-        border: "2px solid #e0e0e0",
+        backgroundColor: "var(--bg-card)",
+        border: "2px solid var(--border-strong)",
         borderRadius: "12px",
         padding: "1.5rem",
         marginBottom: "2rem",
-        boxShadow: "0 2px 4px rgba(0,0,0,0.1)",
-        color: "#333",
+        boxShadow: "var(--card-shadow)",
+        color: "var(--text-primary)",
         maxWidth: "400px",
     };
 
@@ -90,7 +93,7 @@ function View() {
             <div
                 style={{
                     minHeight: "100vh",
-                    backgroundColor: "#f5f7fa",
+                    backgroundColor: "var(--bg-primary)",
                     display: "flex",
                     alignItems: "center",
                     justifyContent: "center",
@@ -114,7 +117,7 @@ function View() {
         <div
             style={{
                 minHeight: "100vh",
-                backgroundColor: "#f5f7fa",
+                backgroundColor: "var(--bg-primary)",
                 display: "flex",
                 flexDirection: "column",
                 alignItems: "center",
@@ -126,7 +129,7 @@ function View() {
                 style={{
                     fontSize: "2rem",
                     fontWeight: "600",
-                    color: "#333",
+                    color: "var(--text-primary)",
                     marginBottom: "3rem",
                     textAlign: "center",
                 }}

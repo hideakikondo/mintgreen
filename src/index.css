@@ -4,8 +4,22 @@
     font-weight: 400;
 
     color-scheme: light dark;
-    color: rgba(255, 255, 255, 0.87);
-    background-color: #242424;
+    color: rgba(255, 255, 255, 0.9);
+    background-color: #1e1e2e;
+
+    /* CSS variables for theme colors - Human-friendly dark theme */
+    --bg-primary: #1e1e2e;
+    --bg-secondary: #181825;
+    --bg-card: #2a2a3a;
+    --text-primary: rgba(255, 255, 255, 0.9);
+    --text-secondary: rgba(255, 255, 255, 0.65);
+    --border-color: #4c4c6d;
+    --border-strong: #5a5a7a;
+    --hover-bg: #353548;
+    --card-shadow: 0 8px 25px -5px rgba(0, 0, 0, 0.4), 0 4px 10px -3px
+        rgba(0, 0, 0, 0.25);
+    --card-shadow-hover: 0 12px 35px -8px rgba(0, 0, 0, 0.5), 0 6px 15px -4px
+        rgba(0, 0, 0, 0.3);
 
     font-synthesis: none;
     text-rendering: optimizeLegibility;
@@ -42,7 +56,7 @@ button {
     font-size: 1em;
     font-weight: 500;
     font-family: inherit;
-    background-color: #1a1a1a;
+    background-color: #2a2a3a;
     cursor: pointer;
     transition: border-color 0.25s;
 }
@@ -56,8 +70,22 @@ button:focus-visible {
 
 @media (prefers-color-scheme: light) {
     :root {
-        color: #213547;
-        background-color: #ffffff;
+        color: #1e293b;
+        background-color: #f8fafc;
+
+        /* Light theme variables - Human-friendly light theme */
+        --bg-primary: #f8fafc;
+        --bg-secondary: #ffffff;
+        --bg-card: #ffffff;
+        --text-primary: #1e293b;
+        --text-secondary: #64748b;
+        --border-color: #cbd5e1;
+        --border-strong: #94a3b8;
+        --hover-bg: #f1f5f9;
+        --card-shadow: 0 10px 25px -5px rgba(0, 0, 0, 0.15), 0 6px 12px -2px
+            rgba(0, 0, 0, 0.08);
+        --card-shadow-hover: 0 15px 35px -8px rgba(0, 0, 0, 0.2), 0 8px 18px
+            -3px rgba(0, 0, 0, 0.12);
     }
     a:hover {
         color: #747bff;

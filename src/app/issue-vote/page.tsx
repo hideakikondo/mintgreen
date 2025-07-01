@@ -178,13 +178,13 @@ export default function IssueVotePageComponent() {
     };
 
     const cardStyle = {
-        backgroundColor: "white",
-        border: "2px solid #e0e0e0",
+        backgroundColor: "var(--bg-card)",
+        border: "2px solid var(--border-strong)",
         borderRadius: "12px",
         padding: "1.5rem",
         marginBottom: "2rem",
-        boxShadow: "0 2px 4px rgba(0,0,0,0.1)",
-        color: "#333",
+        boxShadow: "var(--card-shadow)",
+        color: "var(--text-primary)",
     };
 
     const voteButtonStyle = {
@@ -233,9 +233,9 @@ export default function IssueVotePageComponent() {
     };
 
     const pageButtonStyle = {
-        backgroundColor: "#f8f9fa",
-        color: "#333",
-        border: "1px solid #dee2e6",
+        backgroundColor: "var(--hover-bg)",
+        color: "var(--text-primary)",
+        border: "1px solid var(--border-color)",
         padding: "0.5rem 0.75rem",
         borderRadius: "8px",
         cursor: "pointer",
@@ -262,7 +262,7 @@ export default function IssueVotePageComponent() {
         <div
             style={{
                 minHeight: "100vh",
-                backgroundColor: "#f5f7fa",
+                backgroundColor: "var(--bg-primary)",
                 padding: "2rem",
             }}
         >
@@ -271,7 +271,7 @@ export default function IssueVotePageComponent() {
                     style={{
                         fontSize: "2rem",
                         fontWeight: "600",
-                        color: "#333",
+                        color: "var(--text-primary)",
                         marginBottom: "2rem",
                         textAlign: "center",
                     }}
@@ -288,8 +288,8 @@ export default function IssueVotePageComponent() {
                 {error && (
                     <div
                         style={{
-                            backgroundColor: "#ffebee",
-                            color: "#c62828",
+                            backgroundColor: "var(--error-bg, #ffebee)",
+                            color: "var(--error-text, #c62828)",
                             padding: "1rem",
                             borderRadius: "8px",
                             marginBottom: "2rem",
@@ -302,8 +302,8 @@ export default function IssueVotePageComponent() {
                 {submitSuccess && (
                     <div
                         style={{
-                            backgroundColor: "#e8f5e8",
-                            color: "#2e7d32",
+                            backgroundColor: "var(--success-bg, #e8f5e8)",
+                            color: "var(--success-text, #2e7d32)",
                             padding: "1rem",
                             borderRadius: "8px",
                             marginBottom: "2rem",
@@ -315,7 +315,12 @@ export default function IssueVotePageComponent() {
 
                 <div style={cardStyle}>
                     <h2 style={{ marginBottom: "0.5rem" }}>投票者情報</h2>
-                    <p style={{ color: "#666", marginBottom: "0" }}>
+                    <p
+                        style={{
+                            color: "var(--text-secondary)",
+                            marginBottom: "0",
+                        }}
+                    >
                         {voter?.display_name} さん、こんにちは
                     </p>
                 </div>
@@ -325,7 +330,7 @@ export default function IssueVotePageComponent() {
                         style={{
                             marginBottom: "1rem",
                             textAlign: "center",
-                            color: "#666",
+                            color: "var(--text-secondary)",
                             fontSize: "0.9rem",
                         }}
                     >
@@ -352,7 +357,7 @@ export default function IssueVotePageComponent() {
                                         <div
                                             style={{
                                                 fontSize: "0.9em",
-                                                color: "#666",
+                                                color: "var(--text-secondary)",
                                                 marginBottom: "0.5rem",
                                             }}
                                         >
@@ -374,7 +379,7 @@ export default function IssueVotePageComponent() {
                                         {issue.body && (
                                             <div
                                                 style={{
-                                                    color: "#666",
+                                                    color: "var(--text-secondary)",
                                                     marginBottom: "1rem",
                                                     lineHeight: "1.5",
                                                     maxHeight: "100px",
@@ -405,12 +410,13 @@ export default function IssueVotePageComponent() {
                                     {existingVote && (
                                         <div
                                             style={{
-                                                backgroundColor: "#f0f8ff",
+                                                backgroundColor:
+                                                    "var(--info-bg, #f0f8ff)",
                                                 padding: "0.8rem",
                                                 borderRadius: "6px",
                                                 marginBottom: "1rem",
                                                 fontSize: "0.9em",
-                                                color: "#1976d2",
+                                                color: "var(--info-text, #1976d2)",
                                             }}
                                         >
                                             現在の評価:{" "}

@@ -4,11 +4,16 @@ import AuthChecker from "../common/AuthChecker";
 export default function AdminLayout() {
     return (
         <AuthChecker requireAdmin={true}>
-            <div style={{ minHeight: "100vh", backgroundColor: "#f5f5f5" }}>
+            <div
+                style={{
+                    minHeight: "100vh",
+                    backgroundColor: "var(--bg-primary)",
+                }}
+            >
                 <header
                     style={{
-                        backgroundColor: "#1a1a1a",
-                        color: "white",
+                        backgroundColor: "var(--header-bg, #1a1a1a)",
+                        color: "var(--header-text, white)",
                         padding: "1rem 2rem",
                         marginBottom: "2rem",
                     }}
