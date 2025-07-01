@@ -35,12 +35,14 @@ export default function DisplayNameInput({
     };
 
     const inputStyle = {
-        width: "280px",
+        width: "100%",
+        maxWidth: "400px",
         padding: "0.8em",
         borderRadius: "8px",
         border: "1px solid #ccc",
         fontSize: "1em",
         marginBottom: "1rem",
+        boxSizing: "border-box" as const,
     };
 
     const buttonStyle = {
@@ -62,7 +64,7 @@ export default function DisplayNameInput({
         padding: "2rem",
         boxShadow: "0 4px 20px rgba(0,0,0,0.15)",
         color: "#333",
-        maxWidth: "400px",
+        maxWidth: "500px",
         width: "90%",
         maxHeight: "90vh",
         overflow: "auto",
