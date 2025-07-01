@@ -413,7 +413,10 @@ export default function IssueVotePageComponent() {
                 }}
             >
                 <div style={{ maxWidth: "800px", margin: "0 auto" }}>
-                    <h2 style={{ textAlign: "center" }}>読み込み中...</h2>
+                    <div style={{ textAlign: "center" }}>
+                        <div className="spinner"></div>
+                        <h2 style={{ margin: 0 }}>読み込み中...</h2>
+                    </div>
                 </div>
             </div>
         );
@@ -441,13 +444,25 @@ export default function IssueVotePageComponent() {
                     変更案確認・評価
                 </h1>
 
-                <div style={{ textAlign: "center", marginBottom: "2rem" }}>
+                <div style={{ textAlign: "center", marginBottom: "1.5rem" }}>
                     <button
                         onClick={() => navigate("/")}
                         style={{ ...buttonStyle, backgroundColor: "#5FBEAA" }}
                     >
                         トップに戻る
                     </button>
+                </div>
+
+                <div style={{ marginBottom: "1rem", textAlign: "center" }}>
+                    <p
+                        style={{
+                            color: "#666",
+                            fontSize: "0.95rem",
+                            margin: "0",
+                        }}
+                    >
+                        {voter?.display_name} さん、こんにちは
+                    </p>
                 </div>
 
                 {error && (
@@ -477,18 +492,6 @@ export default function IssueVotePageComponent() {
                         {submitSuccess}
                     </div>
                 )}
-
-                <div style={{ marginBottom: "2rem", textAlign: "center" }}>
-                    <p
-                        style={{
-                            color: "#333",
-                            fontSize: "1.1rem",
-                            margin: "0",
-                        }}
-                    >
-                        {voter?.display_name} さん、こんにちは
-                    </p>
-                </div>
 
                 {/* 検索窓 */}
                 <div style={cardStyle}>
@@ -933,12 +936,57 @@ export default function IssueVotePageComponent() {
                                                     marginBottom: "1rem",
                                                     fontSize: "0.9em",
                                                     color: "#1976d2",
+                                                    display: "flex",
+                                                    justifyContent: "space-between",
+                                                    alignItems: "center",
+                                                    gap: "1rem",
                                                 }}
                                             >
-                                                現在の評価:{" "}
-                                                {existingVote === "good"
-                                                    ? "👍 Good"
-                                                    : "👎 Bad"}
+                                                <span>
+                                                    現在の評価:{" "}
+                                                    {existingVote === "good"
+                                                        ? "👍 Good"
+                                                        : "👎 Bad"}
+                                                </span>
+                                                <button
+                                                    onClick={() => {
+                                                        const issueUrl = `https://github.com/${issue.repository_owner}/${issue.repository_name}/issues/${issue.github_issue_number}`;
+                                                        const voteText = existingVote === "good" ? "Good" : "Bad";
+                                                        const tweetText = `${voter?.display_name}さんが${issue.title}に ${voteText}評価をしました #チームみらい #対話型マニフェスト\n\n${issueUrl}`;
+                                                        const twitterUrl = `https://twitter.com/intent/tweet?text=${encodeURIComponent(tweetText)}`;
+                                                        window.open(twitterUrl, '_blank');
+                                                    }}
+                                                    style={{
+                                                        backgroundColor: "#1da1f2",
+                                                        color: "white",
+                                                        border: "none",
+                                                        padding: "0.4rem 0.8rem",
+                                                        borderRadius: "4px",
+                                                        cursor: "pointer",
+                                                        fontSize: "0.8rem",
+                                                        fontWeight: "500",
+                                                        whiteSpace: "nowrap",
+                                                        display: "flex",
+                                                        alignItems: "center",
+                                                        gap: "0.3rem",
+                                                    }}
+                                                    onMouseEnter={(e) => {
+                                                        e.currentTarget.style.backgroundColor = "#1991db";
+                                                    }}
+                                                    onMouseLeave={(e) => {
+                                                        e.currentTarget.style.backgroundColor = "#1da1f2";
+                                                    }}
+                                                >
+                                                    <svg
+                                                        width="14"
+                                                        height="14"
+                                                        viewBox="0 0 24 24"
+                                                        fill="currentColor"
+                                                    >
+                                                        <path d="M18.244 2.25h3.308l-7.227 8.26 8.502 11.24H16.17l-5.214-6.817L4.99 21.75H1.68l7.73-8.835L1.254 2.25H8.08l4.713 6.231zm-1.161 17.52h1.833L7.084 4.126H5.117z" />
+                                                    </svg>
+                                                    Xに投稿
+                                                </button>
                                             </div>
                                         )}
 

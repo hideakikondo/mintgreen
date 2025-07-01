@@ -645,9 +645,10 @@ export default function IssuesPageComponent() {
 
                 {loading && (
                     <div style={isMobile ? mobileCardStyle : cardStyle}>
-                        <p style={{ textAlign: "center", margin: 0 }}>
-                            読み込み中...
-                        </p>
+                        <div style={{ textAlign: "center" }}>
+                            <div className="spinner"></div>
+                            <p style={{ margin: 0 }}>読み込み中...</p>
+                        </div>
                     </div>
                 )}
 

@@ -134,7 +134,10 @@ function View() {
                         margin: "0 auto",
                     }}
                 >
-                    <h2 style={{ textAlign: "center" }}>読み込み中...</h2>
+                    <div style={{ textAlign: "center" }}>
+                        <div className="spinner"></div>
+                        <h2 style={{ margin: 0 }}>読み込み中...</h2>
+                    </div>
                 </div>
             </div>
         );
