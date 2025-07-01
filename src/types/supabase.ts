@@ -12,19 +12,19 @@ export type Database = {
             voters: {
                 Row: {
                     display_name: string;
-                    user_email: string;
+                    password: string;
                     is_eligible: boolean | null;
                     voter_id: string;
                 };
                 Insert: {
                     display_name: string;
-                    user_email: string;
+                    password: string;
                     is_eligible?: boolean | null;
                     voter_id?: string;
                 };
                 Update: {
                     display_name?: string;
-                    user_email?: string;
+                    password?: string;
                     is_eligible?: boolean | null;
                     voter_id?: string;
                 };

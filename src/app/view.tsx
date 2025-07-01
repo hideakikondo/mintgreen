@@ -1,19 +1,14 @@
 import { useState } from "react";
 import { useNavigate } from "react-router-dom";
-import DisplayNameInput from "../components/DisplayNameInput";
 import IssueRanking from "../components/common/IssueRanking";
 import { useAuth } from "../contexts/AuthContext";
 
 function View() {
     const navigate = useNavigate();
-    const {
-        isAuthenticated,
-        voter,
-        signInWithGoogle,
-        logout,
-        loading,
-        needsDisplayName,
-    } = useAuth();
+    const { isAuthenticated, voter, login, logout, loading } = useAuth();
+    const [showLoginForm, setShowLoginForm] = useState(false);
+    const [displayName, setDisplayName] = useState("");
+    const [password, setPassword] = useState("");
     const [loginError, setLoginError] = useState<string | null>(null);
     const [loggingIn, setLoggingIn] = useState(false);
 
@@ -37,25 +32,81 @@ function View() {
         backgroundColor: "#f0fdf7",
     };
 
-    const handleEvaluateClick = async () => {
+    const inputStyle = {
+        width: "100%",
+        padding: "0.6em",
+        borderRadius: "8px",
+        border: "1px solid #ccc",
+        fontSize: "1em",
+        marginBottom: "1rem",
+    };
+
+    const overlayStyle = {
+        position: "fixed" as const,
+        top: 0,
+        left: 0,
+        right: 0,
+        bottom: 0,
+        backgroundColor: "rgba(0, 0, 0, 0.5)",
+        display: "flex",
+        alignItems: "center",
+        justifyContent: "center",
+        zIndex: 1000,
+    };
+
+    const modalStyle = {
+        backgroundColor: "white",
+        border: "2px solid #e0e0e0",
+        borderRadius: "12px",
+        padding: "2rem",
+        boxShadow: "0 4px 20px rgba(0,0,0,0.15)",
+        color: "#333",
+        maxWidth: "400px",
+        width: "90%",
+        maxHeight: "90vh",
+        overflow: "auto",
+    };
+
+    const logoutOverlayStyle = {
+        position: "fixed" as const,
+        top: "20px",
+        right: "20px",
+        backgroundColor: "white",
+        border: "2px solid #e0e0e0",
+        borderRadius: "12px",
+        padding: "1rem",
+        boxShadow: "0 4px 12px rgba(0,0,0,0.15)",
+        color: "#333",
+        zIndex: 999,
+    };
+
+    const handleEvaluateClick = () => {
         if (isAuthenticated) {
             navigate("/issue-vote");
         } else {
-            setLoggingIn(true);
-            setLoginError(null);
-
-            const result = await signInWithGoogle();
-
-            if (!result.success) {
-                setLoginError(result.error || "Google認証に失敗しました");
-            }
-
-            setLoggingIn(false);
+            setShowLoginForm(true);
         }
     };
 
-    const handleDisplayNameComplete = () => {
-        navigate("/issue-vote");
+    const handleLoginSubmit = async (e: React.FormEvent) => {
+        e.preventDefault();
+        if (!displayName.trim() || !password.trim()) return;
+
+        setLoggingIn(true);
+        setLoginError(null);
+
+        const result = await login(displayName.trim(), password.trim());
+
+        if (result.success) {
+            setShowLoginForm(false);
+            setDisplayName("");
+            setPassword("");
+            navigate("/issue-vote");
+        } else {
+            setLoginError(result.error || "ログインに失敗しました");
+        }
+
+        setLoggingIn(false);
     };
 
     const handleLogout = () => {
@@ -140,76 +191,21 @@ function View() {
                 </div>
 
                 {isAuthenticated && voter && (
-                    <div
-                        style={{
-                            position: "fixed" as const,
-                            top: "20px",
-                            right: "20px",
-                            backgroundColor: "#5FBEAA",
-                            color: "white",
-                            border: "none",
-                            borderRadius: "12px",
-                            padding: "1.2rem",
-                            boxShadow: "0 6px 20px rgba(95, 190, 170, 0.3)",
-                            zIndex: 999,
-                            minWidth: "200px",
-                        }}
-                    >
-                        <div
-                            style={{
-                                display: "flex",
-                                alignItems: "center",
-                                marginBottom: "1rem",
-                                gap: "0.5rem",
-                            }}
-                        >
-                            <div
-                                style={{
-                                    width: "8px",
-                                    height: "8px",
-                                    backgroundColor: "#4ade80",
-                                    borderRadius: "50%",
-                                }}
-                            />
-                            <span style={{ fontSize: "0.8em", opacity: 0.9 }}>
-                                サインイン中
-                            </span>
-                        </div>
-                        <p
-                            style={{
-                                marginBottom: "1rem",
-                                fontSize: "1em",
-                                fontWeight: "600",
-                                margin: "0 0 1rem 0",
-                            }}
-                        >
+                    <div style={logoutOverlayStyle}>
+                        <p style={{ marginBottom: "1rem", fontSize: "0.9em" }}>
                             {voter.display_name} さん
                         </p>
                         <button
                             onClick={handleLogout}
                             style={{
-                                backgroundColor: "rgba(255, 255, 255, 0.2)",
+                                backgroundColor: "#666",
                                 color: "white",
-                                border: "1px solid rgba(255, 255, 255, 0.3)",
-                                padding: "0.6em 1.2em",
-                                borderRadius: "8px",
+                                border: "none",
+                                padding: "0.5em 1em",
+                                borderRadius: "6px",
                                 cursor: "pointer",
                                 fontSize: "0.9em",
                                 width: "100%",
-                                fontWeight: "500",
-                                transition: "all 0.2s ease",
-                            }}
-                            onMouseEnter={(e) => {
-                                (
-                                    e.target as HTMLElement
-                                ).style.backgroundColor =
-                                    "rgba(255, 255, 255, 0.3)";
-                            }}
-                            onMouseLeave={(e) => {
-                                (
-                                    e.target as HTMLElement
-                                ).style.backgroundColor =
-                                    "rgba(255, 255, 255, 0.2)";
                             }}
                         >
                             ログアウト
@@ -217,26 +213,122 @@ function View() {
                     </div>
                 )}
 
-                {needsDisplayName && (
-                    <DisplayNameInput onComplete={handleDisplayNameComplete} />
-                )}
-
-                {loginError && !needsDisplayName && (
+                {showLoginForm && !isAuthenticated && (
                     <div
-                        style={{
-                            position: "fixed",
-                            top: "20px",
-                            left: "50%",
-                            transform: "translateX(-50%)",
-                            backgroundColor: "#ffebee",
-                            color: "#c62828",
-                            padding: "1rem",
-                            borderRadius: "8px",
-                            boxShadow: "0 4px 12px rgba(0,0,0,0.15)",
-                            zIndex: 999,
+                        style={overlayStyle}
+                        onClick={(e) => {
+                            if (e.target === e.currentTarget) {
+                                setShowLoginForm(false);
+                            }
                         }}
                     >
-                        {loginError}
+                        <div style={modalStyle}>
+                            <h2
+                                style={{
+                                    marginBottom: "1rem",
+                                    textAlign: "center",
+                                }}
+                            >
+                                ログイン
+                            </h2>
+                            {loginError && (
+                                <div
+                                    style={{
+                                        backgroundColor: "#ffebee",
+                                        color: "#c62828",
+                                        padding: "1rem",
+                                        borderRadius: "8px",
+                                        marginBottom: "1rem",
+                                    }}
+                                >
+                                    {loginError}
+                                </div>
+                            )}
+                            <form onSubmit={handleLoginSubmit}>
+                                <input
+                                    type="text"
+                                    placeholder="表示名"
+                                    value={displayName}
+                                    onChange={(e) =>
+                                        setDisplayName(e.target.value)
+                                    }
+                                    style={inputStyle}
+                                    required
+                                />
+                                <input
+                                    type="password"
+                                    placeholder="パスワード"
+                                    value={password}
+                                    onChange={(e) =>
+                                        setPassword(e.target.value)
+                                    }
+                                    style={inputStyle}
+                                    required
+                                />
+                                <div style={{ display: "flex", gap: "0.5rem" }}>
+                                    <button
+                                        type="submit"
+                                        disabled={loggingIn}
+                                        style={{
+                                            backgroundColor: loggingIn
+                                                ? "#ccc"
+                                                : "#5FBEAA",
+                                            color: "white",
+                                            border: "none",
+                                            padding: "0.8em 1em",
+                                            borderRadius: "8px",
+                                            cursor: loggingIn
+                                                ? "not-allowed"
+                                                : "pointer",
+                                            fontSize: "1em",
+                                            flex: 1,
+                                        }}
+                                    >
+                                        {loggingIn
+                                            ? "ログイン中..."
+                                            : "ログイン"}
+                                    </button>
+                                    <button
+                                        type="button"
+                                        onClick={() => setShowLoginForm(false)}
+                                        style={{
+                                            backgroundColor: "#666",
+                                            color: "white",
+                                            border: "none",
+                                            padding: "0.8em 1em",
+                                            borderRadius: "8px",
+                                            cursor: "pointer",
+                                            fontSize: "1em",
+                                        }}
+                                    >
+                                        キャンセル
+                                    </button>
+                                </div>
+                            </form>
+                            <div
+                                style={{
+                                    textAlign: "center",
+                                    marginTop: "1rem",
+                                }}
+                            >
+                                <button
+                                    onClick={() => {
+                                        setShowLoginForm(false);
+                                        navigate("/register");
+                                    }}
+                                    style={{
+                                        background: "none",
+                                        border: "none",
+                                        color: "#5FBEAA",
+                                        cursor: "pointer",
+                                        textDecoration: "underline",
+                                        fontSize: "0.9em",
+                                    }}
+                                >
+                                    アカウントをお持ちでない方はこちら
+                                </button>
+                            </div>
+                        </div>
                     </div>
                 )}
 
@@ -254,33 +346,22 @@ function View() {
                     }}
                 >
                     <button
-                        style={{
-                            ...buttonStyle,
-                            backgroundColor: loggingIn
-                                ? "#ccc"
-                                : buttonStyle.backgroundColor,
-                            cursor: loggingIn ? "not-allowed" : "pointer",
-                        }}
+                        style={buttonStyle}
                         onClick={handleEvaluateClick}
-                        disabled={loggingIn}
                         onMouseEnter={(e) => {
-                            if (!loggingIn) {
-                                Object.assign(
-                                    (e.target as HTMLElement).style,
-                                    buttonHoverStyle,
-                                );
-                            }
+                            Object.assign(
+                                (e.target as HTMLElement).style,
+                                buttonHoverStyle,
+                            );
                         }}
                         onMouseLeave={(e) => {
-                            if (!loggingIn) {
-                                Object.assign(
-                                    (e.target as HTMLElement).style,
-                                    buttonStyle,
-                                );
-                            }
+                            Object.assign(
+                                (e.target as HTMLElement).style,
+                                buttonStyle,
+                            );
                         }}
                     >
-                        {loggingIn ? "認証中..." : "共感を表明する"}
+                        共感を表明する
                     </button>
 
                     <button
