@@ -211,7 +211,7 @@ export default function IssueRanking({ maxItems = 5 }: IssueRankingProps) {
                             #{item.issue.github_issue_number}
                         </div>
                     </div>
-                    <div 
+                    <div
                         style={scoreStyle}
                         title={`👍 ${item.goodVotes} | 👎 ${item.badVotes}`}
                     >
