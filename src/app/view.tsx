@@ -126,7 +126,7 @@ function View() {
                         textAlign: "center",
                     }}
                 >
-                    いどばた みんなの共感アプリ(α版)
+                    いどばた政策 みんなの共感アプリ(α版)
                 </h1>
 
                 <div
