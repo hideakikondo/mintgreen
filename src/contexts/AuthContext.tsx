@@ -5,6 +5,11 @@ import React, {
     useEffect,
     type ReactNode,
 } from "react";
+import {
+    createHashedPassword,
+    isHashedPassword,
+    verifyPassword,
+} from "../lib/passwordUtils";
 import { supabase } from "../lib/supabaseClient";
 import type { Tables } from "../types/supabase";
 
@@ -59,10 +64,31 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
                 .from("voters")
                 .select("*")
                 .eq("display_name", displayName.trim())
-                .eq("password", password.trim())
                 .single();
 
-            if (voterError) {
+            if (voterError || !voterData) {
+                return {
+                    success: false,
+                    error: "表示名またはパスワードが正しくありません",
+                };
+            }
+
+            let isPasswordValid = false;
+            let needsPasswordUpdate = false;
+
+            if (isHashedPassword(voterData.password)) {
+                const [salt, hash] = voterData.password.split(":");
+                isPasswordValid = await verifyPassword(
+                    password.trim(),
+                    salt,
+                    hash,
+                );
+            } else {
+                isPasswordValid = voterData.password === password.trim();
+                needsPasswordUpdate = isPasswordValid;
+            }
+
+            if (!isPasswordValid) {
                 return {
                     success: false,
                     error: "表示名またはパスワードが正しくありません",
@@ -74,6 +100,18 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
                     success: false,
                     error: "この投票者は投票資格がありません",
                 };
+            }
+
+            if (needsPasswordUpdate) {
+                const hashedPassword = await createHashedPassword(
+                    password.trim(),
+                );
+                await supabase
+                    .from("voters")
+                    .update({ password: hashedPassword })
+                    .eq("voter_id", voterData.voter_id);
+
+                voterData.password = hashedPassword;
             }
 
             setVoter(voterData);
