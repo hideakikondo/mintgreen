@@ -361,7 +361,7 @@ function View() {
                             );
                         }}
                     >
-                        変更案確認・評価をする
+                        共感を表明する
                     </button>
 
                     <button
@@ -380,7 +380,7 @@ function View() {
                             );
                         }}
                     >
-                        みんなの評価を見る
+                        みんなの共感を見る
                     </button>
                 </div>
 

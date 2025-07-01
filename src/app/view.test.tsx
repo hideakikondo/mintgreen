@@ -30,7 +30,7 @@ describe("View", () => {
                 </BrowserRouter>
             </AuthProvider>,
         );
-        expect(screen.getByText("変更案確認・評価をする")).toBeInTheDocument();
-        expect(screen.getByText("みんなの評価を見る")).toBeInTheDocument();
+        expect(screen.getByText("共感を表明する")).toBeInTheDocument();
+        expect(screen.getByText("みんなの共感を見る")).toBeInTheDocument();
     });
 });
