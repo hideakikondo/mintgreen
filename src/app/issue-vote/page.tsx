@@ -4,6 +4,8 @@ import { useAuth } from "../../contexts/AuthContext";
 import { supabase } from "../../lib/supabaseClient";
 import type { Tables } from "../../types/supabase";
 
+type SortOption = "created_at_desc" | "id_asc" | "id_desc";
+
 export default function IssueVotePageComponent() {
     const [issues, setIssues] = useState<Tables<"github_issues">[]>([]);
     const [loading, setLoading] = useState(true);
@@ -22,6 +24,7 @@ export default function IssueVotePageComponent() {
     const { voter, isAuthenticated, loading: authLoading } = useAuth();
 
     const ITEMS_PER_PAGE = 50;
+    const [sortOption, setSortOption] = useState<SortOption>("created_at_desc");
 
     useEffect(() => {
         if (!authLoading) {
@@ -84,6 +87,30 @@ export default function IssueVotePageComponent() {
             setExistingVotes(votesMap);
         } catch (err) {
             console.error("既存投票取得エラー:", err);
+        }
+    };
+
+    const sortIssues = (
+        issues: Tables<"github_issues">[],
+        sortBy: SortOption,
+    ): Tables<"github_issues">[] => {
+        const sorted = [...issues];
+        switch (sortBy) {
+            case "id_asc":
+                return sorted.sort(
+                    (a, b) => a.github_issue_number - b.github_issue_number,
+                );
+            case "id_desc":
+                return sorted.sort(
+                    (a, b) => b.github_issue_number - a.github_issue_number,
+                );
+            case "created_at_desc":
+            default:
+                return sorted.sort(
+                    (a, b) =>
+                        new Date(b.created_at).getTime() -
+                        new Date(a.created_at).getTime(),
+                );
         }
     };
 
@@ -333,6 +360,41 @@ export default function IssueVotePageComponent() {
                     </div>
                 )}
 
+                {issues.length > 0 && (
+                    <div
+                        style={{
+                            marginBottom: "1.5rem",
+                            display: "flex",
+                            justifyContent: "center",
+                            alignItems: "center",
+                            gap: "0.5rem",
+                        }}
+                    >
+                        <label style={{ fontSize: "0.9rem", color: "#666" }}>
+                            ソート順:
+                        </label>
+                        <select
+                            value={sortOption}
+                            onChange={(e) =>
+                                setSortOption(e.target.value as SortOption)
+                            }
+                            style={{
+                                padding: "0.5rem",
+                                borderRadius: "4px",
+                                border: "1px solid #dee2e6",
+                                backgroundColor: "white",
+                                fontSize: "0.9rem",
+                            }}
+                        >
+                            <option value="created_at_desc">
+                                作成日時（新しい順）
+                            </option>
+                            <option value="id_asc">ID（昇順）</option>
+                            <option value="id_desc">ID（降順）</option>
+                        </select>
+                    </div>
+                )}
+
                 {issues.length === 0 ? (
                     <div style={cardStyle}>
                         <h2>評価可能な変更案はありません</h2>
@@ -342,7 +404,7 @@ export default function IssueVotePageComponent() {
                     </div>
                 ) : (
                     <>
-                        {issues.map((issue) => {
+                        {sortIssues(issues, sortOption).map((issue) => {
                             const existingVote = existingVotes[issue.issue_id];
                             const selectedVote = selectedVotes[issue.issue_id];
 
