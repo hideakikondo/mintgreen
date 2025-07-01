@@ -1,9 +1,9 @@
 name: Sync GitHub Pull Requests
 
 on:
-  # schedule:
-  #   # 毎日午前9時（UTC）に実行 (日本時間18時)
-  #   - cron: '0 9 * * *'
+  schedule:
+    # 毎日午後3時（UTC）に実行 (日本時間0時)
+    - cron: '0 15 * * *'
   workflow_dispatch: # 手動実行も可能
 
 jobs:
