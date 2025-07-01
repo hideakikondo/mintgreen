@@ -2,6 +2,14 @@ import React, { useEffect, useState } from "react";
 import { supabase } from "../../lib/supabaseClient";
 import type { Tables } from "../../types/supabase";
 
+type SortOption =
+    | "created_at_desc"
+    | "id_asc"
+    | "id_desc"
+    | "good_count"
+    | "bad_count"
+    | "user_evaluation";
+
 interface IssueWithVotes {
     issue: Tables<"github_issues">;
     goodVotes: number;
@@ -18,34 +26,45 @@ export default function IssuesPageComponent() {
 
     const [currentPage, setCurrentPage] = useState(1);
     const [totalPages, setTotalPages] = useState(1);
+    const [totalCount, setTotalCount] = useState(0);
 
     const ITEMS_PER_PAGE = 50;
+    const [sortOption, setSortOption] = useState<SortOption>("created_at_desc");
 
     useEffect(() => {
         fetchIssues();
-    }, [currentPage]);
+    }, []);
 
     const fetchIssues = async () => {
         try {
             setLoading(true);
             setError(null);
 
-            const { count } = await supabase
+            const { count, error: countError } = await supabase
                 .from("github_issues")
                 .select("*", { count: "exact", head: true });
 
-            setTotalPages(Math.ceil((count || 0) / ITEMS_PER_PAGE));
+            if (countError) throw countError;
+            setTotalCount(count || 0);
 
-            const { data: issuesData, error: issuesError } = await supabase
-                .from("github_issues")
-                .select("*")
-                .order("created_at", { ascending: false })
-                .range(
-                    (currentPage - 1) * ITEMS_PER_PAGE,
-                    currentPage * ITEMS_PER_PAGE - 1,
-                );
+            let allIssuesData: Tables<"github_issues">[] = [];
+            let from = 0;
+            const batchSize = 1000;
 
-            if (issuesError) throw issuesError;
+            while (true) {
+                const { data: batchData, error: batchError } = await supabase
+                    .from("github_issues")
+                    .select("*")
+                    .order("created_at", { ascending: false })
+                    .range(from, from + batchSize - 1);
+
+                if (batchError) throw batchError;
+                if (!batchData || batchData.length === 0) break;
+
+                allIssuesData.push(...batchData);
+                if (batchData.length < batchSize) break;
+                from += batchSize;
+            }
 
             const issuesWithVotes: IssueWithVotes[] = [];
 
@@ -71,7 +90,7 @@ export default function IssuesPageComponent() {
                 },
             );
 
-            for (const issue of issuesData || []) {
+            for (const issue of allIssuesData || []) {
                 const voteCounts = voteCountsMap[issue.issue_id] || {
                     good: 0,
                     bad: 0,
@@ -94,11 +113,53 @@ export default function IssuesPageComponent() {
             }
 
             setIssues(issuesWithVotes);
+            setTotalPages(Math.ceil((count || 0) / ITEMS_PER_PAGE));
         } catch (err) {
             console.error("Error fetching issues:", err);
             setError("Issue情報の取得に失敗しました");
         } finally {
             setLoading(false);
+        }
+    };
+
+    const sortIssues = (
+        issues: IssueWithVotes[],
+        sortBy: SortOption,
+    ): IssueWithVotes[] => {
+        const sorted = [...issues];
+        switch (sortBy) {
+            case "id_asc":
+                return sorted.sort(
+                    (a, b) =>
+                        a.issue.github_issue_number -
+                        b.issue.github_issue_number,
+                );
+            case "id_desc":
+                return sorted.sort(
+                    (a, b) =>
+                        b.issue.github_issue_number -
+                        a.issue.github_issue_number,
+                );
+            case "good_count":
+                return sorted.sort(
+                    (a, b) => b.totalGoodCount - a.totalGoodCount,
+                );
+            case "bad_count":
+                return sorted.sort((a, b) => b.totalBadCount - a.totalBadCount);
+            case "user_evaluation":
+                return sorted.sort(
+                    (a, b) =>
+                        b.totalGoodCount -
+                        b.totalBadCount -
+                        (a.totalGoodCount - a.totalBadCount),
+                );
+            case "created_at_desc":
+            default:
+                return sorted.sort(
+                    (a, b) =>
+                        new Date(b.issue.created_at).getTime() -
+                        new Date(a.issue.created_at).getTime(),
+                );
         }
     };
 
@@ -212,7 +273,7 @@ export default function IssuesPageComponent() {
         <div style={isMobile ? mobileContainerStyle : containerStyle}>
             <div style={contentStyle}>
                 <h1 style={isMobile ? mobileHeaderStyle : headerStyle}>
-                    GitHub Issue評価
+                    みんなの評価まとめ
                 </h1>
 
                 <div style={{ textAlign: "center", marginBottom: "2rem" }}>
@@ -262,12 +323,56 @@ export default function IssuesPageComponent() {
                                 color: "#666",
                             }}
                         >
-                            ページ {currentPage} / {totalPages} (全{" "}
-                            {issues.length} 件)
+                            ページ {currentPage} / {totalPages} (全 {totalCount}{" "}
+                            件)
                         </div>
 
-                        {issues.map(
-                            ({ issue, totalGoodCount, totalBadCount }) => (
+                        <div
+                            style={{
+                                marginBottom: "1.5rem",
+                                display: "flex",
+                                justifyContent: "center",
+                                alignItems: "center",
+                                gap: "0.5rem",
+                            }}
+                        >
+                            <label
+                                style={{ fontSize: "0.9rem", color: "#666" }}
+                            >
+                                ソート順:
+                            </label>
+                            <select
+                                value={sortOption}
+                                onChange={(e) =>
+                                    setSortOption(e.target.value as SortOption)
+                                }
+                                style={{
+                                    padding: "0.5rem",
+                                    borderRadius: "4px",
+                                    border: "1px solid #dee2e6",
+                                    backgroundColor: "white",
+                                    fontSize: "0.9rem",
+                                }}
+                            >
+                                <option value="created_at_desc">
+                                    作成日時（新しい順）
+                                </option>
+                                <option value="id_asc">ID（昇順）</option>
+                                <option value="id_desc">ID（降順）</option>
+                                <option value="good_count">Good数順</option>
+                                <option value="bad_count">Bad数順</option>
+                                <option value="user_evaluation">
+                                    ユーザー評価順（Good-Bad）
+                                </option>
+                            </select>
+                        </div>
+
+                        {sortIssues(issues, sortOption)
+                            .slice(
+                                (currentPage - 1) * ITEMS_PER_PAGE,
+                                currentPage * ITEMS_PER_PAGE,
+                            )
+                            .map(({ issue, totalGoodCount, totalBadCount }) => (
                                 <div
                                     key={issue.issue_id}
                                     style={
@@ -417,8 +522,7 @@ export default function IssuesPageComponent() {
                                         </div>
                                     </div>
                                 </div>
-                            ),
-                        )}
+                            ))}
 
                         {totalPages > 1 && (
                             <div style={paginationStyle}>
