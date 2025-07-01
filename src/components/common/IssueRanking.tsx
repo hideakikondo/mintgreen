@@ -287,7 +287,7 @@ export default function IssueRanking({ maxItems = 5 }: IssueRankingProps) {
                     marginTop: 0,
                 }}
             >
-                上位のマニュフェスト提案
+                上位のマニファスト提案
             </h3>
             {rankedIssues.map((item, index) => (
                 <a
