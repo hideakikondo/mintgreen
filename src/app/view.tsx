@@ -144,57 +144,6 @@ function View() {
                 <IssueRanking />
             </div>
 
-            <div
-                style={{
-                    display: "flex",
-                    flexDirection: "row",
-                    alignItems: "center",
-                    justifyContent: "center",
-                    gap: "2rem",
-                    width: "100%",
-                    maxWidth: "800px",
-                    flexWrap: "wrap",
-                }}
-            >
-                <button
-                    style={buttonStyle}
-                    onClick={handleEvaluateClick}
-                    onMouseEnter={(e) => {
-                        Object.assign(
-                            (e.target as HTMLElement).style,
-                            buttonHoverStyle,
-                        );
-                    }}
-                    onMouseLeave={(e) => {
-                        Object.assign(
-                            (e.target as HTMLElement).style,
-                            buttonStyle,
-                        );
-                    }}
-                >
-                    変更案を評価
-                </button>
-
-                <button
-                    style={buttonStyle}
-                    onClick={() => navigate("/issues")}
-                    onMouseEnter={(e) => {
-                        Object.assign(
-                            (e.target as HTMLElement).style,
-                            buttonHoverStyle,
-                        );
-                    }}
-                    onMouseLeave={(e) => {
-                        Object.assign(
-                            (e.target as HTMLElement).style,
-                            buttonStyle,
-                        );
-                    }}
-                >
-                    変更案一覧
-                </button>
-            </div>
-
             {isAuthenticated && voter && (
                 <div
                     style={{
@@ -316,6 +265,57 @@ function View() {
                     </div>
                 </div>
             )}
+
+            <div
+                style={{
+                    display: "flex",
+                    flexDirection: "row",
+                    alignItems: "center",
+                    justifyContent: "center",
+                    gap: "2rem",
+                    width: "100%",
+                    maxWidth: "800px",
+                    flexWrap: "wrap",
+                }}
+            >
+                <button
+                    style={buttonStyle}
+                    onClick={handleEvaluateClick}
+                    onMouseEnter={(e) => {
+                        Object.assign(
+                            (e.target as HTMLElement).style,
+                            buttonHoverStyle,
+                        );
+                    }}
+                    onMouseLeave={(e) => {
+                        Object.assign(
+                            (e.target as HTMLElement).style,
+                            buttonStyle,
+                        );
+                    }}
+                >
+                    変更案を評価
+                </button>
+
+                <button
+                    style={buttonStyle}
+                    onClick={() => navigate("/issues")}
+                    onMouseEnter={(e) => {
+                        Object.assign(
+                            (e.target as HTMLElement).style,
+                            buttonHoverStyle,
+                        );
+                    }}
+                    onMouseLeave={(e) => {
+                        Object.assign(
+                            (e.target as HTMLElement).style,
+                            buttonStyle,
+                        );
+                    }}
+                >
+                    変更案一覧
+                </button>
+            </div>
 
             <div
                 style={{
