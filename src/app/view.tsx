@@ -37,18 +37,6 @@ function View() {
         backgroundColor: "#f0fdf7",
     };
 
-    const logoutOverlayStyle = {
-        position: "fixed" as const,
-        top: "20px",
-        right: "20px",
-        backgroundColor: "white",
-        border: "2px solid #e0e0e0",
-        borderRadius: "12px",
-        padding: "1rem",
-        boxShadow: "0 4px 12px rgba(0,0,0,0.15)",
-        color: "#333",
-        zIndex: 999,
-    };
 
     const handleEvaluateClick = async () => {
         if (isAuthenticated) {
@@ -153,21 +141,72 @@ function View() {
                 </div>
 
                 {isAuthenticated && voter && (
-                    <div style={logoutOverlayStyle}>
-                        <p style={{ marginBottom: "1rem", fontSize: "0.9em" }}>
+                    <div
+                        style={{
+                            position: "fixed" as const,
+                            top: "20px",
+                            right: "20px",
+                            backgroundColor: "#5FBEAA",
+                            color: "white",
+                            border: "none",
+                            borderRadius: "12px",
+                            padding: "1.2rem",
+                            boxShadow: "0 6px 20px rgba(95, 190, 170, 0.3)",
+                            zIndex: 999,
+                            minWidth: "200px",
+                        }}
+                    >
+                        <div
+                            style={{
+                                display: "flex",
+                                alignItems: "center",
+                                marginBottom: "1rem",
+                                gap: "0.5rem",
+                            }}
+                        >
+                            <div
+                                style={{
+                                    width: "8px",
+                                    height: "8px",
+                                    backgroundColor: "#4ade80",
+                                    borderRadius: "50%",
+                                }}
+                            />
+                            <span style={{ fontSize: "0.8em", opacity: 0.9 }}>
+                                サインイン中
+                            </span>
+                        </div>
+                        <p
+                            style={{
+                                marginBottom: "1rem",
+                                fontSize: "1em",
+                                fontWeight: "600",
+                                margin: "0 0 1rem 0",
+                            }}
+                        >
                             {voter.display_name} さん
                         </p>
                         <button
                             onClick={handleLogout}
                             style={{
-                                backgroundColor: "#666",
+                                backgroundColor: "rgba(255, 255, 255, 0.2)",
                                 color: "white",
-                                border: "none",
-                                padding: "0.5em 1em",
-                                borderRadius: "6px",
+                                border: "1px solid rgba(255, 255, 255, 0.3)",
+                                padding: "0.6em 1.2em",
+                                borderRadius: "8px",
                                 cursor: "pointer",
                                 fontSize: "0.9em",
                                 width: "100%",
+                                fontWeight: "500",
+                                transition: "all 0.2s ease",
+                            }}
+                            onMouseEnter={(e) => {
+                                (e.target as HTMLElement).style.backgroundColor =
+                                    "rgba(255, 255, 255, 0.3)";
+                            }}
+                            onMouseLeave={(e) => {
+                                (e.target as HTMLElement).style.backgroundColor =
+                                    "rgba(255, 255, 255, 0.2)";
                             }}
                         >
                             ログアウト
