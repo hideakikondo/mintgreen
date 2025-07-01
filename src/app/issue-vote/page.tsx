@@ -35,31 +35,24 @@ export default function IssueVotePageComponent() {
             fetchIssues();
             fetchExistingVotes();
         }
-    }, [navigate, isAuthenticated, authLoading, currentPage]);
+    }, [navigate, isAuthenticated, authLoading]);
 
     const fetchIssues = async () => {
         try {
             setLoading(true);
             setError(null);
 
-            const { count } = await supabase
-                .from("github_issues")
-                .select("*", { count: "exact", head: true });
-
-            setTotalPages(Math.ceil((count || 0) / ITEMS_PER_PAGE));
-
             const { data: issuesData, error: issuesError } = await supabase
                 .from("github_issues")
                 .select("*")
-                .order("created_at", { ascending: false })
-                .range(
-                    (currentPage - 1) * ITEMS_PER_PAGE,
-                    currentPage * ITEMS_PER_PAGE - 1,
-                );
+                .order("created_at", { ascending: false });
 
             if (issuesError) throw issuesError;
 
             setIssues(issuesData || []);
+            setTotalPages(
+                Math.ceil((issuesData?.length || 0) / ITEMS_PER_PAGE),
+            );
         } catch (err) {
             console.error("GitHub Issue取得エラー:", err);
             setError("GitHub Issueの取得に失敗しました");
@@ -404,179 +397,189 @@ export default function IssueVotePageComponent() {
                     </div>
                 ) : (
                     <>
-                        {sortIssues(issues, sortOption).map((issue) => {
-                            const existingVote = existingVotes[issue.issue_id];
-                            const selectedVote = selectedVotes[issue.issue_id];
+                        {sortIssues(issues, sortOption)
+                            .slice(
+                                (currentPage - 1) * ITEMS_PER_PAGE,
+                                currentPage * ITEMS_PER_PAGE,
+                            )
+                            .map((issue) => {
+                                const existingVote =
+                                    existingVotes[issue.issue_id];
+                                const selectedVote =
+                                    selectedVotes[issue.issue_id];
 
-                            return (
-                                <div key={issue.issue_id} style={cardStyle}>
-                                    <div style={{ marginBottom: "1rem" }}>
-                                        <div
-                                            style={{
-                                                fontSize: "0.9em",
-                                                color: "#666",
-                                                marginBottom: "0.5rem",
-                                            }}
-                                        >
-                                            {issue.repository_owner}/
-                                            {issue.repository_name} #
-                                            {issue.github_issue_number}
-                                            {issue.branch_name &&
-                                                ` (${issue.branch_name})`}
-                                        </div>
-                                        <h3
-                                            style={{
-                                                marginBottom: "1rem",
-                                                fontSize: "1.3em",
-                                                fontWeight: "600",
-                                            }}
-                                        >
-                                            {issue.title}
-                                        </h3>
-                                        {issue.body && (
+                                return (
+                                    <div key={issue.issue_id} style={cardStyle}>
+                                        <div style={{ marginBottom: "1rem" }}>
                                             <div
                                                 style={{
+                                                    fontSize: "0.9em",
                                                     color: "#666",
-                                                    marginBottom: "1rem",
-                                                    lineHeight: "1.5",
-                                                    maxHeight: "100px",
-                                                    overflow: "hidden",
-                                                    display: "-webkit-box",
-                                                    WebkitLineClamp: 3,
-                                                    WebkitBoxOrient:
-                                                        "vertical" as const,
+                                                    marginBottom: "0.5rem",
                                                 }}
                                             >
-                                                {issue.body}
+                                                {issue.repository_owner}/
+                                                {issue.repository_name} #
+                                                {issue.github_issue_number}
+                                                {issue.branch_name &&
+                                                    ` (${issue.branch_name})`}
+                                            </div>
+                                            <h3
+                                                style={{
+                                                    marginBottom: "1rem",
+                                                    fontSize: "1.3em",
+                                                    fontWeight: "600",
+                                                }}
+                                            >
+                                                {issue.title}
+                                            </h3>
+                                            {issue.body && (
+                                                <div
+                                                    style={{
+                                                        color: "#666",
+                                                        marginBottom: "1rem",
+                                                        lineHeight: "1.5",
+                                                        maxHeight: "100px",
+                                                        overflow: "hidden",
+                                                        display: "-webkit-box",
+                                                        WebkitLineClamp: 3,
+                                                        WebkitBoxOrient:
+                                                            "vertical" as const,
+                                                    }}
+                                                >
+                                                    {issue.body}
+                                                </div>
+                                            )}
+                                            <div
+                                                style={{
+                                                    fontSize: "0.8em",
+                                                    color: "#888",
+                                                    marginBottom: "1.5rem",
+                                                }}
+                                            >
+                                                作成日:{" "}
+                                                {new Date(
+                                                    issue.created_at,
+                                                ).toLocaleString()}
+                                            </div>
+                                        </div>
+
+                                        {existingVote && (
+                                            <div
+                                                style={{
+                                                    backgroundColor: "#f0f8ff",
+                                                    padding: "0.8rem",
+                                                    borderRadius: "6px",
+                                                    marginBottom: "1rem",
+                                                    fontSize: "0.9em",
+                                                    color: "#1976d2",
+                                                }}
+                                            >
+                                                現在の評価:{" "}
+                                                {existingVote === "good"
+                                                    ? "👍 Good"
+                                                    : "👎 Bad"}
                                             </div>
                                         )}
-                                        <div
-                                            style={{
-                                                fontSize: "0.8em",
-                                                color: "#888",
-                                                marginBottom: "1.5rem",
-                                            }}
-                                        >
-                                            作成日:{" "}
-                                            {new Date(
-                                                issue.created_at,
-                                            ).toLocaleString()}
-                                        </div>
-                                    </div>
 
-                                    {existingVote && (
-                                        <div
-                                            style={{
-                                                backgroundColor: "#f0f8ff",
-                                                padding: "0.8rem",
-                                                borderRadius: "6px",
-                                                marginBottom: "1rem",
-                                                fontSize: "0.9em",
-                                                color: "#1976d2",
-                                            }}
-                                        >
-                                            現在の評価:{" "}
-                                            {existingVote === "good"
-                                                ? "👍 Good"
-                                                : "👎 Bad"}
-                                        </div>
-                                    )}
-
-                                    <div
-                                        style={{
-                                            display: "flex",
-                                            alignItems: "center",
-                                            justifyContent: "space-between",
-                                            flexWrap: "wrap",
-                                            gap: "1rem",
-                                        }}
-                                    >
                                         <div
                                             style={{
                                                 display: "flex",
-                                                gap: "0.5rem",
+                                                alignItems: "center",
+                                                justifyContent: "space-between",
+                                                flexWrap: "wrap",
+                                                gap: "1rem",
                                             }}
                                         >
-                                            <button
-                                                style={
-                                                    selectedVote === "good" ||
-                                                    existingVote === "good"
-                                                        ? selectedGoodButtonStyle
-                                                        : goodButtonStyle
-                                                }
-                                                onClick={() =>
-                                                    handleVoteSelect(
-                                                        issue.issue_id,
-                                                        "good",
-                                                    )
-                                                }
-                                            >
-                                                👍 Good
-                                            </button>
-                                            <button
-                                                style={
-                                                    selectedVote === "bad" ||
-                                                    existingVote === "bad"
-                                                        ? selectedBadButtonStyle
-                                                        : badButtonStyle
-                                                }
-                                                onClick={() =>
-                                                    handleVoteSelect(
-                                                        issue.issue_id,
-                                                        "bad",
-                                                    )
-                                                }
-                                            >
-                                                👎 Bad
-                                            </button>
-                                        </div>
-
-                                        {selectedVote && (
-                                            <button
-                                                onClick={() =>
-                                                    handleVoteSubmit(
-                                                        issue.issue_id,
-                                                    )
-                                                }
-                                                disabled={submitting}
+                                            <div
                                                 style={{
-                                                    ...buttonStyle,
-                                                    backgroundColor: submitting
-                                                        ? "#ccc"
-                                                        : "#646cff",
-                                                    cursor: submitting
-                                                        ? "not-allowed"
-                                                        : "pointer",
+                                                    display: "flex",
+                                                    gap: "0.5rem",
                                                 }}
                                             >
-                                                {submitting
-                                                    ? "送信中..."
-                                                    : existingVote ===
-                                                        selectedVote
-                                                      ? "投票取消"
-                                                      : existingVote
-                                                        ? "投票変更"
-                                                        : "投票する"}
-                                            </button>
-                                        )}
+                                                <button
+                                                    style={
+                                                        selectedVote ===
+                                                            "good" ||
+                                                        existingVote === "good"
+                                                            ? selectedGoodButtonStyle
+                                                            : goodButtonStyle
+                                                    }
+                                                    onClick={() =>
+                                                        handleVoteSelect(
+                                                            issue.issue_id,
+                                                            "good",
+                                                        )
+                                                    }
+                                                >
+                                                    👍 Good
+                                                </button>
+                                                <button
+                                                    style={
+                                                        selectedVote ===
+                                                            "bad" ||
+                                                        existingVote === "bad"
+                                                            ? selectedBadButtonStyle
+                                                            : badButtonStyle
+                                                    }
+                                                    onClick={() =>
+                                                        handleVoteSelect(
+                                                            issue.issue_id,
+                                                            "bad",
+                                                        )
+                                                    }
+                                                >
+                                                    👎 Bad
+                                                </button>
+                                            </div>
 
-                                        <a
-                                            href={`https://github.com/${issue.repository_owner}/${issue.repository_name}/issues/${issue.github_issue_number}`}
-                                            target="_blank"
-                                            rel="noopener noreferrer"
-                                            style={{
-                                                ...buttonStyle,
-                                                backgroundColor: "#24292e",
-                                                textDecoration: "none",
-                                                display: "inline-block",
-                                            }}
-                                        >
-                                            🔗 GitHubで開く
-                                        </a>
+                                            {selectedVote && (
+                                                <button
+                                                    onClick={() =>
+                                                        handleVoteSubmit(
+                                                            issue.issue_id,
+                                                        )
+                                                    }
+                                                    disabled={submitting}
+                                                    style={{
+                                                        ...buttonStyle,
+                                                        backgroundColor:
+                                                            submitting
+                                                                ? "#ccc"
+                                                                : "#646cff",
+                                                        cursor: submitting
+                                                            ? "not-allowed"
+                                                            : "pointer",
+                                                    }}
+                                                >
+                                                    {submitting
+                                                        ? "送信中..."
+                                                        : existingVote ===
+                                                            selectedVote
+                                                          ? "投票取消"
+                                                          : existingVote
+                                                            ? "投票変更"
+                                                            : "投票する"}
+                                                </button>
+                                            )}
+
+                                            <a
+                                                href={`https://github.com/${issue.repository_owner}/${issue.repository_name}/issues/${issue.github_issue_number}`}
+                                                target="_blank"
+                                                rel="noopener noreferrer"
+                                                style={{
+                                                    ...buttonStyle,
+                                                    backgroundColor: "#24292e",
+                                                    textDecoration: "none",
+                                                    display: "inline-block",
+                                                }}
+                                            >
+                                                🔗 GitHubで開く
+                                            </a>
+                                        </div>
                                     </div>
-                                </div>
-                            );
-                        })}
+                                );
+                            })}
 
                         {totalPages > 1 && (
                             <div style={paginationStyle}>

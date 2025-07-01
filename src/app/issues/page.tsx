@@ -32,27 +32,17 @@ export default function IssuesPageComponent() {
 
     useEffect(() => {
         fetchIssues();
-    }, [currentPage]);
+    }, []);
 
     const fetchIssues = async () => {
         try {
             setLoading(true);
             setError(null);
 
-            const { count } = await supabase
-                .from("github_issues")
-                .select("*", { count: "exact", head: true });
-
-            setTotalPages(Math.ceil((count || 0) / ITEMS_PER_PAGE));
-
             const { data: issuesData, error: issuesError } = await supabase
                 .from("github_issues")
                 .select("*")
-                .order("created_at", { ascending: false })
-                .range(
-                    (currentPage - 1) * ITEMS_PER_PAGE,
-                    currentPage * ITEMS_PER_PAGE - 1,
-                );
+                .order("created_at", { ascending: false });
 
             if (issuesError) throw issuesError;
 
@@ -103,6 +93,7 @@ export default function IssuesPageComponent() {
             }
 
             setIssues(issuesWithVotes);
+            setTotalPages(Math.ceil(issuesWithVotes.length / ITEMS_PER_PAGE));
         } catch (err) {
             console.error("Error fetching issues:", err);
             setError("Issue情報の取得に失敗しました");
@@ -356,8 +347,12 @@ export default function IssuesPageComponent() {
                             </select>
                         </div>
 
-                        {sortIssues(issues, sortOption).map(
-                            ({ issue, totalGoodCount, totalBadCount }) => (
+                        {sortIssues(issues, sortOption)
+                            .slice(
+                                (currentPage - 1) * ITEMS_PER_PAGE,
+                                currentPage * ITEMS_PER_PAGE,
+                            )
+                            .map(({ issue, totalGoodCount, totalBadCount }) => (
                                 <div
                                     key={issue.issue_id}
                                     style={
@@ -507,8 +502,7 @@ export default function IssuesPageComponent() {
                                         </div>
                                     </div>
                                 </div>
-                            ),
-                        )}
+                            ))}
 
                         {totalPages > 1 && (
                             <div style={paginationStyle}>
