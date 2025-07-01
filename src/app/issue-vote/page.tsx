@@ -17,7 +17,9 @@ export default function IssueVotePageComponent() {
         Record<string, "good" | "bad">
     >({});
     const [submitting, setSubmitting] = useState(false);
-    const [submitSuccess, setSubmitSuccess] = useState<string | null>(null);
+    const [buttonFeedback, setButtonFeedback] = useState<
+        Record<string, string | null>
+    >({});
     const [currentPage, setCurrentPage] = useState(1);
     const [totalPages, setTotalPages] = useState(1);
     const [searchTerm, setSearchTerm] = useState("");
@@ -271,7 +273,17 @@ export default function IssueVotePageComponent() {
                         delete updated[issueId];
                         return updated;
                     });
-                    setSubmitSuccess("投票を取り消しました");
+                    setButtonFeedback((prev) => ({
+                        ...prev,
+                        [issueId]: "投票を取り消しました",
+                    }));
+                    setTimeout(() => {
+                        setButtonFeedback((prev) => {
+                            const updated = { ...prev };
+                            delete updated[issueId];
+                            return updated;
+                        });
+                    }, 3000);
                 } else {
                     const { error: updateError } = await supabase
                         .from("issue_votes")
@@ -285,7 +297,17 @@ export default function IssueVotePageComponent() {
                         ...prev,
                         [issueId]: newVote,
                     }));
-                    setSubmitSuccess("投票を変更しました");
+                    setButtonFeedback((prev) => ({
+                        ...prev,
+                        [issueId]: "投票を変更しました",
+                    }));
+                    setTimeout(() => {
+                        setButtonFeedback((prev) => {
+                            const updated = { ...prev };
+                            delete updated[issueId];
+                            return updated;
+                        });
+                    }, 3000);
                 }
             } else {
                 const { error: insertError } = await supabase
@@ -302,7 +324,17 @@ export default function IssueVotePageComponent() {
                     ...prev,
                     [issueId]: newVote,
                 }));
-                setSubmitSuccess("投票しました");
+                setButtonFeedback((prev) => ({
+                    ...prev,
+                    [issueId]: "投票しました",
+                }));
+                setTimeout(() => {
+                    setButtonFeedback((prev) => {
+                        const updated = { ...prev };
+                        delete updated[issueId];
+                        return updated;
+                    });
+                }, 3000);
             }
 
             setSelectedVotes((prev) => {
@@ -402,6 +434,12 @@ export default function IssueVotePageComponent() {
         borderColor: "#646cff",
     };
 
+    const successButtonStyle = {
+        ...buttonStyle,
+        backgroundColor: "#4caf50",
+        color: "white",
+    };
+
     if (loading) {
         return (
             <div style={{ padding: "2rem", textAlign: "center" }}>
@@ -448,20 +486,6 @@ export default function IssueVotePageComponent() {
                         }}
                     >
                         {error}
-                    </div>
-                )}
-
-                {submitSuccess && (
-                    <div
-                        style={{
-                            backgroundColor: "#e8f5e8",
-                            color: "#2e7d32",
-                            padding: "1rem",
-                            borderRadius: "8px",
-                            marginBottom: "2rem",
-                        }}
-                    >
-                        {submitSuccess}
                     </div>
                 )}
 
@@ -726,6 +750,7 @@ export default function IssueVotePageComponent() {
                                     existingVotes[issue.issue_id];
                                 const selectedVote =
                                     selectedVotes[issue.issue_id];
+                                const feedback = buttonFeedback[issue.issue_id];
 
                                 return (
                                     <div key={issue.issue_id} style={cardStyle}>
@@ -879,26 +904,34 @@ export default function IssueVotePageComponent() {
                                                             issue.issue_id,
                                                         )
                                                     }
-                                                    disabled={submitting}
-                                                    style={{
-                                                        ...buttonStyle,
-                                                        backgroundColor:
-                                                            submitting
-                                                                ? "#ccc"
-                                                                : "#646cff",
-                                                        cursor: submitting
-                                                            ? "not-allowed"
-                                                            : "pointer",
-                                                    }}
+                                                    disabled={
+                                                        submitting || !!feedback
+                                                    }
+                                                    style={
+                                                        feedback
+                                                            ? successButtonStyle
+                                                            : {
+                                                                  ...buttonStyle,
+                                                                  backgroundColor:
+                                                                      submitting
+                                                                          ? "#ccc"
+                                                                          : "#646cff",
+                                                                  cursor: submitting
+                                                                      ? "not-allowed"
+                                                                      : "pointer",
+                                                              }
+                                                    }
                                                 >
-                                                    {submitting
-                                                        ? "送信中..."
-                                                        : existingVote ===
-                                                            selectedVote
-                                                          ? "投票取消"
-                                                          : existingVote
-                                                            ? "投票変更"
-                                                            : "投票する"}
+                                                    {feedback
+                                                        ? feedback
+                                                        : submitting
+                                                          ? "送信中..."
+                                                          : existingVote ===
+                                                              selectedVote
+                                                            ? "投票取消"
+                                                            : existingVote
+                                                              ? "投票変更"
+                                                              : "投票する"}
                                                 </button>
                                             )}
 
