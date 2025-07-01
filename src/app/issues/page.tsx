@@ -7,7 +7,8 @@ type SortOption =
     | "id_asc"
     | "good_count"
     | "bad_count"
-    | "user_evaluation";
+    | "user_evaluation"
+    | "user_evaluation_reverse";
 
 interface IssueWithVotes {
     issue: Tables<"github_issues">;
@@ -262,6 +263,13 @@ export default function IssuesPageComponent() {
                         b.totalGoodCount -
                         b.totalBadCount -
                         (a.totalGoodCount - a.totalBadCount),
+                );
+            case "user_evaluation_reverse":
+                return sorted.sort(
+                    (a, b) =>
+                        a.totalGoodCount -
+                        a.totalBadCount -
+                        (b.totalGoodCount - b.totalBadCount),
                 );
             case "created_at_desc":
             default:
@@ -648,6 +656,9 @@ export default function IssuesPageComponent() {
                                 <option value="bad_count">Bad数順</option>
                                 <option value="user_evaluation">
                                     ユーザー評価順（Good-Bad）
+                                </option>
+                                <option value="user_evaluation_reverse">
+                                    ユーザー評価逆順（Bad-Good）
                                 </option>
                             </select>
                         </div>
