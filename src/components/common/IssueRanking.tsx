@@ -308,7 +308,7 @@ export default function IssueRanking({ maxItems = 5 }: IssueRankingProps) {
                         </div>
                     </div>
                     <CustomTooltip
-                        content={`👍 ${item.totalGoodCount} | 👎 ${item.totalBadCount}`}
+                        content={`👍 ${item.totalGoodCount} : 👎 ${item.totalBadCount}`}
                     >
                         <div style={scoreStyle}>
                             {item.score > 0 ? `+${item.score}` : item.score}
