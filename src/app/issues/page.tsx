@@ -430,17 +430,37 @@ export default function IssuesPageComponent() {
                                                     {issue.repository_name}
                                                 </span>
                                             </div>
-                                            <h3
+                                            <a
+                                                href={`https://github.com/${issue.repository_owner}/${issue.repository_name}/issues/${issue.github_issue_number}`}
+                                                target="_blank"
+                                                rel="noopener noreferrer"
                                                 style={{
-                                                    marginBottom: "0.5rem",
-                                                    fontSize: isMobile
-                                                        ? "1rem"
-                                                        : "1.2rem",
-                                                    lineHeight: "1.4",
+                                                    textDecoration: "none",
+                                                    color: "inherit",
+                                                    cursor: "pointer",
+                                                }}
+                                                onMouseEnter={(e) => {
+                                                    e.currentTarget.style.textDecoration =
+                                                        "underline";
+                                                }}
+                                                onMouseLeave={(e) => {
+                                                    e.currentTarget.style.textDecoration =
+                                                        "none";
                                                 }}
                                             >
-                                                {issue.title}
-                                            </h3>
+                                                <h3
+                                                    style={{
+                                                        marginBottom: "0.5rem",
+                                                        fontSize: isMobile
+                                                            ? "1rem"
+                                                            : "1.2rem",
+                                                        lineHeight: "1.4",
+                                                        margin: 0,
+                                                    }}
+                                                >
+                                                    {issue.title}
+                                                </h3>
+                                            </a>
                                             {issue.body && (
                                                 <p
                                                     style={{
