@@ -121,11 +121,21 @@ function View() {
                     background:
                         "linear-gradient(135deg, #C8F0E5 0%, #E8F8F3 50%, #F0FDF7 100%)",
                     display: "flex",
+                    flexDirection: "column",
                     alignItems: "center",
                     justifyContent: "center",
+                    padding: "2rem",
                 }}
             >
-                <h2>読み込み中...</h2>
+                <div
+                    style={{
+                        maxWidth: "1200px",
+                        width: "100%",
+                        margin: "0 auto",
+                    }}
+                >
+                    <h2 style={{ textAlign: "center" }}>読み込み中...</h2>
+                </div>
             </div>
         );
     }
@@ -152,272 +162,287 @@ function View() {
                 padding: "2rem",
             }}
         >
-            <h1
-                style={{
-                    fontSize: "2rem",
-                    fontWeight: "600",
-                    color: "#333",
-                    marginBottom: "3rem",
-                    textAlign: "center",
-                }}
-            >
-                いどばたご意見板
-            </h1>
-
             <div
-                style={{
-                    display: "flex",
-                    justifyContent: "center",
-                    marginBottom: "2rem",
-                }}
+                style={{ maxWidth: "1200px", width: "100%", margin: "0 auto" }}
             >
-                <IssueRanking />
-            </div>
+                <h1
+                    style={{
+                        fontSize: "2rem",
+                        fontWeight: "600",
+                        color: "#333",
+                        marginBottom: "3rem",
+                        textAlign: "center",
+                    }}
+                >
+                    いどばたご意見板
+                </h1>
 
-            {isAuthenticated && voter && (
-                <div style={logoutOverlayStyle}>
-                    <p style={{ marginBottom: "1rem", fontSize: "0.9em" }}>
-                        {voter.display_name} さん
-                    </p>
-                    <button
-                        onClick={handleLogout}
-                        style={{
-                            backgroundColor: "#666",
-                            color: "white",
-                            border: "none",
-                            padding: "0.5em 1em",
-                            borderRadius: "6px",
-                            cursor: "pointer",
-                            fontSize: "0.9em",
-                            width: "100%",
-                        }}
-                    >
-                        ログアウト
-                    </button>
-                </div>
-            )}
-
-            {showLoginForm && !isAuthenticated && (
                 <div
-                    style={overlayStyle}
-                    onClick={(e) => {
-                        if (e.target === e.currentTarget) {
-                            setShowLoginForm(false);
-                        }
-                    }}
-                >
-                    <div style={modalStyle}>
-                        <h2
-                            style={{
-                                marginBottom: "1rem",
-                                textAlign: "center",
-                            }}
-                        >
-                            ログイン
-                        </h2>
-                        {loginError && (
-                            <div
-                                style={{
-                                    backgroundColor: "#ffebee",
-                                    color: "#c62828",
-                                    padding: "1rem",
-                                    borderRadius: "8px",
-                                    marginBottom: "1rem",
-                                }}
-                            >
-                                {loginError}
-                            </div>
-                        )}
-                        <form onSubmit={handleLoginSubmit}>
-                            <input
-                                type="text"
-                                placeholder="表示名"
-                                value={displayName}
-                                onChange={(e) => setDisplayName(e.target.value)}
-                                style={inputStyle}
-                                required
-                            />
-                            <input
-                                type="password"
-                                placeholder="パスワード"
-                                value={password}
-                                onChange={(e) => setPassword(e.target.value)}
-                                style={inputStyle}
-                                required
-                            />
-                            <div style={{ display: "flex", gap: "0.5rem" }}>
-                                <button
-                                    type="submit"
-                                    disabled={loggingIn}
-                                    style={{
-                                        backgroundColor: loggingIn
-                                            ? "#ccc"
-                                            : "#5FBEAA",
-                                        color: "white",
-                                        border: "none",
-                                        padding: "0.8em 1em",
-                                        borderRadius: "8px",
-                                        cursor: loggingIn
-                                            ? "not-allowed"
-                                            : "pointer",
-                                        fontSize: "1em",
-                                        flex: 1,
-                                    }}
-                                >
-                                    {loggingIn ? "ログイン中..." : "ログイン"}
-                                </button>
-                                <button
-                                    type="button"
-                                    onClick={() => setShowLoginForm(false)}
-                                    style={{
-                                        backgroundColor: "#666",
-                                        color: "white",
-                                        border: "none",
-                                        padding: "0.8em 1em",
-                                        borderRadius: "8px",
-                                        cursor: "pointer",
-                                        fontSize: "1em",
-                                    }}
-                                >
-                                    キャンセル
-                                </button>
-                            </div>
-                        </form>
-                        <div style={{ textAlign: "center", marginTop: "1rem" }}>
-                            <button
-                                onClick={() => {
-                                    setShowLoginForm(false);
-                                    navigate("/register");
-                                }}
-                                style={{
-                                    background: "none",
-                                    border: "none",
-                                    color: "#5FBEAA",
-                                    cursor: "pointer",
-                                    textDecoration: "underline",
-                                    fontSize: "0.9em",
-                                }}
-                            >
-                                アカウントをお持ちでない方はこちら
-                            </button>
-                        </div>
-                    </div>
-                </div>
-            )}
-
-            <div
-                style={{
-                    display: "flex",
-                    flexDirection: "row",
-                    alignItems: "center",
-                    justifyContent: "center",
-                    gap: "2rem",
-                    width: "100%",
-                    maxWidth: "800px",
-                    flexWrap: "wrap",
-                }}
-            >
-                <button
-                    style={buttonStyle}
-                    onClick={handleEvaluateClick}
-                    onMouseEnter={(e) => {
-                        Object.assign(
-                            (e.target as HTMLElement).style,
-                            buttonHoverStyle,
-                        );
-                    }}
-                    onMouseLeave={(e) => {
-                        Object.assign(
-                            (e.target as HTMLElement).style,
-                            buttonStyle,
-                        );
-                    }}
-                >
-                    変更案確認・評価をする
-                </button>
-
-                <button
-                    style={buttonStyle}
-                    onClick={() => navigate("/issues")}
-                    onMouseEnter={(e) => {
-                        Object.assign(
-                            (e.target as HTMLElement).style,
-                            buttonHoverStyle,
-                        );
-                    }}
-                    onMouseLeave={(e) => {
-                        Object.assign(
-                            (e.target as HTMLElement).style,
-                            buttonStyle,
-                        );
-                    }}
-                >
-                    みんなの評価を見る
-                </button>
-            </div>
-
-            <div
-                style={{
-                    display: "flex",
-                    justifyContent: "center",
-                    alignItems: "center",
-                    marginTop: "2rem",
-                }}
-            >
-                <a
-                    href="https://x.com/mirai_manifesto"
-                    target="_blank"
-                    rel="noopener noreferrer"
-                    title="マニフェスト反映の実績はこちら"
                     style={{
                         display: "flex",
-                        alignItems: "center",
-                        gap: "0.5rem",
-                        padding: "0.8rem 1.2rem",
-                        backgroundColor: "#000000",
-                        color: "white",
-                        textDecoration: "none",
-                        borderRadius: "8px",
-                        fontSize: "0.9rem",
-                        fontWeight: "500",
-                        transition: "all 0.2s ease",
-                        border: "none",
-                        cursor: "pointer",
-                    }}
-                    onMouseEnter={(e) => {
-                        (e.target as HTMLElement).style.backgroundColor =
-                            "#333333";
-                    }}
-                    onMouseLeave={(e) => {
-                        (e.target as HTMLElement).style.backgroundColor =
-                            "#000000";
+                        justifyContent: "center",
+                        marginBottom: "2rem",
                     }}
                 >
-                    <svg
-                        width="16"
-                        height="16"
-                        viewBox="0 0 24 24"
-                        fill="currentColor"
-                    >
-                        <path d="M18.244 2.25h3.308l-7.227 8.26 8.502 11.24H16.17l-5.214-6.817L4.99 21.75H1.68l7.73-8.835L1.254 2.25H8.08l4.713 6.231zm-1.161 17.52h1.833L7.084 4.126H5.117z" />
-                    </svg>
-                    マニフェスト反映の実績はこちら
-                </a>
-            </div>
+                    <IssueRanking />
+                </div>
 
-            <div
-                style={{
-                    display: "flex",
-                    flexDirection: "row",
-                    alignItems: "center",
-                    justifyContent: "center",
-                    gap: "2rem",
-                    width: "100%",
-                    maxWidth: "800px",
-                    flexWrap: "wrap",
-                }}
-            >
-                {/* <h2 style={sectionHeadingStyle}></h2>
+                {isAuthenticated && voter && (
+                    <div style={logoutOverlayStyle}>
+                        <p style={{ marginBottom: "1rem", fontSize: "0.9em" }}>
+                            {voter.display_name} さん
+                        </p>
+                        <button
+                            onClick={handleLogout}
+                            style={{
+                                backgroundColor: "#666",
+                                color: "white",
+                                border: "none",
+                                padding: "0.5em 1em",
+                                borderRadius: "6px",
+                                cursor: "pointer",
+                                fontSize: "0.9em",
+                                width: "100%",
+                            }}
+                        >
+                            ログアウト
+                        </button>
+                    </div>
+                )}
+
+                {showLoginForm && !isAuthenticated && (
+                    <div
+                        style={overlayStyle}
+                        onClick={(e) => {
+                            if (e.target === e.currentTarget) {
+                                setShowLoginForm(false);
+                            }
+                        }}
+                    >
+                        <div style={modalStyle}>
+                            <h2
+                                style={{
+                                    marginBottom: "1rem",
+                                    textAlign: "center",
+                                }}
+                            >
+                                ログイン
+                            </h2>
+                            {loginError && (
+                                <div
+                                    style={{
+                                        backgroundColor: "#ffebee",
+                                        color: "#c62828",
+                                        padding: "1rem",
+                                        borderRadius: "8px",
+                                        marginBottom: "1rem",
+                                    }}
+                                >
+                                    {loginError}
+                                </div>
+                            )}
+                            <form onSubmit={handleLoginSubmit}>
+                                <input
+                                    type="text"
+                                    placeholder="表示名"
+                                    value={displayName}
+                                    onChange={(e) =>
+                                        setDisplayName(e.target.value)
+                                    }
+                                    style={inputStyle}
+                                    required
+                                />
+                                <input
+                                    type="password"
+                                    placeholder="パスワード"
+                                    value={password}
+                                    onChange={(e) =>
+                                        setPassword(e.target.value)
+                                    }
+                                    style={inputStyle}
+                                    required
+                                />
+                                <div style={{ display: "flex", gap: "0.5rem" }}>
+                                    <button
+                                        type="submit"
+                                        disabled={loggingIn}
+                                        style={{
+                                            backgroundColor: loggingIn
+                                                ? "#ccc"
+                                                : "#5FBEAA",
+                                            color: "white",
+                                            border: "none",
+                                            padding: "0.8em 1em",
+                                            borderRadius: "8px",
+                                            cursor: loggingIn
+                                                ? "not-allowed"
+                                                : "pointer",
+                                            fontSize: "1em",
+                                            flex: 1,
+                                        }}
+                                    >
+                                        {loggingIn
+                                            ? "ログイン中..."
+                                            : "ログイン"}
+                                    </button>
+                                    <button
+                                        type="button"
+                                        onClick={() => setShowLoginForm(false)}
+                                        style={{
+                                            backgroundColor: "#666",
+                                            color: "white",
+                                            border: "none",
+                                            padding: "0.8em 1em",
+                                            borderRadius: "8px",
+                                            cursor: "pointer",
+                                            fontSize: "1em",
+                                        }}
+                                    >
+                                        キャンセル
+                                    </button>
+                                </div>
+                            </form>
+                            <div
+                                style={{
+                                    textAlign: "center",
+                                    marginTop: "1rem",
+                                }}
+                            >
+                                <button
+                                    onClick={() => {
+                                        setShowLoginForm(false);
+                                        navigate("/register");
+                                    }}
+                                    style={{
+                                        background: "none",
+                                        border: "none",
+                                        color: "#5FBEAA",
+                                        cursor: "pointer",
+                                        textDecoration: "underline",
+                                        fontSize: "0.9em",
+                                    }}
+                                >
+                                    アカウントをお持ちでない方はこちら
+                                </button>
+                            </div>
+                        </div>
+                    </div>
+                )}
+
+                <div
+                    style={{
+                        display: "flex",
+                        flexDirection: "row",
+                        alignItems: "center",
+                        justifyContent: "center",
+                        gap: "2rem",
+                        width: "100%",
+                        maxWidth: "800px",
+                        margin: "0 auto",
+                        flexWrap: "wrap",
+                    }}
+                >
+                    <button
+                        style={buttonStyle}
+                        onClick={handleEvaluateClick}
+                        onMouseEnter={(e) => {
+                            Object.assign(
+                                (e.target as HTMLElement).style,
+                                buttonHoverStyle,
+                            );
+                        }}
+                        onMouseLeave={(e) => {
+                            Object.assign(
+                                (e.target as HTMLElement).style,
+                                buttonStyle,
+                            );
+                        }}
+                    >
+                        変更案確認・評価をする
+                    </button>
+
+                    <button
+                        style={buttonStyle}
+                        onClick={() => navigate("/issues")}
+                        onMouseEnter={(e) => {
+                            Object.assign(
+                                (e.target as HTMLElement).style,
+                                buttonHoverStyle,
+                            );
+                        }}
+                        onMouseLeave={(e) => {
+                            Object.assign(
+                                (e.target as HTMLElement).style,
+                                buttonStyle,
+                            );
+                        }}
+                    >
+                        みんなの評価を見る
+                    </button>
+                </div>
+
+                <div
+                    style={{
+                        display: "flex",
+                        justifyContent: "center",
+                        alignItems: "center",
+                        marginTop: "2rem",
+                    }}
+                >
+                    <a
+                        href="https://x.com/mirai_manifesto"
+                        target="_blank"
+                        rel="noopener noreferrer"
+                        title="マニフェスト反映の実績はこちら"
+                        style={{
+                            display: "flex",
+                            alignItems: "center",
+                            gap: "0.5rem",
+                            padding: "0.8rem 1.2rem",
+                            backgroundColor: "#000000",
+                            color: "white",
+                            textDecoration: "none",
+                            borderRadius: "8px",
+                            fontSize: "0.9rem",
+                            fontWeight: "500",
+                            transition: "all 0.2s ease",
+                            border: "none",
+                            cursor: "pointer",
+                        }}
+                        onMouseEnter={(e) => {
+                            (e.target as HTMLElement).style.backgroundColor =
+                                "#333333";
+                        }}
+                        onMouseLeave={(e) => {
+                            (e.target as HTMLElement).style.backgroundColor =
+                                "#000000";
+                        }}
+                    >
+                        <svg
+                            width="16"
+                            height="16"
+                            viewBox="0 0 24 24"
+                            fill="currentColor"
+                        >
+                            <path d="M18.244 2.25h3.308l-7.227 8.26 8.502 11.24H16.17l-5.214-6.817L4.99 21.75H1.68l7.73-8.835L1.254 2.25H8.08l4.713 6.231zm-1.161 17.52h1.833L7.084 4.126H5.117z" />
+                        </svg>
+                        マニフェスト反映の実績はこちら
+                    </a>
+                </div>
+
+                <div
+                    style={{
+                        display: "flex",
+                        flexDirection: "row",
+                        alignItems: "center",
+                        justifyContent: "center",
+                        gap: "2rem",
+                        width: "100%",
+                        maxWidth: "800px",
+                        flexWrap: "wrap",
+                    }}
+                >
+                    {/* <h2 style={sectionHeadingStyle}></h2>
                 <button
                     style={buttonStyle}
                     onClick={() => navigate("/register")}
@@ -437,7 +462,7 @@ function View() {
                     ログイン
                 </button> */}
 
-                {/* <button
+                    {/* <button
                     style={buttonStyle}
                     onClick={() => navigate("/results")}
                     onMouseEnter={(e) => {
@@ -455,6 +480,7 @@ function View() {
                 >
                     結果を確認する
                 </button> */}
+                </div>
             </div>
         </div>
     );

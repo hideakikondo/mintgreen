@@ -359,7 +359,7 @@ export default function IssueVotePageComponent() {
 
     const badButtonStyle = {
         ...voteButtonStyle,
-        borderColor: "#5FBEAA",
+        borderColor: "#e57373",
         backgroundColor: "#ffebee",
         color: "#c62828",
     };
@@ -404,8 +404,17 @@ export default function IssueVotePageComponent() {
 
     if (loading) {
         return (
-            <div style={{ padding: "2rem", textAlign: "center" }}>
-                <h2>読み込み中...</h2>
+            <div
+                style={{
+                    minHeight: "100vh",
+                    background:
+                        "linear-gradient(135deg, #C8F0E5 0%, #E8F8F3 50%, #F0FDF7 100%)",
+                    padding: "2rem",
+                }}
+            >
+                <div style={{ maxWidth: "800px", margin: "0 auto" }}>
+                    <h2 style={{ textAlign: "center" }}>読み込み中...</h2>
+                </div>
             </div>
         );
     }
@@ -469,12 +478,12 @@ export default function IssueVotePageComponent() {
                     </div>
                 )}
 
-                <div style={cardStyle}>
-                    <h2 style={{ marginBottom: "0.5rem" }}>投票者情報</h2>
+                <div style={{ marginBottom: "2rem", textAlign: "center" }}>
                     <p
                         style={{
-                            color: "var(--text-secondary)",
-                            marginBottom: "0",
+                            color: "#333",
+                            fontSize: "1.1rem",
+                            margin: "0",
                         }}
                     >
                         {voter?.display_name} さん、こんにちは
