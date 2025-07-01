@@ -20,6 +20,12 @@ export default function IssueVotePageComponent() {
     const [submitSuccess, setSubmitSuccess] = useState<string | null>(null);
     const [currentPage, setCurrentPage] = useState(1);
     const [totalPages, setTotalPages] = useState(1);
+    const [searchTerm, setSearchTerm] = useState("");
+    const [activeSearchTerm, setActiveSearchTerm] = useState("");
+    const [filteredIssues, setFilteredIssues] = useState<
+        Tables<"github_issues">[]
+    >([]);
+    const [searchError, setSearchError] = useState<string | null>(null);
     const navigate = useNavigate();
     const { voter, isAuthenticated, loading: authLoading } = useAuth();
 
@@ -36,6 +42,117 @@ export default function IssueVotePageComponent() {
             fetchExistingVotes();
         }
     }, [navigate, isAuthenticated, authLoading]);
+
+    // 検索フィルタリング
+    useEffect(() => {
+        if (!activeSearchTerm.trim()) {
+            setFilteredIssues(issues);
+            setTotalPages(Math.ceil(issues.length / ITEMS_PER_PAGE));
+        } else {
+            // スペース（半角・全角）で分割して検索キーワードを取得
+            const searchKeywords = activeSearchTerm
+                .split(/[\s　]+/) // 半角スペースと全角スペースで分割
+                .filter((keyword) => keyword.trim().length > 0) // 空文字を除外
+                .map((keyword) => keyword.toLowerCase());
+
+            const filtered = issues.filter((issue) => {
+                // 検索対象テキストを準備
+                const searchableText = [
+                    issue.title,
+                    issue.body || "",
+                    issue.github_issue_number.toString(),
+                    issue.branch_name || "",
+                ]
+                    .join(" ")
+                    .toLowerCase();
+
+                // 全てのキーワードが含まれているかチェック（AND検索）
+                return searchKeywords.every((keyword) =>
+                    searchableText.includes(keyword),
+                );
+            });
+
+            setFilteredIssues(filtered);
+            setTotalPages(Math.ceil(filtered.length / ITEMS_PER_PAGE));
+            setCurrentPage(1); // 検索時はページを1に戻す
+        }
+    }, [activeSearchTerm, issues]);
+
+    // 検索バリデーション
+    const validateSearch = (term: string): string | null => {
+        const trimmedTerm = term.trim();
+
+        // 文字数チェック
+        if (trimmedTerm.length > 100) {
+            return "検索キーワードは100文字以内で入力してください";
+        }
+
+        if (trimmedTerm.length > 0 && trimmedTerm.length < 2) {
+            return "2文字以上で検索してください";
+        }
+
+        // 禁止文字チェック
+        const invalidChars = /[<>&]/;
+        if (invalidChars.test(term)) {
+            return "使用できない文字が含まれています（< > & は使用できません）";
+        }
+
+        // キーワード数チェック
+        if (trimmedTerm.length > 0) {
+            const keywords = trimmedTerm
+                .split(/[\s　]+/)
+                .filter((k) => k.trim().length > 0);
+            if (keywords.length > 10) {
+                return "検索キーワードは10個以内にしてください";
+            }
+
+            // 各キーワードの長さチェック
+            for (const keyword of keywords) {
+                if (keyword.length > 50) {
+                    return "各キーワードは50文字以内にしてください";
+                }
+            }
+        }
+
+        return null;
+    };
+
+    // 検索実行
+    const handleSearch = () => {
+        const validationError = validateSearch(searchTerm);
+        setSearchError(validationError);
+
+        if (!validationError) {
+            setActiveSearchTerm(searchTerm);
+        }
+    };
+
+    // 検索クリア
+    const handleClearSearch = () => {
+        setSearchTerm("");
+        setActiveSearchTerm("");
+        setSearchError(null);
+    };
+
+    // Enterキーでの検索
+    const handleKeyDown = (e: React.KeyboardEvent) => {
+        if (e.key === "Enter") {
+            handleSearch();
+        }
+    };
+
+    // 入力時のリアルタイムバリデーション（文字数のみ）
+    const handleInputChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+        const value = e.target.value;
+        setSearchTerm(value);
+
+        // 文字数制限のリアルタイムチェック
+        if (value.length > 100) {
+            setSearchError("検索キーワードは100文字以内で入力してください");
+        } else {
+            setSearchError(null);
+        }
+    };
 
     const fetchIssues = async () => {
         try {
@@ -68,6 +185,7 @@ export default function IssueVotePageComponent() {
             }
 
             setIssues(allIssuesData || []);
+            setFilteredIssues(allIssuesData || []);
             setTotalPages(Math.ceil((count || 0) / ITEMS_PER_PAGE));
         } catch (err) {
             console.error("GitHub Issue取得エラー:", err);
@@ -349,25 +467,202 @@ export default function IssueVotePageComponent() {
 
                 <div style={cardStyle}>
                     <h2 style={{ marginBottom: "0.5rem" }}>投票者情報</h2>
-                    <p style={{ color: "#666", marginBottom: "0" }}>
+                    <p
+                        style={{
+                            color: "var(--text-secondary)",
+                            marginBottom: "0",
+                        }}
+                    >
                         {voter?.display_name} さん、こんにちは
                     </p>
                 </div>
 
-                {issues.length > 0 && (
+                {/* 検索窓 */}
+                <div style={cardStyle}>
+                    <h3 style={{ marginBottom: "1rem", fontSize: "1.1rem" }}>
+                        検索
+                    </h3>
+                    <div
+                        style={{
+                            display: "flex",
+                            gap: "0.5rem",
+                            alignItems: "flex-start",
+                        }}
+                    >
+                        <input
+                            type="text"
+                            placeholder="検索キーワード（スペース区切りでAND検索）..."
+                            value={searchTerm}
+                            onChange={handleInputChange}
+                            onKeyDown={handleKeyDown}
+                            style={{
+                                flex: 1,
+                                padding: "0.75rem",
+                                borderRadius: "8px",
+                                border: "2px solid var(--border-strong)",
+                                fontSize: "1rem",
+                                backgroundColor: "var(--bg-secondary)",
+                                color: "var(--text-primary)",
+                                transition: "all 0.2s ease",
+                                outline: "none",
+                                boxShadow: "inset 0 1px 3px rgba(0, 0, 0, 0.1)",
+                            }}
+                            onFocus={(e) => {
+                                e.target.style.borderColor = "#646cff";
+                                e.target.style.boxShadow =
+                                    "inset 0 1px 3px rgba(0, 0, 0, 0.1), 0 0 0 3px rgba(100, 108, 255, 0.1)";
+                            }}
+                            onBlur={(e) => {
+                                e.target.style.borderColor =
+                                    "var(--border-strong)";
+                                e.target.style.boxShadow =
+                                    "inset 0 1px 3px rgba(0, 0, 0, 0.1)";
+                            }}
+                        />
+                        <button
+                            onClick={handleSearch}
+                            disabled={
+                                !!searchError || searchTerm.trim().length === 0
+                            }
+                            style={{
+                                padding: "0.75rem 1.5rem",
+                                borderRadius: "8px",
+                                border: "none",
+                                backgroundColor:
+                                    !!searchError ||
+                                    searchTerm.trim().length === 0
+                                        ? "#ccc"
+                                        : "#646cff",
+                                color: "white",
+                                fontSize: "1rem",
+                                fontWeight: "500",
+                                cursor:
+                                    !!searchError ||
+                                    searchTerm.trim().length === 0
+                                        ? "not-allowed"
+                                        : "pointer",
+                                transition: "all 0.2s ease",
+                                boxShadow: "var(--card-shadow)",
+                                whiteSpace: "nowrap",
+                                opacity:
+                                    !!searchError ||
+                                    searchTerm.trim().length === 0
+                                        ? 0.6
+                                        : 1,
+                            }}
+                            onMouseEnter={(e) => {
+                                if (
+                                    !searchError &&
+                                    searchTerm.trim().length > 0
+                                ) {
+                                    e.currentTarget.style.backgroundColor =
+                                        "#535bf2";
+                                    e.currentTarget.style.transform =
+                                        "translateY(-1px)";
+                                }
+                            }}
+                            onMouseLeave={(e) => {
+                                if (
+                                    !searchError &&
+                                    searchTerm.trim().length > 0
+                                ) {
+                                    e.currentTarget.style.backgroundColor =
+                                        "#646cff";
+                                    e.currentTarget.style.transform =
+                                        "translateY(0)";
+                                }
+                            }}
+                        >
+                            🔍 検索
+                        </button>
+                        {activeSearchTerm && (
+                            <button
+                                onClick={handleClearSearch}
+                                style={{
+                                    padding: "0.75rem 1rem",
+                                    borderRadius: "8px",
+                                    border: "2px solid var(--border-strong)",
+                                    backgroundColor: "var(--bg-secondary)",
+                                    color: "var(--text-primary)",
+                                    fontSize: "1rem",
+                                    cursor: "pointer",
+                                    transition: "all 0.2s ease",
+                                    whiteSpace: "nowrap",
+                                }}
+                                onMouseEnter={(e) => {
+                                    e.currentTarget.style.backgroundColor =
+                                        "var(--hover-bg)";
+                                }}
+                                onMouseLeave={(e) => {
+                                    e.currentTarget.style.backgroundColor =
+                                        "var(--bg-secondary)";
+                                }}
+                            >
+                                ✕ クリア
+                            </button>
+                        )}
+                    </div>
+
+                    {/* エラーメッセージ */}
+                    {searchError && (
+                        <div
+                            style={{
+                                marginTop: "0.75rem",
+                                padding: "0.75rem",
+                                borderRadius: "6px",
+                                backgroundColor: "var(--error-bg, #ffebee)",
+                                color: "var(--error-text, #c62828)",
+                                fontSize: "0.9rem",
+                                border: "1px solid var(--error-text, #c62828)",
+                                display: "flex",
+                                alignItems: "center",
+                                gap: "0.5rem",
+                            }}
+                        >
+                            <span style={{ fontSize: "1.1rem" }}>⚠️</span>
+                            {searchError}
+                        </div>
+                    )}
+
+                    {/* 検索結果表示 */}
+                    {activeSearchTerm && !searchError && (
+                        <div
+                            style={{
+                                marginTop: "1rem",
+                                padding: "0.75rem",
+                                borderRadius: "6px",
+                                backgroundColor: "var(--info-bg, #f0f8ff)",
+                                color: "var(--info-text, #1976d2)",
+                                fontSize: "0.9rem",
+                                border: "1px solid var(--border-color)",
+                            }}
+                        >
+                            検索キーワード: 「{activeSearchTerm}」
+                            {activeSearchTerm.includes(" ") ||
+                            activeSearchTerm.includes("　")
+                                ? " (AND検索)"
+                                : ""}{" "}
+                            - {filteredIssues.length} 件の結果
+                        </div>
+                    )}
+                </div>
+
+                {filteredIssues.length > 0 && (
                     <div
                         style={{
                             marginBottom: "1rem",
                             textAlign: "center",
-                            color: "#666",
+                            color: "var(--text-secondary)",
                             fontSize: "0.9rem",
                         }}
                     >
                         ページ {currentPage} / {totalPages}
+                        {activeSearchTerm &&
+                            ` (検索結果: ${filteredIssues.length}件)`}
                     </div>
                 )}
 
-                {issues.length > 0 && (
+                {filteredIssues.length > 0 && (
                     <div
                         style={{
                             marginBottom: "1.5rem",
@@ -377,7 +672,12 @@ export default function IssueVotePageComponent() {
                             gap: "0.5rem",
                         }}
                     >
-                        <label style={{ fontSize: "0.9rem", color: "#666" }}>
+                        <label
+                            style={{
+                                fontSize: "0.9rem",
+                                color: "var(--text-secondary)",
+                            }}
+                        >
                             ソート順:
                         </label>
                         <select
@@ -401,16 +701,22 @@ export default function IssueVotePageComponent() {
                     </div>
                 )}
 
-                {issues.length === 0 ? (
+                {filteredIssues.length === 0 ? (
                     <div style={cardStyle}>
-                        <h2>評価可能な変更案はありません</h2>
-                        <p style={{ color: "#666" }}>
-                            評価可能な変更案が追加されるまでお待ちください
+                        <h2>
+                            {activeSearchTerm
+                                ? "検索結果がありません"
+                                : "評価可能な変更案はありません"}
+                        </h2>
+                        <p style={{ color: "var(--text-secondary)" }}>
+                            {activeSearchTerm
+                                ? "検索条件を変更してお試しください"
+                                : "評価可能な変更案が追加されるまでお待ちください"}
                         </p>
                     </div>
                 ) : (
                     <>
-                        {sortIssues(issues, sortOption)
+                        {sortIssues(filteredIssues, sortOption)
                             .slice(
                                 (currentPage - 1) * ITEMS_PER_PAGE,
                                 currentPage * ITEMS_PER_PAGE,
