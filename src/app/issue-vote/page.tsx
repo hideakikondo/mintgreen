@@ -297,7 +297,7 @@ export default function IssueVotePageComponent() {
                         ...prev,
                         [issueId]: newVote,
                     }));
-                    
+
                     setTimeout(() => {
                         setButtonFeedback((prev) => ({
                             ...prev,
