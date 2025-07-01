@@ -1,5 +1,6 @@
 import { useState } from "react";
 import { useNavigate } from "react-router-dom";
+import { createHashedPassword } from "../../lib/passwordUtils";
 import { supabase } from "../../lib/supabaseClient";
 
 export default function ProfileRegistrationPage() {
@@ -64,11 +65,15 @@ export default function ProfileRegistrationPage() {
                 return;
             }
 
+            const hashedPassword = await createHashedPassword(
+                formData.password.trim(),
+            );
+
             const { error: insertError } = await supabase
                 .from("voters")
                 .insert({
                     display_name: formData.display_name.trim(),
-                    password: formData.password.trim(),
+                    password: hashedPassword,
                     is_eligible: true,
                 });
 
