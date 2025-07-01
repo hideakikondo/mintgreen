@@ -1,10 +1,23 @@
+* {
+    margin: 0;
+    padding: 0;
+    box-sizing: border-box;
+}
+
+html,
+body {
+    width: 100%;
+    height: 100%;
+    background: linear-gradient(135deg, #c8f0e5 0%, #e8f8f3 50%, #f0fdf7 100%);
+    background-attachment: fixed;
+}
+
 :root {
     font-family: system-ui, Avenir, Helvetica, Arial, sans-serif;
     line-height: 1.5;
     font-weight: 400;
 
     color: #213547;
-    background-color: #ffffff;
 
     font-synthesis: none;
     text-rendering: optimizeLegibility;
@@ -22,9 +35,6 @@ a:hover {
 }
 
 body {
-    margin: 0;
-    display: flex;
-    place-items: center;
     min-width: 320px;
     min-height: 100vh;
 }
@@ -51,4 +61,35 @@ button:hover {
 button:focus,
 button:focus-visible {
     outline: 4px auto -webkit-focus-ring-color;
+}
+
+/* スピナーアニメーション */
+.spinner {
+    width: 40px;
+    height: 40px;
+    border: 4px solid #e8f8f3;
+    border-top: 4px solid #5fbeaa;
+    border-radius: 50%;
+    animation: spin 1s linear infinite;
+    margin: 0 auto 1rem auto;
+}
+
+@keyframes spin {
+    0% {
+        transform: rotate(0deg);
+    }
+    100% {
+        transform: rotate(360deg);
+    }
+}
+
+@keyframes fadeIn {
+    from {
+        opacity: 0;
+        transform: translateY(-10px);
+    }
+    to {
+        opacity: 1;
+        transform: translateY(0);
+    }
 }

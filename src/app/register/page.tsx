@@ -98,7 +98,7 @@ export default function ProfileRegistrationPage() {
     };
 
     const buttonStyle = {
-        backgroundColor: "#646cff",
+        backgroundColor: "#5FBEAA",
         color: "white",
         border: "none",
         padding: "0.8em 2em",
@@ -303,7 +303,7 @@ export default function ProfileRegistrationPage() {
                         disabled={submitting}
                         style={{
                             ...buttonStyle,
-                            backgroundColor: submitting ? "#ccc" : "#646cff",
+                            backgroundColor: submitting ? "#ccc" : "#5FBEAA",
                             cursor: submitting ? "not-allowed" : "pointer",
                         }}
                     >

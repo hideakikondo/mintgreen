@@ -17,7 +17,9 @@ export default function IssueVotePageComponent() {
         Record<string, "good" | "bad">
     >({});
     const [submitting, setSubmitting] = useState(false);
-    const [submitSuccess, setSubmitSuccess] = useState<string | null>(null);
+    const [issueMessages, setIssueMessages] = useState<
+        Record<string, { message: string; type: "success" | "error" }>
+    >({});
     const [currentPage, setCurrentPage] = useState(1);
     const [totalPages, setTotalPages] = useState(1);
     const [searchTerm, setSearchTerm] = useState("");
@@ -271,7 +273,20 @@ export default function IssueVotePageComponent() {
                         delete updated[issueId];
                         return updated;
                     });
-                    setSubmitSuccess("投票を取り消しました");
+                    setIssueMessages((prev) => ({
+                        ...prev,
+                        [issueId]: {
+                            message: "投票を取り消しました",
+                            type: "success",
+                        },
+                    }));
+                    setTimeout(() => {
+                        setIssueMessages((prev) => {
+                            const updated = { ...prev };
+                            delete updated[issueId];
+                            return updated;
+                        });
+                    }, 3000);
                 } else {
                     const { error: updateError } = await supabase
                         .from("issue_votes")
@@ -285,7 +300,20 @@ export default function IssueVotePageComponent() {
                         ...prev,
                         [issueId]: newVote,
                     }));
-                    setSubmitSuccess("投票を変更しました");
+                    setIssueMessages((prev) => ({
+                        ...prev,
+                        [issueId]: {
+                            message: "投票を変更しました",
+                            type: "success",
+                        },
+                    }));
+                    setTimeout(() => {
+                        setIssueMessages((prev) => {
+                            const updated = { ...prev };
+                            delete updated[issueId];
+                            return updated;
+                        });
+                    }, 3000);
                 }
             } else {
                 const { error: insertError } = await supabase
@@ -302,7 +330,17 @@ export default function IssueVotePageComponent() {
                     ...prev,
                     [issueId]: newVote,
                 }));
-                setSubmitSuccess("投票しました");
+                setIssueMessages((prev) => ({
+                    ...prev,
+                    [issueId]: { message: "投票しました", type: "success" },
+                }));
+                setTimeout(() => {
+                    setIssueMessages((prev) => {
+                        const updated = { ...prev };
+                        delete updated[issueId];
+                        return updated;
+                    });
+                }, 3000);
             }
 
             setSelectedVotes((prev) => {
@@ -312,14 +350,27 @@ export default function IssueVotePageComponent() {
             });
         } catch (err) {
             console.error("投票エラー:", err);
-            setError("投票の送信に失敗しました");
+            setIssueMessages((prev) => ({
+                ...prev,
+                [issueId]: {
+                    message: "投票の送信に失敗しました",
+                    type: "error",
+                },
+            }));
+            setTimeout(() => {
+                setIssueMessages((prev) => {
+                    const updated = { ...prev };
+                    delete updated[issueId];
+                    return updated;
+                });
+            }, 3000);
         } finally {
             setSubmitting(false);
         }
     };
 
     const buttonStyle = {
-        backgroundColor: "#646cff",
+        backgroundColor: "#5FBEAA",
         color: "white",
         border: "none",
         padding: "0.8em 2em",
@@ -352,14 +403,14 @@ export default function IssueVotePageComponent() {
 
     const goodButtonStyle = {
         ...voteButtonStyle,
-        borderColor: "#4caf50",
+        borderColor: "#5FBEAA",
         backgroundColor: "#e8f5e9",
         color: "#2e7d32",
     };
 
     const badButtonStyle = {
         ...voteButtonStyle,
-        borderColor: "#f44336",
+        borderColor: "#e57373",
         backgroundColor: "#ffebee",
         color: "#c62828",
     };
@@ -397,15 +448,27 @@ export default function IssueVotePageComponent() {
 
     const activePageButtonStyle = {
         ...pageButtonStyle,
-        backgroundColor: "#646cff",
+        backgroundColor: "#5FBEAA",
         color: "white",
-        borderColor: "#646cff",
+        borderColor: "#5FBEAA",
     };
 
     if (loading) {
         return (
-            <div style={{ padding: "2rem", textAlign: "center" }}>
-                <h2>読み込み中...</h2>
+            <div
+                style={{
+                    minHeight: "100vh",
+                    background:
+                        "linear-gradient(135deg, #C8F0E5 0%, #E8F8F3 50%, #F0FDF7 100%)",
+                    padding: "2rem",
+                }}
+            >
+                <div style={{ maxWidth: "800px", margin: "0 auto" }}>
+                    <div style={{ textAlign: "center" }}>
+                        <div className="spinner"></div>
+                        <h2 style={{ margin: 0 }}>読み込み中...</h2>
+                    </div>
+                </div>
             </div>
         );
     }
@@ -414,7 +477,8 @@ export default function IssueVotePageComponent() {
         <div
             style={{
                 minHeight: "100vh",
-                backgroundColor: "#f5f7fa",
+                background:
+                    "linear-gradient(135deg, #C8F0E5 0%, #E8F8F3 50%, #F0FDF7 100%)",
                 padding: "2rem",
             }}
         >
@@ -428,13 +492,28 @@ export default function IssueVotePageComponent() {
                         textAlign: "center",
                     }}
                 >
-                    変更案確認・評価
+                    わたしの共感リスト
                 </h1>
 
-                <div style={{ textAlign: "center", marginBottom: "2rem" }}>
-                    <button onClick={() => navigate("/")} style={buttonStyle}>
+                <div style={{ textAlign: "center", marginBottom: "1.5rem" }}>
+                    <button
+                        onClick={() => navigate("/")}
+                        style={{ ...buttonStyle, backgroundColor: "#5FBEAA" }}
+                    >
                         トップに戻る
                     </button>
+                </div>
+
+                <div style={{ marginBottom: "1rem", textAlign: "center" }}>
+                    <p
+                        style={{
+                            color: "#666",
+                            fontSize: "0.95rem",
+                            margin: "0",
+                        }}
+                    >
+                        {voter?.display_name} さん、こんにちは
+                    </p>
                 </div>
 
                 {error && (
@@ -450,32 +529,6 @@ export default function IssueVotePageComponent() {
                         {error}
                     </div>
                 )}
-
-                {submitSuccess && (
-                    <div
-                        style={{
-                            backgroundColor: "#e8f5e8",
-                            color: "#2e7d32",
-                            padding: "1rem",
-                            borderRadius: "8px",
-                            marginBottom: "2rem",
-                        }}
-                    >
-                        {submitSuccess}
-                    </div>
-                )}
-
-                <div style={cardStyle}>
-                    <h2 style={{ marginBottom: "0.5rem" }}>投票者情報</h2>
-                    <p
-                        style={{
-                            color: "var(--text-secondary)",
-                            marginBottom: "0",
-                        }}
-                    >
-                        {voter?.display_name} さん、こんにちは
-                    </p>
-                </div>
 
                 {/* 検索窓 */}
                 <div style={cardStyle}>
@@ -508,9 +561,9 @@ export default function IssueVotePageComponent() {
                                 boxShadow: "inset 0 1px 3px rgba(0, 0, 0, 0.1)",
                             }}
                             onFocus={(e) => {
-                                e.target.style.borderColor = "#646cff";
+                                e.target.style.borderColor = "#5FBEAA";
                                 e.target.style.boxShadow =
-                                    "inset 0 1px 3px rgba(0, 0, 0, 0.1), 0 0 0 3px rgba(100, 108, 255, 0.1)";
+                                    "inset 0 1px 3px rgba(0, 0, 0, 0.1), 0 0 0 3px rgba(95, 190, 170, 0.1)";
                             }}
                             onBlur={(e) => {
                                 e.target.style.borderColor =
@@ -532,7 +585,7 @@ export default function IssueVotePageComponent() {
                                     !!searchError ||
                                     searchTerm.trim().length === 0
                                         ? "#ccc"
-                                        : "#646cff",
+                                        : "#5FBEAA",
                                 color: "white",
                                 fontSize: "1rem",
                                 fontWeight: "500",
@@ -556,7 +609,7 @@ export default function IssueVotePageComponent() {
                                     searchTerm.trim().length > 0
                                 ) {
                                     e.currentTarget.style.backgroundColor =
-                                        "#535bf2";
+                                        "#4DA894";
                                     e.currentTarget.style.transform =
                                         "translateY(-1px)";
                                 }
@@ -567,7 +620,7 @@ export default function IssueVotePageComponent() {
                                     searchTerm.trim().length > 0
                                 ) {
                                     e.currentTarget.style.backgroundColor =
-                                        "#646cff";
+                                        "#5FBEAA";
                                     e.currentTarget.style.transform =
                                         "translateY(0)";
                                 }
@@ -791,6 +844,15 @@ export default function IssueVotePageComponent() {
                                 backgroundColor: "white",
                                 fontSize: "0.9rem",
                             }}
+                            onFocus={(e) => {
+                                e.target.style.borderColor = "#5FBEAA";
+                                e.target.style.outline =
+                                    "2px solid rgba(95, 190, 170, 0.2)";
+                            }}
+                            onBlur={(e) => {
+                                e.target.style.borderColor = "#dee2e6";
+                                e.target.style.outline = "none";
+                            }}
                         >
                             <option value="created_at_desc">
                                 作成日時（新しい順）
@@ -827,7 +889,44 @@ export default function IssueVotePageComponent() {
                                     selectedVotes[issue.issue_id];
 
                                 return (
-                                    <div key={issue.issue_id} style={cardStyle}>
+                                    <div
+                                        key={issue.issue_id}
+                                        style={{
+                                            ...cardStyle,
+                                            position: "relative",
+                                        }}
+                                    >
+                                        {issueMessages[issue.issue_id] && (
+                                            <div
+                                                style={{
+                                                    position: "absolute",
+                                                    top: "0.5rem",
+                                                    right: "0.5rem",
+                                                    backgroundColor:
+                                                        issueMessages[
+                                                            issue.issue_id
+                                                        ].type === "success"
+                                                            ? "#4caf50"
+                                                            : "#f44336",
+                                                    color: "white",
+                                                    padding: "0.5rem 1rem",
+                                                    borderRadius: "6px",
+                                                    fontSize: "0.85rem",
+                                                    fontWeight: "500",
+                                                    zIndex: 10,
+                                                    boxShadow:
+                                                        "0 2px 8px rgba(0,0,0,0.2)",
+                                                    animation:
+                                                        "fadeIn 0.3s ease-in",
+                                                }}
+                                            >
+                                                {
+                                                    issueMessages[
+                                                        issue.issue_id
+                                                    ].message
+                                                }
+                                            </div>
+                                        )}
                                         <div style={{ marginBottom: "1rem" }}>
                                             <div
                                                 style={{
@@ -911,12 +1010,69 @@ export default function IssueVotePageComponent() {
                                                     marginBottom: "1rem",
                                                     fontSize: "0.9em",
                                                     color: "#1976d2",
+                                                    display: "flex",
+                                                    justifyContent:
+                                                        "space-between",
+                                                    alignItems: "center",
+                                                    gap: "1rem",
                                                 }}
                                             >
-                                                現在の評価:{" "}
-                                                {existingVote === "good"
-                                                    ? "👍 Good"
-                                                    : "👎 Bad"}
+                                                <span>
+                                                    現在の評価:{" "}
+                                                    {existingVote === "good"
+                                                        ? "👍 Good"
+                                                        : "👎 Bad"}
+                                                </span>
+                                                <button
+                                                    onClick={() => {
+                                                        const issueUrl = `https://github.com/${issue.repository_owner}/${issue.repository_name}/issues/${issue.github_issue_number}`;
+                                                        const voteText =
+                                                            existingVote ===
+                                                            "good"
+                                                                ? "Good"
+                                                                : "Bad";
+                                                        const tweetText = `${voter?.display_name}さんが${issue.title}に ${voteText}評価をしました #チームみらい #対話型マニフェスト\n\n${issueUrl}`;
+                                                        const twitterUrl = `https://twitter.com/intent/tweet?text=${encodeURIComponent(tweetText)}`;
+                                                        window.open(
+                                                            twitterUrl,
+                                                            "_blank",
+                                                        );
+                                                    }}
+                                                    style={{
+                                                        backgroundColor:
+                                                            "#1da1f2",
+                                                        color: "white",
+                                                        border: "none",
+                                                        padding:
+                                                            "0.4rem 0.8rem",
+                                                        borderRadius: "4px",
+                                                        cursor: "pointer",
+                                                        fontSize: "0.8rem",
+                                                        fontWeight: "500",
+                                                        whiteSpace: "nowrap",
+                                                        display: "flex",
+                                                        alignItems: "center",
+                                                        gap: "0.3rem",
+                                                    }}
+                                                    onMouseEnter={(e) => {
+                                                        e.currentTarget.style.backgroundColor =
+                                                            "#1991db";
+                                                    }}
+                                                    onMouseLeave={(e) => {
+                                                        e.currentTarget.style.backgroundColor =
+                                                            "#1da1f2";
+                                                    }}
+                                                >
+                                                    <svg
+                                                        width="14"
+                                                        height="14"
+                                                        viewBox="0 0 24 24"
+                                                        fill="currentColor"
+                                                    >
+                                                        <path d="M18.244 2.25h3.308l-7.227 8.26 8.502 11.24H16.17l-5.214-6.817L4.99 21.75H1.68l7.73-8.835L1.254 2.25H8.08l4.713 6.231zm-1.161 17.52h1.833L7.084 4.126H5.117z" />
+                                                    </svg>
+                                                    Xに投稿
+                                                </button>
                                             </div>
                                         )}
 
@@ -984,7 +1140,7 @@ export default function IssueVotePageComponent() {
                                                         backgroundColor:
                                                             submitting
                                                                 ? "#ccc"
-                                                                : "#646cff",
+                                                                : "#5FBEAA",
                                                         cursor: submitting
                                                             ? "not-allowed"
                                                             : "pointer",

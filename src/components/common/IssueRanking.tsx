@@ -256,7 +256,73 @@ export default function IssueRanking({ maxItems = 5 }: IssueRankingProps) {
     if (loading) {
         return (
             <div style={rankingStyle}>
-                <p style={{ textAlign: "center", margin: 0 }}>読み込み中...</p>
+                <h3
+                    style={{
+                        fontSize: "1.1rem",
+                        fontWeight: "600",
+                        color: "#333",
+                        marginBottom: "1rem",
+                        textAlign: "center",
+                        marginTop: 0,
+                    }}
+                >
+                    上位のマニフェスト提案
+                </h3>
+                {Array.from({ length: maxItems }, (_, index) => (
+                    <div
+                        key={index}
+                        style={{
+                            ...rankingItemStyle,
+                            borderBottom:
+                                index === maxItems - 1
+                                    ? "none"
+                                    : "1px solid #f0f0f0",
+                            opacity: 0.5,
+                        }}
+                    >
+                        <div style={rankingIconStyle}>
+                            {index === 0
+                                ? "👑"
+                                : index === 1
+                                  ? "🥈"
+                                  : index === 2
+                                    ? "🥉"
+                                    : `${index + 1}`}
+                        </div>
+                        <div style={issueInfoStyle}>
+                            <div
+                                style={{
+                                    ...issueTitleStyle,
+                                    backgroundColor: "#f0f0f0",
+                                    borderRadius: "4px",
+                                    height: "1.2rem",
+                                    marginBottom: "0.25rem",
+                                }}
+                            ></div>
+                            <div
+                                style={{
+                                    ...issueMetaStyle,
+                                    backgroundColor: "#f5f5f5",
+                                    borderRadius: "4px",
+                                    height: "0.8rem",
+                                    width: "60%",
+                                }}
+                            ></div>
+                        </div>
+                        <div
+                            style={{
+                                ...scoreStyle,
+                                backgroundColor: "#f0f0f0",
+                                color: "transparent",
+                            }}
+                        >
+                            +0
+                        </div>
+                    </div>
+                ))}
+                <div style={{ textAlign: "center", marginTop: "1rem" }}>
+                    <div className="spinner" style={{ margin: "0 auto" }}></div>
+                </div>
             </div>
         );
     }
@@ -287,7 +353,7 @@ export default function IssueRanking({ maxItems = 5 }: IssueRankingProps) {
                     marginTop: 0,
                 }}
             >
-                上位評価のマニフェスト提案
+                上位のマニフェスト提案
             </h3>
             {rankedIssues.map((item, index) => (
                 <a
