@@ -1,100 +1,30 @@
 import { useState } from "react";
 import { useNavigate } from "react-router-dom";
-import { createHashedPassword } from "../../lib/passwordUtils";
-import { supabase } from "../../lib/supabaseClient";
+import DisplayNameInput from "../../components/DisplayNameInput";
+import { useAuth } from "../../contexts/AuthContext";
 
 export default function ProfileRegistrationPage() {
     const navigate = useNavigate();
-    const [submitting, setSubmitting] = useState(false);
+    const { signInWithGoogle, isAuthenticated, needsDisplayName, loading } =
+        useAuth();
     const [error, setError] = useState<string | null>(null);
-    const [success, setSuccess] = useState(false);
-    const [formData, setFormData] = useState({
-        display_name: "",
-        password: "",
-        password_confirmation: "",
-        is_eligible: true,
-    });
+    const [loggingIn, setLoggingIn] = useState(false);
 
-    const handleInputChange = (field: string, value: string | boolean) => {
-        setFormData((prev) => ({
-            ...prev,
-            [field]: value,
-        }));
-    };
-
-    const validatePassword = (password: string): boolean => {
-        const passwordRegex =
-            /^(?=.*[a-zA-Z])(?=.*\d)(?=.*[!@#$%^&*()_+\-=\[\]{};':"\\|,.<>\/?]).{8,}$/;
-        return passwordRegex.test(password);
-    };
-
-    const handleSubmit = async (e: React.FormEvent) => {
-        e.preventDefault();
-        if (
-            !formData.display_name.trim() ||
-            !formData.password.trim() ||
-            !formData.password_confirmation.trim()
-        ) {
-            setError("必須項目を入力してください");
-            return;
-        }
-
-        if (formData.password !== formData.password_confirmation) {
-            setError("パスワードが一致しません");
-            return;
-        }
-
-        if (!validatePassword(formData.password)) {
-            setError("パスワードは英数記号を含む8文字以上で入力してください");
-            return;
-        }
-
-        setSubmitting(true);
+    const handleGoogleSignIn = async () => {
+        setLoggingIn(true);
         setError(null);
 
-        try {
-            const { data: existingVoter } = await supabase
-                .from("voters")
-                .select("voter_id")
-                .eq("display_name", formData.display_name.trim())
-                .single();
+        const result = await signInWithGoogle();
 
-            if (existingVoter) {
-                setError("この表示名は既に登録されています");
-                setSubmitting(false);
-                return;
-            }
-
-            const hashedPassword = await createHashedPassword(
-                formData.password.trim(),
-            );
-
-            const { error: insertError } = await supabase
-                .from("voters")
-                .insert({
-                    display_name: formData.display_name.trim(),
-                    password: hashedPassword,
-                    is_eligible: true,
-                });
-
-            if (insertError) throw insertError;
-
-            setSuccess(true);
-        } catch (err) {
-            console.error("プロフィール登録エラー:", err);
-            setError("登録に失敗しました。もう一度お試しください。");
-        } finally {
-            setSubmitting(false);
+        if (!result.success) {
+            setError(result.error || "Google認証に失敗しました");
         }
+
+        setLoggingIn(false);
     };
 
-    const inputStyle = {
-        width: "100%",
-        padding: "0.8em",
-        borderRadius: "8px",
-        border: "1px solid #ccc",
-        fontSize: "1em",
-        marginBottom: "1rem",
+    const handleDisplayNameComplete = () => {
+        navigate("/");
     };
 
     const buttonStyle = {
@@ -121,20 +51,30 @@ export default function ProfileRegistrationPage() {
         color: "#333",
     };
 
-    const supabaseUrl = import.meta.env.VITE_SUPABASE_URL;
-    if (!supabaseUrl || supabaseUrl === "https://your-project.supabase.co") {
-        console.log(
-            "Supabase not configured, skipping authentication for development",
-        );
+    if (loading) {
         return (
-            <div style={{ padding: "2rem", textAlign: "center" }}>
-                <h2>開発環境</h2>
-                <p>Supabaseが設定されていません</p>
+            <div
+                style={{
+                    minHeight: "100vh",
+                    backgroundColor: "#f5f7fa",
+                    display: "flex",
+                    flexDirection: "column",
+                    alignItems: "center",
+                    justifyContent: "center",
+                    padding: "2rem",
+                }}
+            >
+                <div style={cardStyle}>
+                    <div style={{ textAlign: "center" }}>
+                        <div className="spinner"></div>
+                        <h2 style={{ margin: 0 }}>読み込み中...</h2>
+                    </div>
+                </div>
             </div>
         );
     }
 
-    if (success) {
+    if (isAuthenticated && !needsDisplayName) {
         return (
             <div
                 style={{
@@ -164,7 +104,7 @@ export default function ProfileRegistrationPage() {
                             fontSize: "1.1em",
                         }}
                     >
-                        プロフィール登録が正常に完了しました。
+                        既に登録済みです。
                     </p>
                     <p
                         style={{
@@ -173,7 +113,7 @@ export default function ProfileRegistrationPage() {
                             color: "#666",
                         }}
                     >
-                        これでGitHub Issues投票に参加することができます。
+                        GitHub Issues投票に参加することができます。
                     </p>
                     <button onClick={() => navigate("/")} style={buttonStyle}>
                         ホームに戻る
@@ -181,6 +121,10 @@ export default function ProfileRegistrationPage() {
                 </div>
             </div>
         );
+    }
+
+    if (needsDisplayName) {
+        return <DisplayNameInput onComplete={handleDisplayNameComplete} />;
     }
 
     return (
@@ -197,8 +141,19 @@ export default function ProfileRegistrationPage() {
         >
             <div style={cardStyle}>
                 <h1 style={{ textAlign: "center", marginBottom: "2rem" }}>
-                    プロフィール登録
+                    アカウント登録
                 </h1>
+
+                <p
+                    style={{
+                        textAlign: "center",
+                        marginBottom: "2rem",
+                        color: "#666",
+                        fontSize: "1em",
+                    }}
+                >
+                    Googleアカウントでログインして投票に参加しましょう
+                </p>
 
                 {error && (
                     <div
@@ -214,102 +169,39 @@ export default function ProfileRegistrationPage() {
                     </div>
                 )}
 
-                <form onSubmit={handleSubmit}>
-                    <div style={{ marginBottom: "1rem" }}>
-                        <label
-                            style={{
-                                display: "block",
-                                marginBottom: "0.5rem",
-                                fontWeight: "500",
-                            }}
-                        >
-                            表示名 <span style={{ color: "#c62828" }}>*</span>
-                        </label>
-                        <input
-                            type="text"
-                            value={formData.display_name}
-                            onChange={(e) =>
-                                handleInputChange(
-                                    "display_name",
-                                    e.target.value,
-                                )
-                            }
-                            style={inputStyle}
-                            placeholder="山田太郎"
-                            required
+                <button
+                    onClick={handleGoogleSignIn}
+                    disabled={loggingIn}
+                    style={{
+                        ...buttonStyle,
+                        backgroundColor: loggingIn ? "#ccc" : "#4285f4",
+                        display: "flex",
+                        alignItems: "center",
+                        justifyContent: "center",
+                        gap: "0.5rem",
+                        cursor: loggingIn ? "not-allowed" : "pointer",
+                    }}
+                >
+                    <svg width="18" height="18" viewBox="0 0 24 24">
+                        <path
+                            fill="white"
+                            d="M22.56 12.25c0-.78-.07-1.53-.2-2.25H12v4.26h5.92c-.26 1.37-1.04 2.53-2.21 3.31v2.77h3.57c2.08-1.92 3.28-4.74 3.28-8.09z"
                         />
-                    </div>
-
-                    <div style={{ marginBottom: "1rem" }}>
-                        <label
-                            style={{
-                                display: "block",
-                                marginBottom: "0.5rem",
-                                fontWeight: "500",
-                            }}
-                        >
-                            パスワード{" "}
-                            <span style={{ color: "#c62828" }}>*</span>
-                        </label>
-                        <input
-                            type="password"
-                            value={formData.password}
-                            onChange={(e) =>
-                                handleInputChange("password", e.target.value)
-                            }
-                            style={inputStyle}
-                            placeholder="英数記号を含む8文字以上"
-                            required
+                        <path
+                            fill="white"
+                            d="M12 23c2.97 0 5.46-.98 7.28-2.66l-3.57-2.77c-.98.66-2.23 1.06-3.71 1.06-2.86 0-5.29-1.93-6.16-4.53H2.18v2.84C3.99 20.53 7.7 23 12 23z"
                         />
-                        <p
-                            style={{
-                                fontSize: "0.9em",
-                                color: "#666",
-                                margin: "0 0 1rem 0",
-                            }}
-                        >
-                            投票時の本人確認に使用します
-                        </p>
-                    </div>
-
-                    <div style={{ marginBottom: "2rem" }}>
-                        <label
-                            style={{
-                                display: "block",
-                                marginBottom: "0.5rem",
-                                fontWeight: "500",
-                            }}
-                        >
-                            パスワード確認{" "}
-                            <span style={{ color: "#c62828" }}>*</span>
-                        </label>
-                        <input
-                            type="password"
-                            value={formData.password_confirmation}
-                            onChange={(e) =>
-                                handleInputChange(
-                                    "password_confirmation",
-                                    e.target.value,
-                                )
-                            }
-                            style={inputStyle}
-                            placeholder="パスワードを再入力してください"
-                            required
+                        <path
+                            fill="white"
+                            d="M5.84 14.09c-.22-.66-.35-1.36-.35-2.09s.13-1.43.35-2.09V7.07H2.18C1.43 8.55 1 10.22 1 12s.43 3.45 1.18 4.93l2.85-2.22.81-.62z"
                         />
-                    </div>
-
-                    <button
-                        type="submit"
-                        disabled={submitting}
-                        style={{
-                            ...buttonStyle,
-                            backgroundColor: submitting ? "#ccc" : "#5FBEAA",
-                            cursor: submitting ? "not-allowed" : "pointer",
-                        }}
-                    >
-                        {submitting ? "登録中..." : "プロフィール登録"}
-                    </button>
-                </form>
+                        <path
+                            fill="white"
+                            d="M12 5.38c1.62 0 3.06.56 4.21 1.64l3.15-3.15C17.45 2.09 14.97 1 12 1 7.7 1 3.99 3.47 2.18 7.07l3.66 2.84c.87-2.6 3.3-4.53 6.16-4.53z"
+                        />
+                    </svg>
+                    {loggingIn ? "認証中..." : "Googleでログイン"}
+                </button>
 
                 <button
                     onClick={() => navigate("/")}
