@@ -363,46 +363,7 @@ function View() {
                         maxWidth: "800px",
                         flexWrap: "wrap",
                     }}
-                >
-                    {/* <h2 style={sectionHeadingStyle}></h2>
-                <button
-                    style={buttonStyle}
-                    onClick={() => navigate("/register")}
-                    onMouseEnter={(e) => {
-                        Object.assign(
-                            (e.target as HTMLElement).style,
-                            buttonHoverStyle,
-                        );
-                    }}
-                    onMouseLeave={(e) => {
-                        Object.assign(
-                            (e.target as HTMLElement).style,
-                            buttonStyle,
-                        );
-                    }}
-                >
-                    ログイン
-                </button> */}
-
-                    {/* <button
-                    style={buttonStyle}
-                    onClick={() => navigate("/results")}
-                    onMouseEnter={(e) => {
-                        Object.assign(
-                            (e.target as HTMLElement).style,
-                            buttonHoverStyle,
-                        );
-                    }}
-                    onMouseLeave={(e) => {
-                        Object.assign(
-                            (e.target as HTMLElement).style,
-                            buttonStyle,
-                        );
-                    }}
-                >
-                    結果を確認する
-                </button> */}
-                </div>
+                ></div>
             </div>
         </div>
     );
