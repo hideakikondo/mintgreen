@@ -440,6 +440,17 @@ export default function IssueVotePageComponent() {
         color: "white",
     };
 
+    const spinnerStyle = {
+        display: "inline-block",
+        width: "16px",
+        height: "16px",
+        border: "2px solid #ffffff40",
+        borderTop: "2px solid #ffffff",
+        borderRadius: "50%",
+        animation: "spin 1s linear infinite",
+        marginRight: "8px",
+    };
+
     if (loading) {
         return (
             <div style={{ padding: "2rem", textAlign: "center" }}>
@@ -456,6 +467,14 @@ export default function IssueVotePageComponent() {
                 padding: "2rem",
             }}
         >
+            <style>
+                {`
+                    @keyframes spin {
+                        0% { transform: rotate(0deg); }
+                        100% { transform: rotate(360deg); }
+                    }
+                `}
+            </style>
             <div style={{ maxWidth: "800px", margin: "0 auto" }}>
                 <h1
                     style={{
@@ -922,16 +941,25 @@ export default function IssueVotePageComponent() {
                                                               }
                                                     }
                                                 >
-                                                    {feedback
-                                                        ? feedback
-                                                        : submitting
-                                                          ? "送信中..."
-                                                          : existingVote ===
-                                                              selectedVote
-                                                            ? "投票取消"
-                                                            : existingVote
-                                                              ? "投票変更"
-                                                              : "投票する"}
+                                                    {feedback ? (
+                                                        feedback
+                                                    ) : submitting ? (
+                                                        <>
+                                                            <span
+                                                                style={
+                                                                    spinnerStyle
+                                                                }
+                                                            ></span>
+                                                            送信中...
+                                                        </>
+                                                    ) : existingVote ===
+                                                      selectedVote ? (
+                                                        "投票取消"
+                                                    ) : existingVote ? (
+                                                        "投票変更"
+                                                    ) : (
+                                                        "投票する"
+                                                    )}
                                                 </button>
                                             )}
 
