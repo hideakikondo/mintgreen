@@ -2,6 +2,14 @@ import React, { useEffect, useState } from "react";
 import { supabase } from "../../lib/supabaseClient";
 import type { Tables } from "../../types/supabase";
 
+type SortOption =
+    | "created_at_desc"
+    | "id_asc"
+    | "id_desc"
+    | "good_count"
+    | "bad_count"
+    | "user_evaluation";
+
 interface IssueWithVotes {
     issue: Tables<"github_issues">;
     goodVotes: number;
@@ -20,6 +28,7 @@ export default function IssuesPageComponent() {
     const [totalPages, setTotalPages] = useState(1);
 
     const ITEMS_PER_PAGE = 50;
+    const [sortOption, setSortOption] = useState<SortOption>("created_at_desc");
 
     useEffect(() => {
         fetchIssues();
@@ -99,6 +108,47 @@ export default function IssuesPageComponent() {
             setError("Issue情報の取得に失敗しました");
         } finally {
             setLoading(false);
+        }
+    };
+
+    const sortIssues = (
+        issues: IssueWithVotes[],
+        sortBy: SortOption,
+    ): IssueWithVotes[] => {
+        const sorted = [...issues];
+        switch (sortBy) {
+            case "id_asc":
+                return sorted.sort(
+                    (a, b) =>
+                        a.issue.github_issue_number -
+                        b.issue.github_issue_number,
+                );
+            case "id_desc":
+                return sorted.sort(
+                    (a, b) =>
+                        b.issue.github_issue_number -
+                        a.issue.github_issue_number,
+                );
+            case "good_count":
+                return sorted.sort(
+                    (a, b) => b.totalGoodCount - a.totalGoodCount,
+                );
+            case "bad_count":
+                return sorted.sort((a, b) => b.totalBadCount - a.totalBadCount);
+            case "user_evaluation":
+                return sorted.sort(
+                    (a, b) =>
+                        b.totalGoodCount -
+                        b.totalBadCount -
+                        (a.totalGoodCount - a.totalBadCount),
+                );
+            case "created_at_desc":
+            default:
+                return sorted.sort(
+                    (a, b) =>
+                        new Date(b.issue.created_at).getTime() -
+                        new Date(a.issue.created_at).getTime(),
+                );
         }
     };
 
@@ -212,7 +262,7 @@ export default function IssuesPageComponent() {
         <div style={isMobile ? mobileContainerStyle : containerStyle}>
             <div style={contentStyle}>
                 <h1 style={isMobile ? mobileHeaderStyle : headerStyle}>
-                    GitHub Issue評価
+                    提案評価
                 </h1>
 
                 <div style={{ textAlign: "center", marginBottom: "2rem" }}>
@@ -266,7 +316,47 @@ export default function IssuesPageComponent() {
                             {issues.length} 件)
                         </div>
 
-                        {issues.map(
+                        <div
+                            style={{
+                                marginBottom: "1.5rem",
+                                display: "flex",
+                                justifyContent: "center",
+                                alignItems: "center",
+                                gap: "0.5rem",
+                            }}
+                        >
+                            <label
+                                style={{ fontSize: "0.9rem", color: "#666" }}
+                            >
+                                ソート順:
+                            </label>
+                            <select
+                                value={sortOption}
+                                onChange={(e) =>
+                                    setSortOption(e.target.value as SortOption)
+                                }
+                                style={{
+                                    padding: "0.5rem",
+                                    borderRadius: "4px",
+                                    border: "1px solid #dee2e6",
+                                    backgroundColor: "white",
+                                    fontSize: "0.9rem",
+                                }}
+                            >
+                                <option value="created_at_desc">
+                                    作成日時（新しい順）
+                                </option>
+                                <option value="id_asc">ID（昇順）</option>
+                                <option value="id_desc">ID（降順）</option>
+                                <option value="good_count">Good数順</option>
+                                <option value="bad_count">Bad数順</option>
+                                <option value="user_evaluation">
+                                    ユーザー評価順（Good-Bad）
+                                </option>
+                            </select>
+                        </div>
+
+                        {sortIssues(issues, sortOption).map(
                             ({ issue, totalGoodCount, totalBadCount }) => (
                                 <div
                                     key={issue.issue_id}
