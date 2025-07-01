@@ -262,7 +262,7 @@ export default function IssuesPageComponent() {
         <div style={isMobile ? mobileContainerStyle : containerStyle}>
             <div style={contentStyle}>
                 <h1 style={isMobile ? mobileHeaderStyle : headerStyle}>
-                    提案評価
+                    みんなの評価まとめ
                 </h1>
 
                 <div style={{ textAlign: "center", marginBottom: "2rem" }}>
