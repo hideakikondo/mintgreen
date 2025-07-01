@@ -59,11 +59,24 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
                 setSession(currentSession);
 
                 if (currentSession?.user?.email) {
-                    const { data: voterData } = await supabase
-                        .from("voters")
-                        .select("*")
-                        .eq("user_email", currentSession.user.email)
-                        .single();
+                    console.log(
+                        "Querying voter for email:",
+                        currentSession.user.email,
+                    );
+                    const { data: voterData, error: voterError } =
+                        await supabase
+                            .from("voters")
+                            .select("*")
+                            .eq("user_email", currentSession.user.email)
+                            .single();
+
+                    if (voterError) {
+                        console.error("Voter query error:", voterError);
+                        if (voterError.code !== "PGRST116") {
+                            // PGRST116は"No rows found"
+                            throw voterError;
+                        }
+                    }
 
                     if (voterData) {
                         setVoter(voterData);
@@ -94,11 +107,26 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
             setSession(session);
 
             if (session?.user?.email) {
-                const { data: voterData } = await supabase
+                console.log(
+                    "Auth state change - querying voter for email:",
+                    session.user.email,
+                );
+                const { data: voterData, error: voterError } = await supabase
                     .from("voters")
                     .select("*")
                     .eq("user_email", session.user.email)
                     .single();
+
+                if (voterError) {
+                    console.error("Auth state voter query error:", voterError);
+                    if (voterError.code !== "PGRST116") {
+                        // PGRST116は"No rows found"
+                        console.error(
+                            "Unexpected voter query error:",
+                            voterError,
+                        );
+                    }
+                }
 
                 if (voterData) {
                     setVoter(voterData);

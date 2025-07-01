@@ -52,7 +52,21 @@ if (useLocalDb || !supabaseUrl || supabaseUrl === "https://test.supabase.co") {
 
     const finalUrl = supabaseUrl || "https://test.supabase.co";
     const finalKey = supabaseAnonKey || "test-anon-key";
-    client = createClient<Database>(finalUrl, finalKey) as any;
+    client = createClient<Database>(finalUrl, finalKey, {
+        global: {
+            headers: {
+                Accept: "application/json",
+                "Content-Type": "application/json",
+            },
+        },
+        db: {
+            schema: "public",
+        },
+        auth: {
+            autoRefreshToken: true,
+            persistSession: true,
+        },
+    }) as any;
 }
 
 export const supabase = client;
