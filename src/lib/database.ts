@@ -5,8 +5,8 @@ export interface DatabaseClient {
         onAuthStateChange(callback: (event: any, session: any) => void): {
             data: { subscription: { unsubscribe(): void } };
         };
-        signInWithOAuth(options: any): Promise<{ error: any }>;
-        signOut(): Promise<{ error: any }>;
+        signInWithOAuth(options: any): Promise<void>;
+        signOut(): Promise<void>;
     };
 }
 
@@ -35,8 +35,8 @@ export class SQLiteClient implements DatabaseClient {
         onAuthStateChange: (_callback: any) => ({
             data: { subscription: { unsubscribe: () => {} } },
         }),
-        signInWithOAuth: async (_options: any) => ({ error: null }),
-        signOut: async () => ({ error: null }),
+        signInWithOAuth: async () => {},
+        signOut: async () => {},
     };
 }
 
