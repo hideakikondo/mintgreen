@@ -309,6 +309,55 @@ function View() {
             <div
                 style={{
                     display: "flex",
+                    justifyContent: "center",
+                    alignItems: "center",
+                    marginTop: "2rem",
+                }}
+            >
+                <a
+                    href="https://x.com/mirai_manifesto"
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    title="マニフェスト反映の実績はこちら"
+                    style={{
+                        display: "flex",
+                        alignItems: "center",
+                        gap: "0.5rem",
+                        padding: "0.8rem 1.2rem",
+                        backgroundColor: "#000000",
+                        color: "white",
+                        textDecoration: "none",
+                        borderRadius: "8px",
+                        fontSize: "0.9rem",
+                        fontWeight: "500",
+                        transition: "all 0.2s ease",
+                        border: "none",
+                        cursor: "pointer",
+                    }}
+                    onMouseEnter={(e) => {
+                        (e.target as HTMLElement).style.backgroundColor =
+                            "#333333";
+                    }}
+                    onMouseLeave={(e) => {
+                        (e.target as HTMLElement).style.backgroundColor =
+                            "#000000";
+                    }}
+                >
+                    <svg
+                        width="16"
+                        height="16"
+                        viewBox="0 0 24 24"
+                        fill="currentColor"
+                    >
+                        <path d="M18.244 2.25h3.308l-7.227 8.26 8.502 11.24H16.17l-5.214-6.817L4.99 21.75H1.68l7.73-8.835L1.254 2.25H8.08l4.713 6.231zm-1.161 17.52h1.833L7.084 4.126H5.117z" />
+                    </svg>
+                    マニフェスト反映の実績はこちら
+                </a>
+            </div>
+
+            <div
+                style={{
+                    display: "flex",
                     flexDirection: "row",
                     alignItems: "center",
                     justifyContent: "center",
