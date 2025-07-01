@@ -6,6 +6,8 @@ interface IssueWithVotes {
     issue: Tables<"github_issues">;
     goodVotes: number;
     badVotes: number;
+    totalGoodCount: number;
+    totalBadCount: number;
     score: number;
 }
 
@@ -62,12 +64,19 @@ export default function IssueRanking({ maxItems = 5 }: IssueRankingProps) {
                     good: 0,
                     bad: 0,
                 };
-                const score = voteCounts.good - voteCounts.bad;
+
+                const totalGoodCount =
+                    voteCounts.good + (issue.plus_one_count || 0);
+                const totalBadCount =
+                    voteCounts.bad + (issue.minus_one_count || 0);
+                const score = totalGoodCount - totalBadCount;
 
                 issuesWithVotes.push({
                     issue,
                     goodVotes: voteCounts.good,
                     badVotes: voteCounts.bad,
+                    totalGoodCount,
+                    totalBadCount,
                     score,
                 });
             }
@@ -181,6 +190,18 @@ export default function IssueRanking({ maxItems = 5 }: IssueRankingProps) {
 
     return (
         <div style={rankingStyle}>
+            <h3
+                style={{
+                    fontSize: "1.1rem",
+                    fontWeight: "600",
+                    color: "#333",
+                    marginBottom: "1rem",
+                    textAlign: "center",
+                    marginTop: 0,
+                }}
+            >
+                上位のマニュフェスト提案
+            </h3>
             {rankedIssues.map((item, index) => (
                 <a
                     key={item.issue.issue_id}
@@ -213,7 +234,7 @@ export default function IssueRanking({ maxItems = 5 }: IssueRankingProps) {
                     </div>
                     <div
                         style={scoreStyle}
-                        title={`👍 ${item.goodVotes} | 👎 ${item.badVotes}`}
+                        title={`👍 ${item.totalGoodCount} | 👎 ${item.totalBadCount}`}
                     >
                         {item.score > 0 ? `+${item.score}` : item.score}
                     </div>
