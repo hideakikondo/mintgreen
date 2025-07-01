@@ -17,7 +17,9 @@ export default function IssueVotePageComponent() {
         Record<string, "good" | "bad">
     >({});
     const [submitting, setSubmitting] = useState(false);
-    const [submitSuccess, setSubmitSuccess] = useState<string | null>(null);
+    const [issueMessages, setIssueMessages] = useState<
+        Record<string, { message: string; type: "success" | "error" }>
+    >({});
     const [currentPage, setCurrentPage] = useState(1);
     const [totalPages, setTotalPages] = useState(1);
     const [searchTerm, setSearchTerm] = useState("");
@@ -271,7 +273,20 @@ export default function IssueVotePageComponent() {
                         delete updated[issueId];
                         return updated;
                     });
-                    setSubmitSuccess("投票を取り消しました");
+                    setIssueMessages((prev) => ({
+                        ...prev,
+                        [issueId]: {
+                            message: "投票を取り消しました",
+                            type: "success",
+                        },
+                    }));
+                    setTimeout(() => {
+                        setIssueMessages((prev) => {
+                            const updated = { ...prev };
+                            delete updated[issueId];
+                            return updated;
+                        });
+                    }, 3000);
                 } else {
                     const { error: updateError } = await supabase
                         .from("issue_votes")
@@ -285,7 +300,20 @@ export default function IssueVotePageComponent() {
                         ...prev,
                         [issueId]: newVote,
                     }));
-                    setSubmitSuccess("投票を変更しました");
+                    setIssueMessages((prev) => ({
+                        ...prev,
+                        [issueId]: {
+                            message: "投票を変更しました",
+                            type: "success",
+                        },
+                    }));
+                    setTimeout(() => {
+                        setIssueMessages((prev) => {
+                            const updated = { ...prev };
+                            delete updated[issueId];
+                            return updated;
+                        });
+                    }, 3000);
                 }
             } else {
                 const { error: insertError } = await supabase
@@ -302,7 +330,17 @@ export default function IssueVotePageComponent() {
                     ...prev,
                     [issueId]: newVote,
                 }));
-                setSubmitSuccess("投票しました");
+                setIssueMessages((prev) => ({
+                    ...prev,
+                    [issueId]: { message: "投票しました", type: "success" },
+                }));
+                setTimeout(() => {
+                    setIssueMessages((prev) => {
+                        const updated = { ...prev };
+                        delete updated[issueId];
+                        return updated;
+                    });
+                }, 3000);
             }
 
             setSelectedVotes((prev) => {
@@ -312,7 +350,20 @@ export default function IssueVotePageComponent() {
             });
         } catch (err) {
             console.error("投票エラー:", err);
-            setError("投票の送信に失敗しました");
+            setIssueMessages((prev) => ({
+                ...prev,
+                [issueId]: {
+                    message: "投票の送信に失敗しました",
+                    type: "error",
+                },
+            }));
+            setTimeout(() => {
+                setIssueMessages((prev) => {
+                    const updated = { ...prev };
+                    delete updated[issueId];
+                    return updated;
+                });
+            }, 3000);
         } finally {
             setSubmitting(false);
         }
@@ -476,20 +527,6 @@ export default function IssueVotePageComponent() {
                         }}
                     >
                         {error}
-                    </div>
-                )}
-
-                {submitSuccess && (
-                    <div
-                        style={{
-                            backgroundColor: "#e8f5e8",
-                            color: "#2e7d32",
-                            padding: "1rem",
-                            borderRadius: "8px",
-                            marginBottom: "2rem",
-                        }}
-                    >
-                        {submitSuccess}
                     </div>
                 )}
 
@@ -852,7 +889,44 @@ export default function IssueVotePageComponent() {
                                     selectedVotes[issue.issue_id];
 
                                 return (
-                                    <div key={issue.issue_id} style={cardStyle}>
+                                    <div
+                                        key={issue.issue_id}
+                                        style={{
+                                            ...cardStyle,
+                                            position: "relative",
+                                        }}
+                                    >
+                                        {issueMessages[issue.issue_id] && (
+                                            <div
+                                                style={{
+                                                    position: "absolute",
+                                                    top: "0.5rem",
+                                                    right: "0.5rem",
+                                                    backgroundColor:
+                                                        issueMessages[
+                                                            issue.issue_id
+                                                        ].type === "success"
+                                                            ? "#4caf50"
+                                                            : "#f44336",
+                                                    color: "white",
+                                                    padding: "0.5rem 1rem",
+                                                    borderRadius: "6px",
+                                                    fontSize: "0.85rem",
+                                                    fontWeight: "500",
+                                                    zIndex: 10,
+                                                    boxShadow:
+                                                        "0 2px 8px rgba(0,0,0,0.2)",
+                                                    animation:
+                                                        "fadeIn 0.3s ease-in",
+                                                }}
+                                            >
+                                                {
+                                                    issueMessages[
+                                                        issue.issue_id
+                                                    ].message
+                                                }
+                                            </div>
+                                        )}
                                         <div style={{ marginBottom: "1rem" }}>
                                             <div
                                                 style={{

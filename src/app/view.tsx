@@ -177,7 +177,7 @@ function View() {
                         textAlign: "center",
                     }}
                 >
-                    いどばたご意見板
+                    いどばた みんなの共感アプリ(α版)
                 </h1>
 
                 <div

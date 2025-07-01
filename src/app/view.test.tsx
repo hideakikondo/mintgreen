@@ -17,7 +17,9 @@ describe("View", () => {
                 </BrowserRouter>
             </AuthProvider>,
         );
-        expect(screen.getByText("いどばたご意見板")).toBeInTheDocument();
+        expect(
+            screen.getByText("いどばた みんなの共感アプリ(α版)"),
+        ).toBeInTheDocument();
     });
 
     it("renders all main buttons", () => {
