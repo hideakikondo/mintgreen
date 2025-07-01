@@ -28,8 +28,8 @@ function View() {
 
     const buttonHoverStyle = {
         ...buttonStyle,
-        borderColor: "#646cff",
-        backgroundColor: "#f8f9ff",
+        borderColor: "#5FBEAA",
+        backgroundColor: "#f0fdf7",
     };
 
     const inputStyle = {
@@ -118,7 +118,8 @@ function View() {
             <div
                 style={{
                     minHeight: "100vh",
-                    backgroundColor: "#f5f7fa",
+                    background:
+                        "linear-gradient(135deg, #C8F0E5 0%, #E8F8F3 50%, #F0FDF7 100%)",
                     display: "flex",
                     alignItems: "center",
                     justifyContent: "center",
@@ -142,7 +143,8 @@ function View() {
         <div
             style={{
                 minHeight: "100vh",
-                backgroundColor: "#f5f7fa",
+                background:
+                    "linear-gradient(135deg, #C8F0E5 0%, #E8F8F3 50%, #F0FDF7 100%)",
                 display: "flex",
                 flexDirection: "column",
                 alignItems: "center",
@@ -250,7 +252,7 @@ function View() {
                                     style={{
                                         backgroundColor: loggingIn
                                             ? "#ccc"
-                                            : "#646cff",
+                                            : "#5FBEAA",
                                         color: "white",
                                         border: "none",
                                         padding: "0.8em 1em",
@@ -290,7 +292,7 @@ function View() {
                                 style={{
                                     background: "none",
                                     border: "none",
-                                    color: "#646cff",
+                                    color: "#5FBEAA",
                                     cursor: "pointer",
                                     textDecoration: "underline",
                                     fontSize: "0.9em",

@@ -319,7 +319,7 @@ export default function IssueVotePageComponent() {
     };
 
     const buttonStyle = {
-        backgroundColor: "#646cff",
+        backgroundColor: "#5FBEAA",
         color: "white",
         border: "none",
         padding: "0.8em 2em",
@@ -352,14 +352,14 @@ export default function IssueVotePageComponent() {
 
     const goodButtonStyle = {
         ...voteButtonStyle,
-        borderColor: "#4caf50",
+        borderColor: "#5FBEAA",
         backgroundColor: "#e8f5e9",
         color: "#2e7d32",
     };
 
     const badButtonStyle = {
         ...voteButtonStyle,
-        borderColor: "#f44336",
+        borderColor: "#5FBEAA",
         backgroundColor: "#ffebee",
         color: "#c62828",
     };
@@ -397,9 +397,9 @@ export default function IssueVotePageComponent() {
 
     const activePageButtonStyle = {
         ...pageButtonStyle,
-        backgroundColor: "#646cff",
+        backgroundColor: "#5FBEAA",
         color: "white",
-        borderColor: "#646cff",
+        borderColor: "#5FBEAA",
     };
 
     if (loading) {
@@ -414,7 +414,8 @@ export default function IssueVotePageComponent() {
         <div
             style={{
                 minHeight: "100vh",
-                backgroundColor: "#f5f7fa",
+                background:
+                    "linear-gradient(135deg, #C8F0E5 0%, #E8F8F3 50%, #F0FDF7 100%)",
                 padding: "2rem",
             }}
         >
@@ -432,7 +433,10 @@ export default function IssueVotePageComponent() {
                 </h1>
 
                 <div style={{ textAlign: "center", marginBottom: "2rem" }}>
-                    <button onClick={() => navigate("/")} style={buttonStyle}>
+                    <button
+                        onClick={() => navigate("/")}
+                        style={{ ...buttonStyle, backgroundColor: "#5FBEAA" }}
+                    >
                         トップに戻る
                     </button>
                 </div>
@@ -508,9 +512,9 @@ export default function IssueVotePageComponent() {
                                 boxShadow: "inset 0 1px 3px rgba(0, 0, 0, 0.1)",
                             }}
                             onFocus={(e) => {
-                                e.target.style.borderColor = "#646cff";
+                                e.target.style.borderColor = "#5FBEAA";
                                 e.target.style.boxShadow =
-                                    "inset 0 1px 3px rgba(0, 0, 0, 0.1), 0 0 0 3px rgba(100, 108, 255, 0.1)";
+                                    "inset 0 1px 3px rgba(0, 0, 0, 0.1), 0 0 0 3px rgba(95, 190, 170, 0.1)";
                             }}
                             onBlur={(e) => {
                                 e.target.style.borderColor =
@@ -532,7 +536,7 @@ export default function IssueVotePageComponent() {
                                     !!searchError ||
                                     searchTerm.trim().length === 0
                                         ? "#ccc"
-                                        : "#646cff",
+                                        : "#5FBEAA",
                                 color: "white",
                                 fontSize: "1rem",
                                 fontWeight: "500",
@@ -556,7 +560,7 @@ export default function IssueVotePageComponent() {
                                     searchTerm.trim().length > 0
                                 ) {
                                     e.currentTarget.style.backgroundColor =
-                                        "#535bf2";
+                                        "#4DA894";
                                     e.currentTarget.style.transform =
                                         "translateY(-1px)";
                                 }
@@ -567,7 +571,7 @@ export default function IssueVotePageComponent() {
                                     searchTerm.trim().length > 0
                                 ) {
                                     e.currentTarget.style.backgroundColor =
-                                        "#646cff";
+                                        "#5FBEAA";
                                     e.currentTarget.style.transform =
                                         "translateY(0)";
                                 }
@@ -791,6 +795,15 @@ export default function IssueVotePageComponent() {
                                 backgroundColor: "white",
                                 fontSize: "0.9rem",
                             }}
+                            onFocus={(e) => {
+                                e.target.style.borderColor = "#5FBEAA";
+                                e.target.style.outline =
+                                    "2px solid rgba(95, 190, 170, 0.2)";
+                            }}
+                            onBlur={(e) => {
+                                e.target.style.borderColor = "#dee2e6";
+                                e.target.style.outline = "none";
+                            }}
                         >
                             <option value="created_at_desc">
                                 作成日時（新しい順）
@@ -984,7 +997,7 @@ export default function IssueVotePageComponent() {
                                                         backgroundColor:
                                                             submitting
                                                                 ? "#ccc"
-                                                                : "#646cff",
+                                                                : "#5FBEAA",
                                                         cursor: submitting
                                                             ? "not-allowed"
                                                             : "pointer",

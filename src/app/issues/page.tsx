@@ -283,7 +283,8 @@ export default function IssuesPageComponent() {
 
     const containerStyle: React.CSSProperties = {
         minHeight: "100vh",
-        backgroundColor: "#f5f5f5",
+        background:
+            "linear-gradient(135deg, #C8F0E5 0%, #E8F8F3 50%, #F0FDF7 100%)",
         padding: "2rem 1rem",
     };
 
@@ -339,7 +340,7 @@ export default function IssuesPageComponent() {
     };
 
     const buttonStyle: React.CSSProperties = {
-        backgroundColor: "#007bff",
+        backgroundColor: "#5FBEAA",
         color: "white",
         border: "none",
         padding: "0.75rem 1.5rem",
@@ -380,9 +381,9 @@ export default function IssuesPageComponent() {
 
     const activePageButtonStyle: React.CSSProperties = {
         ...pageButtonStyle,
-        backgroundColor: "#007bff",
+        backgroundColor: "#5FBEAA",
         color: "white",
-        borderColor: "#007bff",
+        borderColor: "#5FBEAA",
     };
 
     const isMobile = window.innerWidth <= 768;
@@ -397,7 +398,7 @@ export default function IssuesPageComponent() {
                 <div style={{ textAlign: "center", marginBottom: "2rem" }}>
                     <button
                         onClick={() => (window.location.href = "/")}
-                        style={buttonStyle}
+                        style={{ ...buttonStyle, backgroundColor: "#5FBEAA" }}
                     >
                         トップに戻る
                     </button>
@@ -434,9 +435,9 @@ export default function IssuesPageComponent() {
                                 boxShadow: "inset 0 1px 3px rgba(0, 0, 0, 0.1)",
                             }}
                             onFocus={(e) => {
-                                e.target.style.borderColor = "#646cff";
+                                e.target.style.borderColor = "#5FBEAA";
                                 e.target.style.boxShadow =
-                                    "inset 0 1px 3px rgba(0, 0, 0, 0.1), 0 0 0 3px rgba(100, 108, 255, 0.1)";
+                                    "inset 0 1px 3px rgba(0, 0, 0, 0.1), 0 0 0 3px rgba(95, 190, 170, 0.1)";
                             }}
                             onBlur={(e) => {
                                 e.target.style.borderColor =
@@ -458,7 +459,7 @@ export default function IssuesPageComponent() {
                                     !!searchError ||
                                     searchTerm.trim().length === 0
                                         ? "#ccc"
-                                        : "#646cff",
+                                        : "#5FBEAA",
                                 color: "white",
                                 fontSize: "1rem",
                                 fontWeight: "500",
@@ -482,7 +483,7 @@ export default function IssuesPageComponent() {
                                     searchTerm.trim().length > 0
                                 ) {
                                     e.currentTarget.style.backgroundColor =
-                                        "#535bf2";
+                                        "#4DA894";
                                     e.currentTarget.style.transform =
                                         "translateY(-1px)";
                                 }
@@ -493,7 +494,7 @@ export default function IssuesPageComponent() {
                                     searchTerm.trim().length > 0
                                 ) {
                                     e.currentTarget.style.backgroundColor =
-                                        "#646cff";
+                                        "#5FBEAA";
                                     e.currentTarget.style.transform =
                                         "translateY(0)";
                                 }
@@ -713,6 +714,15 @@ export default function IssuesPageComponent() {
                                     border: "1px solid #dee2e6",
                                     backgroundColor: "white",
                                     fontSize: "0.9rem",
+                                }}
+                                onFocus={(e) => {
+                                    e.target.style.borderColor = "#5FBEAA";
+                                    e.target.style.outline =
+                                        "2px solid rgba(95, 190, 170, 0.2)";
+                                }}
+                                onBlur={(e) => {
+                                    e.target.style.borderColor = "#dee2e6";
+                                    e.target.style.outline = "none";
                                 }}
                             >
                                 <option value="created_at_desc">
