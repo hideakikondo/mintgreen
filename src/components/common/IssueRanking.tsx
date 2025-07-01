@@ -182,14 +182,26 @@ export default function IssueRanking({ maxItems = 5 }: IssueRankingProps) {
     return (
         <div style={rankingStyle}>
             {rankedIssues.map((item, index) => (
-                <div
+                <a
                     key={item.issue.issue_id}
+                    href={`https://github.com/${item.issue.repository_owner}/${item.issue.repository_name}/issues/${item.issue.github_issue_number}`}
+                    target="_blank"
+                    rel="noopener noreferrer"
                     style={{
                         ...rankingItemStyle,
                         borderBottom:
                             index === rankedIssues.length - 1
                                 ? "none"
                                 : "1px solid #f0f0f0",
+                        textDecoration: "none",
+                        color: "inherit",
+                        cursor: "pointer",
+                    }}
+                    onMouseEnter={(e) => {
+                        e.currentTarget.style.backgroundColor = "#f8f9fa";
+                    }}
+                    onMouseLeave={(e) => {
+                        e.currentTarget.style.backgroundColor = "transparent";
                     }}
                 >
                     <div style={rankingIconStyle}>{getRankingIcon(index)}</div>
@@ -202,7 +214,7 @@ export default function IssueRanking({ maxItems = 5 }: IssueRankingProps) {
                     <div style={scoreStyle}>
                         {item.score > 0 ? `+${item.score}` : item.score}
                     </div>
-                </div>
+                </a>
             ))}
         </div>
     );
