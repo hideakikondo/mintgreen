@@ -283,7 +283,7 @@ export default function IssuesPageComponent() {
 
     const containerStyle: React.CSSProperties = {
         minHeight: "100vh",
-        backgroundColor: "#f5f5f5",
+        backgroundColor: "var(--bg-primary)",
         padding: "2rem 1rem",
     };
 
@@ -295,12 +295,13 @@ export default function IssuesPageComponent() {
     const contentStyle: React.CSSProperties = {
         maxWidth: "1200px",
         margin: "0 auto",
+        width: "100%",
     };
 
     const headerStyle: React.CSSProperties = {
         textAlign: "center",
         marginBottom: "2rem",
-        color: "#333",
+        color: "var(--text-primary)",
         fontSize: "2rem",
     };
 
@@ -311,11 +312,13 @@ export default function IssuesPageComponent() {
     };
 
     const cardStyle: React.CSSProperties = {
-        backgroundColor: "white",
+        backgroundColor: "var(--bg-card)",
         borderRadius: "8px",
         padding: "2rem",
         marginBottom: "2rem",
-        boxShadow: "0 2px 4px rgba(0,0,0,0.1)",
+        boxShadow: "0 4px 12px rgba(76, 175, 80, 0.1)",
+        border: "1px solid var(--border-light)",
+        maxWidth: "100%",
     };
 
     const mobileCardStyle: React.CSSProperties = {
@@ -325,12 +328,13 @@ export default function IssuesPageComponent() {
     };
 
     const issueCardStyle: React.CSSProperties = {
-        backgroundColor: "white",
+        backgroundColor: "var(--bg-card)",
         borderRadius: "8px",
         padding: "1.5rem",
         marginBottom: "1rem",
-        boxShadow: "0 2px 4px rgba(0,0,0,0.1)",
-        border: "1px solid #e0e0e0",
+        boxShadow: "0 4px 12px rgba(76, 175, 80, 0.1)",
+        border: "1px solid var(--border-light)",
+        maxWidth: "100%",
     };
 
     const mobileIssueCardStyle: React.CSSProperties = {
@@ -339,7 +343,7 @@ export default function IssuesPageComponent() {
     };
 
     const buttonStyle: React.CSSProperties = {
-        backgroundColor: "#007bff",
+        backgroundColor: "var(--mint-green)",
         color: "white",
         border: "none",
         padding: "0.75rem 1.5rem",
@@ -347,17 +351,19 @@ export default function IssuesPageComponent() {
         cursor: "pointer",
         fontSize: "1rem",
         fontWeight: "bold",
+        transition: "all 0.2s ease",
     };
 
     const voteButtonStyle: React.CSSProperties = {
-        backgroundColor: "#f8f9fa",
-        color: "#333",
-        border: "1px solid #dee2e6",
+        backgroundColor: "var(--bg-secondary)",
+        color: "var(--text-primary)",
+        border: "1px solid var(--border-light)",
         padding: "0.5rem 1rem",
         borderRadius: "4px",
         cursor: "pointer",
         fontSize: "0.9rem",
         margin: "0 0.25rem",
+        transition: "all 0.2s ease",
     };
 
     const paginationStyle: React.CSSProperties = {
@@ -366,23 +372,25 @@ export default function IssuesPageComponent() {
         alignItems: "center",
         gap: "0.5rem",
         marginTop: "2rem",
+        flexWrap: "wrap",
     };
 
     const pageButtonStyle: React.CSSProperties = {
-        backgroundColor: "#f8f9fa",
-        color: "#333",
-        border: "1px solid #dee2e6",
+        backgroundColor: "var(--bg-secondary)",
+        color: "var(--text-primary)",
+        border: "1px solid var(--border-light)",
         padding: "0.5rem 0.75rem",
         borderRadius: "4px",
         cursor: "pointer",
         fontSize: "0.9rem",
+        minWidth: "40px",
     };
 
     const activePageButtonStyle: React.CSSProperties = {
         ...pageButtonStyle,
-        backgroundColor: "#007bff",
+        backgroundColor: "var(--mint-green)",
         color: "white",
-        borderColor: "#007bff",
+        borderColor: "var(--mint-green)",
     };
 
     const isMobile = window.innerWidth <= 768;

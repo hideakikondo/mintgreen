@@ -13,32 +13,38 @@ function View() {
     const [loggingIn, setLoggingIn] = useState(false);
 
     const buttonStyle = {
-        width: "300px",
+        width: "280px",
+        maxWidth: "90vw",
         padding: "1.2em 2em",
-        margin: "1rem 1rem",
-        backgroundColor: "white",
-        border: "2px solid #e0e0e0",
+        margin: "1rem 0.5rem",
+        backgroundColor: "var(--bg-secondary)",
+        border: "2px solid var(--border-light)",
         borderRadius: "12px",
         fontSize: "1.1em",
         fontWeight: "500",
         cursor: "pointer",
         transition: "all 0.2s ease",
-        color: "#333",
+        color: "var(--text-primary)",
+        boxShadow: "0 2px 8px rgba(76, 175, 80, 0.1)",
     };
 
     const buttonHoverStyle = {
         ...buttonStyle,
-        borderColor: "#646cff",
-        backgroundColor: "#f8f9ff",
+        borderColor: "var(--mint-green)",
+        backgroundColor: "var(--mint-green-light)",
+        transform: "translateY(-2px)",
+        boxShadow: "0 4px 12px rgba(76, 175, 80, 0.2)",
     };
 
     const inputStyle = {
         width: "100%",
         padding: "0.6em",
         borderRadius: "8px",
-        border: "1px solid #ccc",
+        border: "2px solid var(--border-light)",
         fontSize: "1em",
         marginBottom: "1rem",
+        backgroundColor: "var(--bg-secondary)",
+        color: "var(--text-primary)",
     };
 
     const overlayStyle = {
@@ -55,14 +61,14 @@ function View() {
     };
 
     const modalStyle = {
-        backgroundColor: "white",
-        border: "2px solid #e0e0e0",
+        backgroundColor: "var(--bg-card)",
+        border: "2px solid var(--border-light)",
         borderRadius: "12px",
         padding: "2rem",
-        boxShadow: "0 4px 20px rgba(0,0,0,0.15)",
-        color: "#333",
-        maxWidth: "400px",
+        boxShadow: "0 4px 20px rgba(76, 175, 80, 0.15)",
+        color: "var(--text-primary)",
         width: "90%",
+        maxWidth: "400px",
         maxHeight: "90vh",
         overflow: "auto",
     };
@@ -71,12 +77,12 @@ function View() {
         position: "fixed" as const,
         top: "20px",
         right: "20px",
-        backgroundColor: "white",
-        border: "2px solid #e0e0e0",
+        backgroundColor: "var(--bg-card)",
+        border: "2px solid var(--border-light)",
         borderRadius: "12px",
         padding: "1rem",
-        boxShadow: "0 4px 12px rgba(0,0,0,0.15)",
-        color: "#333",
+        boxShadow: "0 4px 12px rgba(76, 175, 80, 0.15)",
+        color: "var(--text-primary)",
         zIndex: 999,
     };
 
@@ -118,7 +124,7 @@ function View() {
             <div
                 style={{
                     minHeight: "100vh",
-                    backgroundColor: "#f5f7fa",
+                    backgroundColor: "var(--bg-primary)",
                     display: "flex",
                     alignItems: "center",
                     justifyContent: "center",
@@ -142,19 +148,19 @@ function View() {
         <div
             style={{
                 minHeight: "100vh",
-                backgroundColor: "#f5f7fa",
+                backgroundColor: "var(--bg-primary)",
                 display: "flex",
                 flexDirection: "column",
                 alignItems: "center",
                 justifyContent: "center",
-                padding: "2rem",
+                padding: "2rem 1rem",
             }}
         >
             <h1
                 style={{
                     fontSize: "2rem",
                     fontWeight: "600",
-                    color: "#333",
+                    color: "var(--text-primary)",
                     marginBottom: "3rem",
                     textAlign: "center",
                 }}
@@ -180,7 +186,7 @@ function View() {
                     <button
                         onClick={handleLogout}
                         style={{
-                            backgroundColor: "#666",
+                            backgroundColor: "var(--text-muted)",
                             color: "white",
                             border: "none",
                             padding: "0.5em 1em",
@@ -209,6 +215,7 @@ function View() {
                             style={{
                                 marginBottom: "1rem",
                                 textAlign: "center",
+                                color: "var(--text-primary)",
                             }}
                         >
                             ログイン
@@ -216,8 +223,8 @@ function View() {
                         {loginError && (
                             <div
                                 style={{
-                                    backgroundColor: "#ffebee",
-                                    color: "#c62828",
+                                    backgroundColor: "var(--error-bg)",
+                                    color: "var(--error-text)",
                                     padding: "1rem",
                                     borderRadius: "8px",
                                     marginBottom: "1rem",
@@ -290,7 +297,7 @@ function View() {
                                 style={{
                                     background: "none",
                                     border: "none",
-                                    color: "#646cff",
+                                    color: "var(--mint-green)",
                                     cursor: "pointer",
                                     textDecoration: "underline",
                                     fontSize: "0.9em",

@@ -319,7 +319,7 @@ export default function IssueVotePageComponent() {
     };
 
     const buttonStyle = {
-        backgroundColor: "#646cff",
+        backgroundColor: "var(--mint-green)",
         color: "white",
         border: "none",
         padding: "0.8em 2em",
@@ -327,16 +327,19 @@ export default function IssueVotePageComponent() {
         cursor: "pointer",
         fontSize: "1em",
         fontWeight: "500",
+        transition: "all 0.2s ease",
     };
 
     const cardStyle = {
-        backgroundColor: "white",
-        border: "2px solid #e0e0e0",
+        backgroundColor: "var(--bg-card)",
+        border: "2px solid var(--border-light)",
         borderRadius: "12px",
         padding: "1.5rem",
         marginBottom: "2rem",
-        boxShadow: "0 2px 4px rgba(0,0,0,0.1)",
-        color: "#333",
+        boxShadow: "0 4px 12px rgba(76, 175, 80, 0.1)",
+        color: "var(--text-primary)",
+        maxWidth: "800px",
+        width: "100%",
     };
 
     const voteButtonStyle = {
@@ -348,13 +351,14 @@ export default function IssueVotePageComponent() {
         fontSize: "1.2em",
         fontWeight: "500",
         transition: "all 0.2s ease",
+        minWidth: "80px",
     };
 
     const goodButtonStyle = {
         ...voteButtonStyle,
-        borderColor: "#4caf50",
-        backgroundColor: "#e8f5e9",
-        color: "#2e7d32",
+        borderColor: "var(--mint-green)",
+        backgroundColor: "var(--mint-green-light)",
+        color: "var(--mint-green-dark)",
     };
 
     const badButtonStyle = {
@@ -366,7 +370,7 @@ export default function IssueVotePageComponent() {
 
     const selectedGoodButtonStyle = {
         ...goodButtonStyle,
-        backgroundColor: "#4caf50",
+        backgroundColor: "var(--mint-green)",
         color: "white",
     };
 
@@ -376,30 +380,32 @@ export default function IssueVotePageComponent() {
         color: "white",
     };
 
-    const paginationStyle = {
+    const paginationStyle: React.CSSProperties = {
         display: "flex",
         justifyContent: "center",
         alignItems: "center",
         gap: "0.5rem",
         marginTop: "2rem",
+        flexWrap: "wrap",
     };
 
     const pageButtonStyle = {
-        backgroundColor: "#f8f9fa",
-        color: "#333",
-        border: "1px solid #dee2e6",
+        backgroundColor: "var(--bg-secondary)",
+        color: "var(--text-primary)",
+        border: "1px solid var(--border-light)",
         padding: "0.5rem 0.75rem",
         borderRadius: "8px",
         cursor: "pointer",
         fontSize: "0.9rem",
         fontWeight: "500",
+        minWidth: "40px",
     };
 
     const activePageButtonStyle = {
         ...pageButtonStyle,
-        backgroundColor: "#646cff",
+        backgroundColor: "var(--mint-green)",
         color: "white",
-        borderColor: "#646cff",
+        borderColor: "var(--mint-green)",
     };
 
     if (loading) {
@@ -414,16 +420,16 @@ export default function IssueVotePageComponent() {
         <div
             style={{
                 minHeight: "100vh",
-                backgroundColor: "#f5f7fa",
-                padding: "2rem",
+                backgroundColor: "var(--bg-primary)",
+                padding: "2rem 1rem",
             }}
         >
-            <div style={{ maxWidth: "800px", margin: "0 auto" }}>
+            <div style={{ maxWidth: "800px", margin: "0 auto", width: "100%" }}>
                 <h1
                     style={{
                         fontSize: "2rem",
                         fontWeight: "600",
-                        color: "#333",
+                        color: "var(--text-primary)",
                         marginBottom: "2rem",
                         textAlign: "center",
                     }}
@@ -440,8 +446,8 @@ export default function IssueVotePageComponent() {
                 {error && (
                     <div
                         style={{
-                            backgroundColor: "#ffebee",
-                            color: "#c62828",
+                            backgroundColor: "var(--error-bg)",
+                            color: "var(--error-text)",
                             padding: "1rem",
                             borderRadius: "8px",
                             marginBottom: "2rem",
@@ -454,8 +460,8 @@ export default function IssueVotePageComponent() {
                 {submitSuccess && (
                     <div
                         style={{
-                            backgroundColor: "#e8f5e8",
-                            color: "#2e7d32",
+                            backgroundColor: "var(--success-bg)",
+                            color: "var(--success-text)",
                             padding: "1rem",
                             borderRadius: "8px",
                             marginBottom: "2rem",

@@ -92,13 +92,15 @@ export default function ProfileRegistrationPage() {
         width: "100%",
         padding: "0.8em",
         borderRadius: "8px",
-        border: "1px solid #ccc",
+        border: "2px solid var(--border-light)",
         fontSize: "1em",
         marginBottom: "1rem",
+        backgroundColor: "var(--bg-secondary)",
+        color: "var(--text-primary)",
     };
 
     const buttonStyle = {
-        backgroundColor: "#646cff",
+        backgroundColor: "var(--mint-green)",
         color: "white",
         border: "none",
         padding: "0.8em 2em",
@@ -107,18 +109,19 @@ export default function ProfileRegistrationPage() {
         fontSize: "1em",
         fontWeight: "500",
         width: "100%",
+        transition: "all 0.2s ease",
     };
 
     const cardStyle = {
-        backgroundColor: "white",
-        border: "2px solid #e0e0e0",
+        backgroundColor: "var(--bg-card)",
+        border: "2px solid var(--border-light)",
         borderRadius: "12px",
         padding: "2rem",
         marginBottom: "2rem",
-        boxShadow: "0 2px 4px rgba(0,0,0,0.1)",
+        boxShadow: "0 4px 12px rgba(76, 175, 80, 0.1)",
         maxWidth: "600px",
         width: "100%",
-        color: "#333",
+        color: "var(--text-primary)",
     };
 
     const supabaseUrl = import.meta.env.VITE_SUPABASE_URL;
@@ -139,12 +142,12 @@ export default function ProfileRegistrationPage() {
             <div
                 style={{
                     minHeight: "100vh",
-                    backgroundColor: "#f5f7fa",
+                    backgroundColor: "var(--bg-primary)",
                     display: "flex",
                     flexDirection: "column",
                     alignItems: "center",
                     justifyContent: "center",
-                    padding: "2rem",
+                    padding: "2rem 1rem",
                 }}
             >
                 <div style={cardStyle}>
@@ -152,7 +155,7 @@ export default function ProfileRegistrationPage() {
                         style={{
                             textAlign: "center",
                             marginBottom: "2rem",
-                            color: "#2e7d32",
+                            color: "var(--success-text)",
                         }}
                     >
                         登録完了
@@ -170,7 +173,7 @@ export default function ProfileRegistrationPage() {
                         style={{
                             textAlign: "center",
                             marginBottom: "2rem",
-                            color: "#666",
+                            color: "var(--text-muted)",
                         }}
                     >
                         これでGitHub Issues投票に参加することができます。
@@ -187,12 +190,12 @@ export default function ProfileRegistrationPage() {
         <div
             style={{
                 minHeight: "100vh",
-                backgroundColor: "#f5f7fa",
+                backgroundColor: "var(--bg-primary)",
                 display: "flex",
                 flexDirection: "column",
                 alignItems: "center",
                 justifyContent: "center",
-                padding: "2rem",
+                padding: "2rem 1rem",
             }}
         >
             <div style={cardStyle}>
@@ -203,8 +206,8 @@ export default function ProfileRegistrationPage() {
                 {error && (
                     <div
                         style={{
-                            backgroundColor: "#ffebee",
-                            color: "#c62828",
+                            backgroundColor: "var(--error-bg)",
+                            color: "var(--error-text)",
                             padding: "1rem",
                             borderRadius: "8px",
                             marginBottom: "2rem",
@@ -264,7 +267,7 @@ export default function ProfileRegistrationPage() {
                         <p
                             style={{
                                 fontSize: "0.9em",
-                                color: "#666",
+                                color: "var(--text-muted)",
                                 margin: "0 0 1rem 0",
                             }}
                         >
@@ -303,7 +306,9 @@ export default function ProfileRegistrationPage() {
                         disabled={submitting}
                         style={{
                             ...buttonStyle,
-                            backgroundColor: submitting ? "#ccc" : "#646cff",
+                            backgroundColor: submitting
+                                ? "#ccc"
+                                : "var(--mint-green)",
                             cursor: submitting ? "not-allowed" : "pointer",
                         }}
                     >
@@ -315,7 +320,7 @@ export default function ProfileRegistrationPage() {
                     onClick={() => navigate("/")}
                     style={{
                         ...buttonStyle,
-                        backgroundColor: "#666",
+                        backgroundColor: "var(--text-muted)",
                         marginTop: "1rem",
                     }}
                 >
