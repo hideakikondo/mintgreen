@@ -37,6 +37,7 @@ function View() {
         backgroundColor: "#f0fdf7",
     };
 
+
     const handleEvaluateClick = async () => {
         if (isAuthenticated) {
             navigate("/issue-vote");
@@ -200,15 +201,11 @@ function View() {
                                 transition: "all 0.2s ease",
                             }}
                             onMouseEnter={(e) => {
-                                (
-                                    e.target as HTMLElement
-                                ).style.backgroundColor =
+                                (e.target as HTMLElement).style.backgroundColor =
                                     "rgba(255, 255, 255, 0.3)";
                             }}
                             onMouseLeave={(e) => {
-                                (
-                                    e.target as HTMLElement
-                                ).style.backgroundColor =
+                                (e.target as HTMLElement).style.backgroundColor =
                                     "rgba(255, 255, 255, 0.2)";
                             }}
                         >
