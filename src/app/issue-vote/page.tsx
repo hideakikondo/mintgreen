@@ -645,6 +645,105 @@ export default function IssueVotePageComponent() {
                             - {filteredIssues.length} 件の結果
                         </div>
                     )}
+
+                    {/* 上部ページネーション */}
+                    {filteredIssues.length > 0 && totalPages > 1 && (
+                        <div style={{ ...paginationStyle, marginTop: "1rem" }}>
+                            <button
+                                onClick={() => setCurrentPage(1)}
+                                disabled={currentPage === 1}
+                                style={{
+                                    ...pageButtonStyle,
+                                    opacity: currentPage === 1 ? 0.5 : 1,
+                                    cursor:
+                                        currentPage === 1
+                                            ? "not-allowed"
+                                            : "pointer",
+                                }}
+                            >
+                                ≪ 最初
+                            </button>
+                            <button
+                                onClick={() =>
+                                    setCurrentPage(Math.max(1, currentPage - 1))
+                                }
+                                disabled={currentPage === 1}
+                                style={{
+                                    ...pageButtonStyle,
+                                    opacity: currentPage === 1 ? 0.5 : 1,
+                                    cursor:
+                                        currentPage === 1
+                                            ? "not-allowed"
+                                            : "pointer",
+                                }}
+                            >
+                                前へ
+                            </button>
+
+                            {Array.from(
+                                { length: Math.min(5, totalPages) },
+                                (_, i) => {
+                                    const startPage = Math.max(
+                                        1,
+                                        currentPage - 2,
+                                    );
+                                    const pageNum = startPage + i;
+                                    if (pageNum > totalPages) return null;
+
+                                    return (
+                                        <button
+                                            key={pageNum}
+                                            onClick={() =>
+                                                setCurrentPage(pageNum)
+                                            }
+                                            style={
+                                                pageNum === currentPage
+                                                    ? activePageButtonStyle
+                                                    : pageButtonStyle
+                                            }
+                                        >
+                                            {pageNum}
+                                        </button>
+                                    );
+                                },
+                            )}
+
+                            <button
+                                onClick={() =>
+                                    setCurrentPage(
+                                        Math.min(totalPages, currentPage + 1),
+                                    )
+                                }
+                                disabled={currentPage === totalPages}
+                                style={{
+                                    ...pageButtonStyle,
+                                    opacity:
+                                        currentPage === totalPages ? 0.5 : 1,
+                                    cursor:
+                                        currentPage === totalPages
+                                            ? "not-allowed"
+                                            : "pointer",
+                                }}
+                            >
+                                次へ
+                            </button>
+                            <button
+                                onClick={() => setCurrentPage(totalPages)}
+                                disabled={currentPage === totalPages}
+                                style={{
+                                    ...pageButtonStyle,
+                                    opacity:
+                                        currentPage === totalPages ? 0.5 : 1,
+                                    cursor:
+                                        currentPage === totalPages
+                                            ? "not-allowed"
+                                            : "pointer",
+                                }}
+                            >
+                                最後 ≫
+                            </button>
+                        </div>
+                    )}
                 </div>
 
                 {filteredIssues.length > 0 && (
@@ -923,6 +1022,20 @@ export default function IssueVotePageComponent() {
                         {totalPages > 1 && (
                             <div style={paginationStyle}>
                                 <button
+                                    onClick={() => setCurrentPage(1)}
+                                    disabled={currentPage === 1}
+                                    style={{
+                                        ...pageButtonStyle,
+                                        opacity: currentPage === 1 ? 0.5 : 1,
+                                        cursor:
+                                            currentPage === 1
+                                                ? "not-allowed"
+                                                : "pointer",
+                                    }}
+                                >
+                                    ≪ 最初
+                                </button>
+                                <button
                                     onClick={() =>
                                         setCurrentPage(
                                             Math.max(1, currentPage - 1),
@@ -992,6 +1105,23 @@ export default function IssueVotePageComponent() {
                                     }}
                                 >
                                     次へ
+                                </button>
+                                <button
+                                    onClick={() => setCurrentPage(totalPages)}
+                                    disabled={currentPage === totalPages}
+                                    style={{
+                                        ...pageButtonStyle,
+                                        opacity:
+                                            currentPage === totalPages
+                                                ? 0.5
+                                                : 1,
+                                        cursor:
+                                            currentPage === totalPages
+                                                ? "not-allowed"
+                                                : "pointer",
+                                    }}
+                                >
+                                    最後 ≫
                                 </button>
                             </div>
                         )}
