@@ -53,7 +53,7 @@ function View() {
         left: 0,
         right: 0,
         bottom: 0,
-        backgroundColor: "rgba(0, 0, 0, 0.5)",
+        backgroundColor: "rgba(128, 128, 128, 0.7)",
         display: "flex",
         alignItems: "center",
         justifyContent: "center",
@@ -257,7 +257,7 @@ function View() {
                                     style={{
                                         backgroundColor: loggingIn
                                             ? "#ccc"
-                                            : "#646cff",
+                                            : "var(--mint-green)",
                                         color: "white",
                                         border: "none",
                                         padding: "0.8em 1em",
@@ -267,6 +267,7 @@ function View() {
                                             : "pointer",
                                         fontSize: "1em",
                                         flex: 1,
+                                        transition: "all 0.2s ease",
                                     }}
                                 >
                                     {loggingIn ? "ログイン中..." : "ログイン"}
@@ -275,13 +276,14 @@ function View() {
                                     type="button"
                                     onClick={() => setShowLoginForm(false)}
                                     style={{
-                                        backgroundColor: "#666",
+                                        backgroundColor: "var(--text-muted)",
                                         color: "white",
                                         border: "none",
                                         padding: "0.8em 1em",
                                         borderRadius: "8px",
                                         cursor: "pointer",
                                         fontSize: "1em",
+                                        transition: "all 0.2s ease",
                                     }}
                                 >
                                     キャンセル
