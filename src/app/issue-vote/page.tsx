@@ -25,6 +25,7 @@ export default function IssueVotePageComponent() {
     const [filteredIssues, setFilteredIssues] = useState<
         Tables<"github_issues">[]
     >([]);
+    const [searchError, setSearchError] = useState<string | null>(null);
     const navigate = useNavigate();
     const { voter, isAuthenticated, loading: authLoading } = useAuth();
 
@@ -51,8 +52,8 @@ export default function IssueVotePageComponent() {
             // スペース（半角・全角）で分割して検索キーワードを取得
             const searchKeywords = activeSearchTerm
                 .split(/[\s　]+/) // 半角スペースと全角スペースで分割
-                .filter(keyword => keyword.trim().length > 0) // 空文字を除外
-                .map(keyword => keyword.toLowerCase());
+                .filter((keyword) => keyword.trim().length > 0) // 空文字を除外
+                .map((keyword) => keyword.toLowerCase());
 
             const filtered = issues.filter((issue) => {
                 // 検索対象テキストを準備
@@ -60,36 +61,96 @@ export default function IssueVotePageComponent() {
                     issue.title,
                     issue.body || "",
                     issue.github_issue_number.toString(),
-                    issue.branch_name || ""
-                ].join(" ").toLowerCase();
+                    issue.branch_name || "",
+                ]
+                    .join(" ")
+                    .toLowerCase();
 
                 // 全てのキーワードが含まれているかチェック（AND検索）
-                return searchKeywords.every(keyword => 
-                    searchableText.includes(keyword)
+                return searchKeywords.every((keyword) =>
+                    searchableText.includes(keyword),
                 );
             });
-            
+
             setFilteredIssues(filtered);
             setTotalPages(Math.ceil(filtered.length / ITEMS_PER_PAGE));
             setCurrentPage(1); // 検索時はページを1に戻す
         }
     }, [activeSearchTerm, issues]);
 
+    // 検索バリデーション
+    const validateSearch = (term: string): string | null => {
+        const trimmedTerm = term.trim();
+
+        // 文字数チェック
+        if (trimmedTerm.length > 100) {
+            return "検索キーワードは100文字以内で入力してください";
+        }
+
+        if (trimmedTerm.length > 0 && trimmedTerm.length < 2) {
+            return "2文字以上で検索してください";
+        }
+
+        // 禁止文字チェック
+        const invalidChars = /[<>&]/;
+        if (invalidChars.test(term)) {
+            return "使用できない文字が含まれています（< > & は使用できません）";
+        }
+
+        // キーワード数チェック
+        if (trimmedTerm.length > 0) {
+            const keywords = trimmedTerm
+                .split(/[\s　]+/)
+                .filter((k) => k.trim().length > 0);
+            if (keywords.length > 10) {
+                return "検索キーワードは10個以内にしてください";
+            }
+
+            // 各キーワードの長さチェック
+            for (const keyword of keywords) {
+                if (keyword.length > 50) {
+                    return "各キーワードは50文字以内にしてください";
+                }
+            }
+        }
+
+        return null;
+    };
+
     // 検索実行
     const handleSearch = () => {
-        setActiveSearchTerm(searchTerm);
+        const validationError = validateSearch(searchTerm);
+        setSearchError(validationError);
+
+        if (!validationError) {
+            setActiveSearchTerm(searchTerm);
+        }
     };
 
     // 検索クリア
     const handleClearSearch = () => {
         setSearchTerm("");
         setActiveSearchTerm("");
+        setSearchError(null);
     };
 
     // Enterキーでの検索
-    const handleKeyPress = (e: React.KeyboardEvent) => {
+    const handleKeyDown = (e: React.KeyboardEvent) => {
         if (e.key === "Enter") {
             handleSearch();
+        }
+    };
+
+    // 入力時のリアルタイムバリデーション（文字数のみ）
+    const handleInputChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+        const value = e.target.value;
+        setSearchTerm(value);
+
+        // 文字数制限のリアルタイムチェック
+        if (value.length > 100) {
+            setSearchError("検索キーワードは100文字以内で入力してください");
+        } else {
+            setSearchError(null);
         }
     };
 
@@ -421,13 +482,19 @@ export default function IssueVotePageComponent() {
                     <h3 style={{ marginBottom: "1rem", fontSize: "1.1rem" }}>
                         検索
                     </h3>
-                    <div style={{ display: "flex", gap: "0.5rem", alignItems: "flex-start" }}>
+                    <div
+                        style={{
+                            display: "flex",
+                            gap: "0.5rem",
+                            alignItems: "flex-start",
+                        }}
+                    >
                         <input
                             type="text"
                             placeholder="検索キーワード（スペース区切りでAND検索）..."
                             value={searchTerm}
-                            onChange={(e) => setSearchTerm(e.target.value)}
-                            onKeyPress={handleKeyPress}
+                            onChange={handleInputChange}
+                            onKeyDown={handleKeyDown}
                             style={{
                                 flex: 1,
                                 padding: "0.75rem",
@@ -442,35 +509,68 @@ export default function IssueVotePageComponent() {
                             }}
                             onFocus={(e) => {
                                 e.target.style.borderColor = "#646cff";
-                                e.target.style.boxShadow = "inset 0 1px 3px rgba(0, 0, 0, 0.1), 0 0 0 3px rgba(100, 108, 255, 0.1)";
+                                e.target.style.boxShadow =
+                                    "inset 0 1px 3px rgba(0, 0, 0, 0.1), 0 0 0 3px rgba(100, 108, 255, 0.1)";
                             }}
                             onBlur={(e) => {
-                                e.target.style.borderColor = "var(--border-strong)";
-                                e.target.style.boxShadow = "inset 0 1px 3px rgba(0, 0, 0, 0.1)";
+                                e.target.style.borderColor =
+                                    "var(--border-strong)";
+                                e.target.style.boxShadow =
+                                    "inset 0 1px 3px rgba(0, 0, 0, 0.1)";
                             }}
                         />
                         <button
                             onClick={handleSearch}
+                            disabled={
+                                !!searchError || searchTerm.trim().length === 0
+                            }
                             style={{
                                 padding: "0.75rem 1.5rem",
                                 borderRadius: "8px",
                                 border: "none",
-                                backgroundColor: "#646cff",
+                                backgroundColor:
+                                    !!searchError ||
+                                    searchTerm.trim().length === 0
+                                        ? "#ccc"
+                                        : "#646cff",
                                 color: "white",
                                 fontSize: "1rem",
                                 fontWeight: "500",
-                                cursor: "pointer",
+                                cursor:
+                                    !!searchError ||
+                                    searchTerm.trim().length === 0
+                                        ? "not-allowed"
+                                        : "pointer",
                                 transition: "all 0.2s ease",
                                 boxShadow: "var(--card-shadow)",
                                 whiteSpace: "nowrap",
+                                opacity:
+                                    !!searchError ||
+                                    searchTerm.trim().length === 0
+                                        ? 0.6
+                                        : 1,
                             }}
                             onMouseEnter={(e) => {
-                                e.currentTarget.style.backgroundColor = "#535bf2";
-                                e.currentTarget.style.transform = "translateY(-1px)";
+                                if (
+                                    !searchError &&
+                                    searchTerm.trim().length > 0
+                                ) {
+                                    e.currentTarget.style.backgroundColor =
+                                        "#535bf2";
+                                    e.currentTarget.style.transform =
+                                        "translateY(-1px)";
+                                }
                             }}
                             onMouseLeave={(e) => {
-                                e.currentTarget.style.backgroundColor = "#646cff";
-                                e.currentTarget.style.transform = "translateY(0)";
+                                if (
+                                    !searchError &&
+                                    searchTerm.trim().length > 0
+                                ) {
+                                    e.currentTarget.style.backgroundColor =
+                                        "#646cff";
+                                    e.currentTarget.style.transform =
+                                        "translateY(0)";
+                                }
                             }}
                         >
                             🔍 検索
@@ -490,17 +590,42 @@ export default function IssueVotePageComponent() {
                                     whiteSpace: "nowrap",
                                 }}
                                 onMouseEnter={(e) => {
-                                    e.currentTarget.style.backgroundColor = "var(--hover-bg)";
+                                    e.currentTarget.style.backgroundColor =
+                                        "var(--hover-bg)";
                                 }}
                                 onMouseLeave={(e) => {
-                                    e.currentTarget.style.backgroundColor = "var(--bg-secondary)";
+                                    e.currentTarget.style.backgroundColor =
+                                        "var(--bg-secondary)";
                                 }}
                             >
                                 ✕ クリア
                             </button>
                         )}
                     </div>
-                    {activeSearchTerm && (
+
+                    {/* エラーメッセージ */}
+                    {searchError && (
+                        <div
+                            style={{
+                                marginTop: "0.75rem",
+                                padding: "0.75rem",
+                                borderRadius: "6px",
+                                backgroundColor: "var(--error-bg, #ffebee)",
+                                color: "var(--error-text, #c62828)",
+                                fontSize: "0.9rem",
+                                border: "1px solid var(--error-text, #c62828)",
+                                display: "flex",
+                                alignItems: "center",
+                                gap: "0.5rem",
+                            }}
+                        >
+                            <span style={{ fontSize: "1.1rem" }}>⚠️</span>
+                            {searchError}
+                        </div>
+                    )}
+
+                    {/* 検索結果表示 */}
+                    {activeSearchTerm && !searchError && (
                         <div
                             style={{
                                 marginTop: "1rem",
@@ -513,9 +638,11 @@ export default function IssueVotePageComponent() {
                             }}
                         >
                             検索キーワード: 「{activeSearchTerm}」
-                            {activeSearchTerm.includes(" ") || activeSearchTerm.includes("　") ? 
-                                " (AND検索)" : ""
-                            } - {filteredIssues.length} 件の結果
+                            {activeSearchTerm.includes(" ") ||
+                            activeSearchTerm.includes("　")
+                                ? " (AND検索)"
+                                : ""}{" "}
+                            - {filteredIssues.length} 件の結果
                         </div>
                     )}
                 </div>
