@@ -437,15 +437,35 @@ export default function IssueVotePageComponent() {
                                                 {issue.branch_name &&
                                                     ` (${issue.branch_name})`}
                                             </div>
-                                            <h3
+                                            <a
+                                                href={`https://github.com/${issue.repository_owner}/${issue.repository_name}/issues/${issue.github_issue_number}`}
+                                                target="_blank"
+                                                rel="noopener noreferrer"
                                                 style={{
-                                                    marginBottom: "1rem",
-                                                    fontSize: "1.3em",
-                                                    fontWeight: "600",
+                                                    textDecoration: "none",
+                                                    color: "inherit",
+                                                    cursor: "pointer",
+                                                }}
+                                                onMouseEnter={(e) => {
+                                                    e.currentTarget.style.textDecoration =
+                                                        "underline";
+                                                }}
+                                                onMouseLeave={(e) => {
+                                                    e.currentTarget.style.textDecoration =
+                                                        "none";
                                                 }}
                                             >
-                                                {issue.title}
-                                            </h3>
+                                                <h3
+                                                    style={{
+                                                        marginBottom: "1rem",
+                                                        fontSize: "1.3em",
+                                                        fontWeight: "600",
+                                                        margin: 0,
+                                                    }}
+                                                >
+                                                    {issue.title}
+                                                </h3>
+                                            </a>
                                             {issue.body && (
                                                 <div
                                                     style={{
