@@ -16,8 +16,12 @@ export default function IssueVotePageComponent() {
     >({});
     const [submitting, setSubmitting] = useState(false);
     const [submitSuccess, setSubmitSuccess] = useState<string | null>(null);
+    const [currentPage, setCurrentPage] = useState(1);
+    const [totalPages, setTotalPages] = useState(1);
     const navigate = useNavigate();
     const { voter, isAuthenticated, loading: authLoading } = useAuth();
+
+    const ITEMS_PER_PAGE = 50;
 
     useEffect(() => {
         if (!authLoading) {
@@ -28,14 +32,27 @@ export default function IssueVotePageComponent() {
             fetchIssues();
             fetchExistingVotes();
         }
-    }, [navigate, isAuthenticated, authLoading]);
+    }, [navigate, isAuthenticated, authLoading, currentPage]);
 
     const fetchIssues = async () => {
         try {
+            setLoading(true);
+            setError(null);
+
+            const { count } = await supabase
+                .from("github_issues")
+                .select("*", { count: "exact", head: true });
+
+            setTotalPages(Math.ceil((count || 0) / ITEMS_PER_PAGE));
+
             const { data: issuesData, error: issuesError } = await supabase
                 .from("github_issues")
                 .select("*")
-                .order("created_at", { ascending: false });
+                .order("created_at", { ascending: false })
+                .range(
+                    (currentPage - 1) * ITEMS_PER_PAGE,
+                    currentPage * ITEMS_PER_PAGE - 1,
+                );
 
             if (issuesError) throw issuesError;
 
@@ -207,6 +224,32 @@ export default function IssueVotePageComponent() {
         color: "white",
     };
 
+    const paginationStyle = {
+        display: "flex",
+        justifyContent: "center",
+        alignItems: "center",
+        gap: "0.5rem",
+        marginTop: "2rem",
+    };
+
+    const pageButtonStyle = {
+        backgroundColor: "#f8f9fa",
+        color: "#333",
+        border: "1px solid #dee2e6",
+        padding: "0.5rem 0.75rem",
+        borderRadius: "8px",
+        cursor: "pointer",
+        fontSize: "0.9rem",
+        fontWeight: "500",
+    };
+
+    const activePageButtonStyle = {
+        ...pageButtonStyle,
+        backgroundColor: "#646cff",
+        color: "white",
+        borderColor: "#646cff",
+    };
+
     if (loading) {
         return (
             <div style={{ padding: "2rem", textAlign: "center" }}>
@@ -276,6 +319,19 @@ export default function IssueVotePageComponent() {
                         {voter?.display_name} さん、こんにちは
                     </p>
                 </div>
+
+                {issues.length > 0 && (
+                    <div
+                        style={{
+                            marginBottom: "1rem",
+                            textAlign: "center",
+                            color: "#666",
+                            fontSize: "0.9rem",
+                        }}
+                    >
+                        ページ {currentPage} / {totalPages}
+                    </div>
+                )}
 
                 {issues.length === 0 ? (
                     <div style={cardStyle}>
@@ -459,6 +515,82 @@ export default function IssueVotePageComponent() {
                                 </div>
                             );
                         })}
+
+                        {totalPages > 1 && (
+                            <div style={paginationStyle}>
+                                <button
+                                    onClick={() =>
+                                        setCurrentPage(
+                                            Math.max(1, currentPage - 1),
+                                        )
+                                    }
+                                    disabled={currentPage === 1}
+                                    style={{
+                                        ...pageButtonStyle,
+                                        opacity: currentPage === 1 ? 0.5 : 1,
+                                        cursor:
+                                            currentPage === 1
+                                                ? "not-allowed"
+                                                : "pointer",
+                                    }}
+                                >
+                                    前へ
+                                </button>
+
+                                {Array.from(
+                                    { length: Math.min(5, totalPages) },
+                                    (_, i) => {
+                                        const startPage = Math.max(
+                                            1,
+                                            currentPage - 2,
+                                        );
+                                        const pageNum = startPage + i;
+                                        if (pageNum > totalPages) return null;
+
+                                        return (
+                                            <button
+                                                key={pageNum}
+                                                onClick={() =>
+                                                    setCurrentPage(pageNum)
+                                                }
+                                                style={
+                                                    pageNum === currentPage
+                                                        ? activePageButtonStyle
+                                                        : pageButtonStyle
+                                                }
+                                            >
+                                                {pageNum}
+                                            </button>
+                                        );
+                                    },
+                                )}
+
+                                <button
+                                    onClick={() =>
+                                        setCurrentPage(
+                                            Math.min(
+                                                totalPages,
+                                                currentPage + 1,
+                                            ),
+                                        )
+                                    }
+                                    disabled={currentPage === totalPages}
+                                    style={{
+                                        ...pageButtonStyle,
+                                        opacity:
+                                            currentPage === totalPages
+                                                ? 0.5
+                                                : 1,
+                                        cursor:
+                                            currentPage === totalPages
+                                                ? "not-allowed"
+                                                : "pointer",
+                                    }}
+                                >
+                                    次へ
+                                </button>
+                            </div>
+                        )}
                     </>
                 )}
             </div>
