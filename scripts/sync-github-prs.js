@@ -86,6 +86,54 @@ async function fetchAllPRs(owner, repo) {
 }
 
 /**
+ * GitHub APIからPull Requestのリアクション数を取得
+ * @param {string} owner リポジトリオーナー
+ * @param {string} repo リポジトリ名
+ * @param {number} issueNumber Issue/PR番号
+ * @returns {Promise<{plusOne: number, minusOne: number}>} リアクション数
+ */
+async function fetchPRReactions(owner, repo, issueNumber) {
+    try {
+        const response = await fetch(
+            `https://api.github.com/repos/${owner}/${repo}/issues/${issueNumber}/reactions`,
+            {
+                headers: {
+                    Authorization: `Bearer ${GITHUB_TOKEN}`,
+                    Accept: "application/vnd.github.v3+json",
+                    "User-Agent": "mintgreen-pr-sync",
+                },
+            },
+        );
+
+        if (!response.ok) {
+            throw new Error(
+                `GitHub API error: ${response.status} ${response.statusText}`,
+            );
+        }
+
+        const reactions = await response.json();
+
+        let plusOne = 0;
+        let minusOne = 0;
+        reactions.forEach((reaction) => {
+            if (reaction.content === "+1") {
+                plusOne++;
+            } else if (reaction.content === "-1") {
+                minusOne++;
+            }
+        });
+
+        return { plusOne, minusOne };
+    } catch (error) {
+        console.error(
+            `リアクション取得エラー (${owner}/${repo}#${issueNumber}):`,
+            error.message,
+        );
+        return { plusOne: 0, minusOne: 0 };
+    }
+}
+
+/**
  * Pull RequestsをSupabaseデータベースにバッチ同期
  * @param {Array} prs Pull Requestsの配列
  * @param {string} owner リポジトリオーナー
@@ -95,16 +143,23 @@ async function fetchAllPRs(owner, repo) {
 async function batchSyncPRsToDatabase(prs, owner, repo) {
     if (prs.length === 0) return { synced: 0, errors: 0 };
 
-    const issuesData = prs.map((pr) => ({
-        github_issue_number: pr.number,
-        repository_owner: owner,
-        repository_name: repo,
-        title: pr.title,
-        body: pr.body,
-        branch_name: pr.head.ref,
-        created_at: pr.created_at,
-        updated_at: pr.updated_at,
-    }));
+    const issuesData = [];
+
+    for (const pr of prs) {
+        const reactions = await fetchPRReactions(owner, repo, pr.number);
+        issuesData.push({
+            github_issue_number: pr.number,
+            repository_owner: owner,
+            repository_name: repo,
+            title: pr.title,
+            body: pr.body,
+            branch_name: pr.head.ref,
+            created_at: pr.created_at,
+            updated_at: pr.updated_at,
+            plus_one_count: reactions.plusOne,
+            minus_one_count: reactions.minusOne,
+        });
+    }
 
     try {
         const { data, error } = await supabase

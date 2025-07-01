@@ -42,6 +42,8 @@ export type Database = {
                     branch_name: string | null;
                     created_at: string;
                     updated_at: string;
+                    plus_one_count: number;
+                    minus_one_count: number;
                 };
                 Insert: {
                     issue_id?: string;
@@ -53,6 +55,8 @@ export type Database = {
                     branch_name?: string | null;
                     created_at?: string;
                     updated_at?: string;
+                    plus_one_count?: number;
+                    minus_one_count?: number;
                 };
                 Update: {
                     issue_id?: string;
@@ -64,6 +68,8 @@ export type Database = {
                     branch_name?: string | null;
                     created_at?: string;
                     updated_at?: string;
+                    plus_one_count?: number;
+                    minus_one_count?: number;
                 };
                 Relationships: [];
             };
