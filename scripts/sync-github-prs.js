@@ -86,14 +86,16 @@ async function fetchAllPRs(owner, repo) {
 }
 
 /**
- * Pull RequestをSupabaseデータベースに同期
- * @param {Object} pr Pull Requestオブジェクト
+ * Pull RequestsをSupabaseデータベースにバッチ同期
+ * @param {Array} prs Pull Requestsの配列
  * @param {string} owner リポジトリオーナー
  * @param {string} repo リポジトリ名
- * @returns {Promise<boolean>} 成功した場合true
+ * @returns {Promise<{synced: number, errors: number}>} 同期結果
  */
-async function syncPRToDatabase(pr, owner, repo) {
-    const issueData = {
+async function batchSyncPRsToDatabase(prs, owner, repo) {
+    if (prs.length === 0) return { synced: 0, errors: 0 };
+
+    const issuesData = prs.map((pr) => ({
         github_issue_number: pr.number,
         repository_owner: owner,
         repository_name: repo,
@@ -102,69 +104,39 @@ async function syncPRToDatabase(pr, owner, repo) {
         branch_name: pr.head.ref,
         created_at: pr.created_at,
         updated_at: pr.updated_at,
-    };
+    }));
 
     try {
-        const { data: existingIssue, error: selectError } = await supabase
+        const { data, error } = await supabase
             .from("github_issues")
-            .select("issue_id, updated_at")
-            .eq("github_issue_number", pr.number)
-            .eq("repository_owner", owner)
-            .eq("repository_name", repo)
-            .single();
+            .upsert(issuesData, {
+                onConflict:
+                    "github_issue_number,repository_owner,repository_name",
+                ignoreDuplicates: false,
+            });
 
-        if (selectError && selectError.code !== "PGRST116") {
-            throw selectError;
+        if (error) {
+            throw error;
         }
 
-        if (existingIssue) {
-            if (new Date(existingIssue.updated_at) < new Date(pr.updated_at)) {
-                const { error } = await supabase
-                    .from("github_issues")
-                    .update(issueData)
-                    .eq("issue_id", existingIssue.issue_id);
-
-                if (error) {
-                    throw error;
-                }
-                console.log(
-                    `PR #${pr.number} (${owner}/${repo}) を更新しました`,
-                );
-            } else {
-                console.log(
-                    `PR #${pr.number} (${owner}/${repo}) は既に最新です`,
-                );
-            }
-        } else {
-            const { error } = await supabase
-                .from("github_issues")
-                .insert(issueData);
-
-            if (error) {
-                throw error;
-            }
-            console.log(
-                `PR #${pr.number} (${owner}/${repo}) を新規追加しました`,
-            );
-        }
-        return true;
-    } catch (error) {
-        console.error(
-            `PR #${pr.number} (${owner}/${repo}) の同期に失敗:`,
-            error.message,
+        console.log(
+            `${prs.length} 件のPRsをバッチ同期しました (${owner}/${repo})`,
         );
-        return false;
+        return { synced: prs.length, errors: 0 };
+    } catch (error) {
+        console.error(`バッチ同期エラー (${owner}/${repo}):`, error.message);
+        return { synced: 0, errors: prs.length };
     }
 }
 
 /**
- * クローズされたPRをデータベースから削除
+ * クローズされたPRをデータベースからバッチ削除
  * @param {string} owner リポジトリオーナー
  * @param {string} repo リポジトリ名
  * @param {Array} allPRs 全てのPRsの配列
  * @returns {Promise<number>} 削除された件数
  */
-async function deleteClosedPRs(owner, repo, allPRs) {
+async function batchDeleteClosedPRs(owner, repo, allPRs) {
     try {
         const { data: existingIssues, error: selectError } = await supabase
             .from("github_issues")
@@ -182,41 +154,32 @@ async function deleteClosedPRs(owner, repo, allPRs) {
         }
 
         const currentPRNumbers = new Set(allPRs.map((pr) => pr.number));
+        const issueIdsToDelete = existingIssues
+            .filter((issue) => !currentPRNumbers.has(issue.github_issue_number))
+            .map((issue) => issue.issue_id);
 
-        const prsToDelete = existingIssues.filter(
-            (issue) => !currentPRNumbers.has(issue.github_issue_number),
-        );
-
-        if (prsToDelete.length === 0) {
+        if (issueIdsToDelete.length === 0) {
             console.log(`${owner}/${repo}: 削除対象のPRはありません`);
             return 0;
         }
 
         console.log(
-            `${owner}/${repo}: ${prsToDelete.length} 件のPRを削除します`,
+            `${owner}/${repo}: ${issueIdsToDelete.length} 件のPRsをバッチ削除します`,
         );
 
-        let deletedCount = 0;
-        for (const prToDelete of prsToDelete) {
-            const { error: deleteError } = await supabase
-                .from("github_issues")
-                .delete()
-                .eq("issue_id", prToDelete.issue_id);
+        const { error: deleteError } = await supabase
+            .from("github_issues")
+            .delete()
+            .in("issue_id", issueIdsToDelete);
 
-            if (deleteError) {
-                console.error(
-                    `PR #${prToDelete.github_issue_number} の削除に失敗:`,
-                    deleteError.message,
-                );
-            } else {
-                console.log(
-                    `PR #${prToDelete.github_issue_number} (${owner}/${repo}) を削除しました`,
-                );
-                deletedCount++;
-            }
+        if (deleteError) {
+            throw deleteError;
         }
 
-        return deletedCount;
+        console.log(
+            `${issueIdsToDelete.length} 件のPRsを削除しました (${owner}/${repo})`,
+        );
+        return issueIdsToDelete.length;
     } catch (error) {
         console.error(`${owner}/${repo} のPR削除処理でエラー:`, error.message);
         return 0;
@@ -224,11 +187,29 @@ async function deleteClosedPRs(owner, repo, allPRs) {
 }
 
 /**
+ * PRsを指定サイズのバッチに分割
+ * @param {Array} array 分割する配列
+ * @param {number} batchSize バッチサイズ
+ * @returns {Array} バッチの配列
+ */
+function chunkArray(array, batchSize) {
+    const chunks = [];
+    for (let i = 0; i < array.length; i += batchSize) {
+        chunks.push(array.slice(i, i + batchSize));
+    }
+    return chunks;
+}
+
+/**
  * メイン処理
  */
 async function main() {
+    const startTime = Date.now();
     console.log("GitHub PRs同期を開始します...");
     console.log(`監視対象リポジトリ: ${REPOSITORIES.join(", ")}`);
+
+    const BATCH_SIZE = 50;
+    const CONCURRENCY_LIMIT = 3;
 
     let totalSynced = 0;
     let totalDeleted = 0;
@@ -243,26 +224,35 @@ async function main() {
             const allPRs = await fetchAllPRs(owner, repo);
             console.log(`${allPRs.length} 件のPRsが見つかりました`);
 
-            const deletedCount = await deleteClosedPRs(owner, repo, allPRs);
+            const deletedCount = await batchDeleteClosedPRs(
+                owner,
+                repo,
+                allPRs,
+            );
             totalDeleted += deletedCount;
 
             const openPRs = allPRs.filter((pr) => pr.state === "open");
             console.log(`${openPRs.length} 件のオープンPRsを同期します`);
 
-            for (const pr of openPRs) {
-                try {
-                    const success = await syncPRToDatabase(pr, owner, repo);
-                    if (success) {
-                        totalSynced++;
-                    } else {
-                        totalErrors++;
-                    }
-                } catch (error) {
-                    console.error(
-                        `PR #${pr.number} の同期でエラー:`,
-                        error.message,
+            if (openPRs.length > 0) {
+                const batches = chunkArray(openPRs, BATCH_SIZE);
+                console.log(`${batches.length} バッチに分割して処理します`);
+
+                for (let i = 0; i < batches.length; i += CONCURRENCY_LIMIT) {
+                    const concurrentBatches = batches.slice(
+                        i,
+                        i + CONCURRENCY_LIMIT,
                     );
-                    totalErrors++;
+                    const promises = concurrentBatches.map((batch) =>
+                        batchSyncPRsToDatabase(batch, owner, repo),
+                    );
+
+                    const results = await Promise.all(promises);
+
+                    for (const result of results) {
+                        totalSynced += result.synced;
+                        totalErrors += result.errors;
+                    }
                 }
             }
         } catch (error) {
@@ -271,8 +261,12 @@ async function main() {
         }
     }
 
+    const executionTime = Date.now() - startTime;
     console.log(
         `\n同期完了: ${totalSynced} 件同期, ${totalDeleted} 件削除, ${totalErrors} 件エラー`,
+    );
+    console.log(
+        `実行時間: ${executionTime}ms (${(executionTime / 1000).toFixed(2)}秒)`,
     );
 
     if (totalErrors > 0) {
