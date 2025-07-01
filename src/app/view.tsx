@@ -1,5 +1,6 @@
 import { useState } from "react";
 import { useNavigate } from "react-router-dom";
+import IssueRanking from "../components/common/IssueRanking";
 import { useAuth } from "../contexts/AuthContext";
 
 function View() {
@@ -254,6 +255,16 @@ function View() {
                     </div>
                 </div>
             )}
+
+            <div
+                style={{
+                    display: "flex",
+                    justifyContent: "center",
+                    marginBottom: "2rem",
+                }}
+            >
+                <IssueRanking />
+            </div>
 
             <div
                 style={{
