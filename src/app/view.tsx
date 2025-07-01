@@ -331,7 +331,7 @@ function View() {
                         );
                     }}
                 >
-                    変更案を評価
+                    変更案確認・評価をする
                 </button>
 
                 <button
@@ -350,7 +350,7 @@ function View() {
                         );
                     }}
                 >
-                    変更案一覧
+                    みんなの評価を見る
                 </button>
             </div>
 

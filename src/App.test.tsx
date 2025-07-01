@@ -10,7 +10,7 @@ describe("App", () => {
 
     it("renders all main buttons", () => {
         render(<App />);
-        expect(screen.getByText("変更案を評価")).toBeInTheDocument();
-        expect(screen.getByText("変更案一覧")).toBeInTheDocument();
+        expect(screen.getByText("変更案確認・評価をする")).toBeInTheDocument();
+        expect(screen.getByText("みんなの評価を見る")).toBeInTheDocument();
     });
 });
