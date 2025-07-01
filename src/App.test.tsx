@@ -13,6 +13,6 @@ describe("App", () => {
     it("renders all main buttons", () => {
         render(<App />);
         expect(screen.getByText("共感を表明する")).toBeInTheDocument();
-        expect(screen.getByText("みんなの共感を見る")).toBeInTheDocument();
+        expect(screen.getByText("共感数の集計を見る")).toBeInTheDocument();
     });
 });
