@@ -4,7 +4,7 @@ import { useAuth } from "../../contexts/AuthContext";
 import { supabase } from "../../lib/supabaseClient";
 import type { Tables } from "../../types/supabase";
 
-type SortOption = "created_at_desc" | "id_asc" | "id_desc";
+type SortOption = "created_at_desc" | "id_asc";
 
 export default function IssueVotePageComponent() {
     const [issues, setIssues] = useState<Tables<"github_issues">[]>([]);
@@ -107,11 +107,9 @@ export default function IssueVotePageComponent() {
         switch (sortBy) {
             case "id_asc":
                 return sorted.sort(
-                    (a, b) => a.github_issue_number - b.github_issue_number,
-                );
-            case "id_desc":
-                return sorted.sort(
-                    (a, b) => b.github_issue_number - a.github_issue_number,
+                    (a, b) =>
+                        new Date(a.created_at).getTime() -
+                        new Date(b.created_at).getTime(),
                 );
             case "created_at_desc":
             default:
@@ -398,8 +396,7 @@ export default function IssueVotePageComponent() {
                             <option value="created_at_desc">
                                 作成日時（新しい順）
                             </option>
-                            <option value="id_asc">ID（昇順）</option>
-                            <option value="id_desc">ID（降順）</option>
+                            <option value="id_asc">作成日時（古い順）</option>
                         </select>
                     </div>
                 )}
