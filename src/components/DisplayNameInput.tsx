@@ -35,7 +35,7 @@ export default function DisplayNameInput({
     };
 
     const inputStyle = {
-        width: "100%",
+        width: "280px",
         padding: "0.8em",
         borderRadius: "8px",
         border: "1px solid #ccc",
