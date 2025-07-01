@@ -6,6 +6,8 @@ interface IssueWithVotes {
     issue: Tables<"github_issues">;
     goodVotes: number;
     badVotes: number;
+    totalGoodCount: number;
+    totalBadCount: number;
     score: number;
 }
 
@@ -33,12 +35,14 @@ export default function IssueRanking({ maxItems = 5 }: IssueRankingProps) {
                 .order("created_at", { ascending: false });
 
             if (issuesError) throw issuesError;
+            console.log("取得したIssue数:", issuesData?.length || 0);
 
             const { data: allVotes, error: votesError } = await supabase
                 .from("issue_votes")
                 .select("issue_id, vote_type");
 
             if (votesError) throw votesError;
+            console.log("取得した投票数:", allVotes?.length || 0);
 
             const voteCountsMap: Record<string, { good: number; bad: number }> =
                 {};
@@ -62,12 +66,19 @@ export default function IssueRanking({ maxItems = 5 }: IssueRankingProps) {
                     good: 0,
                     bad: 0,
                 };
-                const score = voteCounts.good - voteCounts.bad;
+
+                const totalGoodCount =
+                    voteCounts.good + (issue.plus_one_count || 0);
+                const totalBadCount =
+                    voteCounts.bad + (issue.minus_one_count || 0);
+                const score = totalGoodCount - totalBadCount;
 
                 issuesWithVotes.push({
                     issue,
                     goodVotes: voteCounts.good,
                     badVotes: voteCounts.bad,
+                    totalGoodCount,
+                    totalBadCount,
                     score,
                 });
             }
@@ -213,7 +224,7 @@ export default function IssueRanking({ maxItems = 5 }: IssueRankingProps) {
                     </div>
                     <div
                         style={scoreStyle}
-                        title={`👍 ${item.goodVotes} | 👎 ${item.badVotes}`}
+                        title={`👍 ${item.totalGoodCount} (投票: ${item.goodVotes}, GitHub: ${item.issue.plus_one_count || 0}) | 👎 ${item.totalBadCount} (投票: ${item.badVotes}, GitHub: ${item.issue.minus_one_count || 0})`}
                     >
                         {item.score > 0 ? `+${item.score}` : item.score}
                     </div>
