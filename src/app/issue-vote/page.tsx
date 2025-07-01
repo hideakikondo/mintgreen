@@ -42,17 +42,33 @@ export default function IssueVotePageComponent() {
             setLoading(true);
             setError(null);
 
-            const { data: issuesData, error: issuesError } = await supabase
+            const { count, error: countError } = await supabase
                 .from("github_issues")
-                .select("*")
-                .order("created_at", { ascending: false });
+                .select("*", { count: "exact", head: true });
 
-            if (issuesError) throw issuesError;
+            if (countError) throw countError;
 
-            setIssues(issuesData || []);
-            setTotalPages(
-                Math.ceil((issuesData?.length || 0) / ITEMS_PER_PAGE),
-            );
+            let allIssuesData: Tables<"github_issues">[] = [];
+            let from = 0;
+            const batchSize = 1000;
+
+            while (true) {
+                const { data: batchData, error: batchError } = await supabase
+                    .from("github_issues")
+                    .select("*")
+                    .order("created_at", { ascending: false })
+                    .range(from, from + batchSize - 1);
+
+                if (batchError) throw batchError;
+                if (!batchData || batchData.length === 0) break;
+
+                allIssuesData.push(...batchData);
+                if (batchData.length < batchSize) break;
+                from += batchSize;
+            }
+
+            setIssues(allIssuesData || []);
+            setTotalPages(Math.ceil((count || 0) / ITEMS_PER_PAGE));
         } catch (err) {
             console.error("GitHub Issue取得エラー:", err);
             setError("GitHub Issueの取得に失敗しました");

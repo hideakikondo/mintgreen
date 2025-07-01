@@ -26,6 +26,7 @@ export default function IssuesPageComponent() {
 
     const [currentPage, setCurrentPage] = useState(1);
     const [totalPages, setTotalPages] = useState(1);
+    const [totalCount, setTotalCount] = useState(0);
 
     const ITEMS_PER_PAGE = 50;
     const [sortOption, setSortOption] = useState<SortOption>("created_at_desc");
@@ -39,12 +40,31 @@ export default function IssuesPageComponent() {
             setLoading(true);
             setError(null);
 
-            const { data: issuesData, error: issuesError } = await supabase
+            const { count, error: countError } = await supabase
                 .from("github_issues")
-                .select("*")
-                .order("created_at", { ascending: false });
+                .select("*", { count: "exact", head: true });
 
-            if (issuesError) throw issuesError;
+            if (countError) throw countError;
+            setTotalCount(count || 0);
+
+            let allIssuesData: Tables<"github_issues">[] = [];
+            let from = 0;
+            const batchSize = 1000;
+
+            while (true) {
+                const { data: batchData, error: batchError } = await supabase
+                    .from("github_issues")
+                    .select("*")
+                    .order("created_at", { ascending: false })
+                    .range(from, from + batchSize - 1);
+
+                if (batchError) throw batchError;
+                if (!batchData || batchData.length === 0) break;
+
+                allIssuesData.push(...batchData);
+                if (batchData.length < batchSize) break;
+                from += batchSize;
+            }
 
             const issuesWithVotes: IssueWithVotes[] = [];
 
@@ -70,7 +90,7 @@ export default function IssuesPageComponent() {
                 },
             );
 
-            for (const issue of issuesData || []) {
+            for (const issue of allIssuesData || []) {
                 const voteCounts = voteCountsMap[issue.issue_id] || {
                     good: 0,
                     bad: 0,
@@ -93,7 +113,7 @@ export default function IssuesPageComponent() {
             }
 
             setIssues(issuesWithVotes);
-            setTotalPages(Math.ceil(issuesWithVotes.length / ITEMS_PER_PAGE));
+            setTotalPages(Math.ceil((count || 0) / ITEMS_PER_PAGE));
         } catch (err) {
             console.error("Error fetching issues:", err);
             setError("Issue情報の取得に失敗しました");
@@ -303,8 +323,8 @@ export default function IssuesPageComponent() {
                                 color: "#666",
                             }}
                         >
-                            ページ {currentPage} / {totalPages} (全{" "}
-                            {issues.length} 件)
+                            ページ {currentPage} / {totalPages} (全 {totalCount}{" "}
+                            件)
                         </div>
 
                         <div
