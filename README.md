@@ -1,4 +1,4 @@
-# Mintgreen - いどばた政策 みんなの共感アプリ(α版)
+# Mintgreen - いどばた政策政策 みんなの共感アプリ(α版)
 
 Mintgreenは、React 19、TypeScript、Vite、Supabaseを使用して構築されたモダンなオンライン投票システムです。
 
