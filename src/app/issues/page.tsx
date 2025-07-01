@@ -392,7 +392,7 @@ export default function IssuesPageComponent() {
         <div style={isMobile ? mobileContainerStyle : containerStyle}>
             <div style={contentStyle}>
                 <h1 style={isMobile ? mobileHeaderStyle : headerStyle}>
-                    みんなの評価まとめ
+                    マニフェスト提案一覧
                 </h1>
 
                 <div style={{ textAlign: "center", marginBottom: "2rem" }}>

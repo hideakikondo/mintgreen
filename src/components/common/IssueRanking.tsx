@@ -266,7 +266,7 @@ export default function IssueRanking({ maxItems = 5 }: IssueRankingProps) {
                         marginTop: 0,
                     }}
                 >
-                    上位評価のマニフェスト提案
+                    上位のマニフェスト提案
                 </h3>
                 {Array.from({ length: maxItems }, (_, index) => (
                     <div
@@ -353,7 +353,7 @@ export default function IssueRanking({ maxItems = 5 }: IssueRankingProps) {
                     marginTop: 0,
                 }}
             >
-                上位評価のマニフェスト提案
+                上位のマニフェスト提案
             </h3>
             {rankedIssues.map((item, index) => (
                 <a
