@@ -937,7 +937,8 @@ export default function IssueVotePageComponent() {
                                                     fontSize: "0.9em",
                                                     color: "#1976d2",
                                                     display: "flex",
-                                                    justifyContent: "space-between",
+                                                    justifyContent:
+                                                        "space-between",
                                                     alignItems: "center",
                                                     gap: "1rem",
                                                 }}
@@ -951,16 +952,25 @@ export default function IssueVotePageComponent() {
                                                 <button
                                                     onClick={() => {
                                                         const issueUrl = `https://github.com/${issue.repository_owner}/${issue.repository_name}/issues/${issue.github_issue_number}`;
-                                                        const voteText = existingVote === "good" ? "Good" : "Bad";
+                                                        const voteText =
+                                                            existingVote ===
+                                                            "good"
+                                                                ? "Good"
+                                                                : "Bad";
                                                         const tweetText = `${voter?.display_name}さんが${issue.title}に ${voteText}評価をしました #チームみらい #対話型マニフェスト\n\n${issueUrl}`;
                                                         const twitterUrl = `https://twitter.com/intent/tweet?text=${encodeURIComponent(tweetText)}`;
-                                                        window.open(twitterUrl, '_blank');
+                                                        window.open(
+                                                            twitterUrl,
+                                                            "_blank",
+                                                        );
                                                     }}
                                                     style={{
-                                                        backgroundColor: "#1da1f2",
+                                                        backgroundColor:
+                                                            "#1da1f2",
                                                         color: "white",
                                                         border: "none",
-                                                        padding: "0.4rem 0.8rem",
+                                                        padding:
+                                                            "0.4rem 0.8rem",
                                                         borderRadius: "4px",
                                                         cursor: "pointer",
                                                         fontSize: "0.8rem",
@@ -971,10 +981,12 @@ export default function IssueVotePageComponent() {
                                                         gap: "0.3rem",
                                                     }}
                                                     onMouseEnter={(e) => {
-                                                        e.currentTarget.style.backgroundColor = "#1991db";
+                                                        e.currentTarget.style.backgroundColor =
+                                                            "#1991db";
                                                     }}
                                                     onMouseLeave={(e) => {
-                                                        e.currentTarget.style.backgroundColor = "#1da1f2";
+                                                        e.currentTarget.style.backgroundColor =
+                                                            "#1da1f2";
                                                     }}
                                                 >
                                                     <svg
