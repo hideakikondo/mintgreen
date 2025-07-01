@@ -8,7 +8,7 @@ interface DisplayNameInputProps {
 export default function DisplayNameInput({
     onComplete,
 }: DisplayNameInputProps) {
-    const { setDisplayName } = useAuth();
+    const { setDisplayName, logout } = useAuth();
     const [displayName, setDisplayNameValue] = useState("");
     const [error, setError] = useState<string | null>(null);
     const [submitting, setSubmitting] = useState(false);
@@ -20,27 +20,68 @@ export default function DisplayNameInput({
             return;
         }
 
+        if (submitting) return; // 重複送信防止
+
         setSubmitting(true);
         setError(null);
 
-        const result = await setDisplayName(displayName.trim());
+        try {
+            console.log("表示名設定開始:", displayName.trim());
 
-        if (result.success) {
-            onComplete();
-        } else {
-            setError(result.error || "表示名の設定に失敗しました");
+            // タイムアウト機能付きで実行
+            const timeoutPromise = new Promise<{
+                success: boolean;
+                error?: string;
+            }>((_, reject) => {
+                setTimeout(
+                    () =>
+                        reject(new Error("処理がタイムアウトしました（30秒）")),
+                    30000,
+                );
+            });
+
+            const result = await Promise.race([
+                setDisplayName(displayName.trim()),
+                timeoutPromise,
+            ]);
+
+            console.log("表示名設定結果:", result);
+
+            if (result.success) {
+                console.log("表示名設定成功、onComplete呼び出し");
+                onComplete();
+            } else {
+                setError(result.error || "表示名の設定に失敗しました");
+            }
+        } catch (err) {
+            console.error("表示名設定でキャッチされたエラー:", err);
+            setError("予期しないエラーが発生しました");
+        } finally {
+            setSubmitting(false);
         }
+    };
 
-        setSubmitting(false);
+    const handleCancel = async () => {
+        if (submitting) return; // 送信中はキャンセル不可
+
+        try {
+            console.log("表示名設定をキャンセル、ログアウト処理開始");
+            await logout();
+            console.log("ログアウト完了");
+        } catch (err) {
+            console.error("ログアウトエラー:", err);
+        }
     };
 
     const inputStyle = {
-        width: "280px",
+        width: "100%",
+        maxWidth: "400px",
         padding: "0.8em",
         borderRadius: "8px",
         border: "1px solid #ccc",
         fontSize: "1em",
         marginBottom: "1rem",
+        boxSizing: "border-box" as const,
     };
 
     const buttonStyle = {
@@ -52,7 +93,19 @@ export default function DisplayNameInput({
         cursor: "pointer",
         fontSize: "1em",
         fontWeight: "500",
-        width: "100%",
+        flex: 1,
+    };
+
+    const cancelButtonStyle = {
+        backgroundColor: "#666",
+        color: "white",
+        border: "none",
+        padding: "0.8em 2em",
+        borderRadius: "8px",
+        cursor: "pointer",
+        fontSize: "1em",
+        fontWeight: "500",
+        flex: 1,
     };
 
     const modalStyle = {
@@ -62,7 +115,7 @@ export default function DisplayNameInput({
         padding: "2rem",
         boxShadow: "0 4px 20px rgba(0,0,0,0.15)",
         color: "#333",
-        maxWidth: "400px",
+        maxWidth: "500px",
         width: "90%",
         maxHeight: "90vh",
         overflow: "auto",
@@ -124,18 +177,35 @@ export default function DisplayNameInput({
                         style={inputStyle}
                         required
                         autoFocus
-                    />
-                    <button
-                        type="submit"
                         disabled={submitting}
-                        style={{
-                            ...buttonStyle,
-                            backgroundColor: submitting ? "#ccc" : "#5FBEAA",
-                            cursor: submitting ? "not-allowed" : "pointer",
-                        }}
-                    >
-                        {submitting ? "設定中..." : "設定する"}
-                    </button>
+                    />
+                    <div style={{ display: "flex", gap: "0.75rem" }}>
+                        <button
+                            type="submit"
+                            disabled={submitting}
+                            style={{
+                                ...buttonStyle,
+                                backgroundColor: submitting
+                                    ? "#ccc"
+                                    : "#5FBEAA",
+                                cursor: submitting ? "not-allowed" : "pointer",
+                            }}
+                        >
+                            {submitting ? "設定中..." : "設定する"}
+                        </button>
+                        <button
+                            type="button"
+                            onClick={handleCancel}
+                            disabled={submitting}
+                            style={{
+                                ...cancelButtonStyle,
+                                backgroundColor: submitting ? "#ccc" : "#666",
+                                cursor: submitting ? "not-allowed" : "pointer",
+                            }}
+                        >
+                            キャンセル
+                        </button>
+                    </div>
                 </form>
             </div>
         </div>

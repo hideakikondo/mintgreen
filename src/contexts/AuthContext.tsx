@@ -148,8 +148,20 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
         error?: string;
     }> => {
         try {
-            const redirectUrl =
-                import.meta.env.VITE_DEPLOYMENT_URL || window.location.origin;
+            // 開発環境では強制的にlocalhostを使用
+            const isDevelopment =
+                import.meta.env.DEV || window.location.hostname === "localhost";
+            const redirectUrl = isDevelopment
+                ? window.location.origin
+                : import.meta.env.VITE_DEPLOYMENT_URL || window.location.origin;
+
+            console.log("OAuth redirect URL:", redirectUrl);
+            console.log("Current origin:", window.location.origin);
+            console.log("Environment:", {
+                isDev: import.meta.env.DEV,
+                hostname: window.location.hostname,
+                deploymentUrl: import.meta.env.VITE_DEPLOYMENT_URL,
+            });
 
             const { error } = await supabase.auth.signInWithOAuth({
                 provider: "google",
@@ -176,24 +188,40 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
     const setDisplayName = async (
         displayName: string,
     ): Promise<{ success: boolean; error?: string }> => {
+        console.log("setDisplayName関数開始:", {
+            displayName,
+            sessionExists: !!session?.user?.email,
+        });
+
         if (!session?.user?.email) {
             return { success: false, error: "認証されていません" };
         }
 
         try {
-            const { data: existingVoter } = await supabase
+            console.log("重複チェック開始:", displayName.trim());
+            const { data: existingVoter, error: checkError } = await supabase
                 .from("voters")
                 .select("voter_id")
                 .eq("display_name", displayName.trim())
                 .single();
 
+            if (checkError && checkError.code !== "PGRST116") {
+                console.error("重複チェックエラー:", checkError);
+                throw checkError;
+            }
+
             if (existingVoter) {
+                console.log("表示名重複:", displayName.trim());
                 return {
                     success: false,
                     error: "この表示名は既に使用されています",
                 };
             }
 
+            console.log("投票者作成開始:", {
+                displayName: displayName.trim(),
+                email: session.user.email,
+            });
             const { data: voterData, error: insertError } = await supabase
                 .from("voters")
                 .insert({
@@ -204,21 +232,32 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
                 .select()
                 .single();
 
-            if (insertError) throw insertError;
+            if (insertError) {
+                console.error("投票者作成エラー:", insertError);
+                throw insertError;
+            }
 
-            if (!voterData.is_eligible) {
+            console.log("投票者作成成功:", voterData);
+
+            if (!voterData?.is_eligible) {
                 return {
                     success: false,
                     error: "この投票者は投票資格がありません",
                 };
             }
 
+            console.log("状態更新開始");
             setVoter(voterData);
             setNeedsDisplayName(false);
+            console.log("表示名設定完了");
             return { success: true };
         } catch (err) {
             console.error("表示名設定エラー:", err);
-            return { success: false, error: "表示名の設定に失敗しました" };
+            const errorMessage =
+                err instanceof Error
+                    ? err.message
+                    : "表示名の設定に失敗しました";
+            return { success: false, error: errorMessage };
         }
     };
 
