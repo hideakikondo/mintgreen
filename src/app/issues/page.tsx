@@ -5,7 +5,6 @@ import type { Tables } from "../../types/supabase";
 type SortOption =
     | "created_at_desc"
     | "id_asc"
-    | "id_desc"
     | "good_count"
     | "bad_count"
     | "user_evaluation";
@@ -131,14 +130,8 @@ export default function IssuesPageComponent() {
             case "id_asc":
                 return sorted.sort(
                     (a, b) =>
-                        a.issue.github_issue_number -
-                        b.issue.github_issue_number,
-                );
-            case "id_desc":
-                return sorted.sort(
-                    (a, b) =>
-                        b.issue.github_issue_number -
-                        a.issue.github_issue_number,
+                        new Date(a.issue.created_at).getTime() -
+                        new Date(b.issue.created_at).getTime(),
                 );
             case "good_count":
                 return sorted.sort(
@@ -357,8 +350,9 @@ export default function IssuesPageComponent() {
                                 <option value="created_at_desc">
                                     作成日時（新しい順）
                                 </option>
-                                <option value="id_asc">ID（昇順）</option>
-                                <option value="id_desc">ID（降順）</option>
+                                <option value="id_asc">
+                                    作成日時（古い順）
+                                </option>
                                 <option value="good_count">Good数順</option>
                                 <option value="bad_count">Bad数順</option>
                                 <option value="user_evaluation">
