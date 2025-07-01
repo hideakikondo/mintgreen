@@ -297,17 +297,20 @@ export default function IssueVotePageComponent() {
                         ...prev,
                         [issueId]: newVote,
                     }));
-                    setButtonFeedback((prev) => ({
-                        ...prev,
-                        [issueId]: "投票を変更しました",
-                    }));
+                    
                     setTimeout(() => {
-                        setButtonFeedback((prev) => {
-                            const updated = { ...prev };
-                            delete updated[issueId];
-                            return updated;
-                        });
-                    }, 3000);
+                        setButtonFeedback((prev) => ({
+                            ...prev,
+                            [issueId]: "投票を変更しました",
+                        }));
+                        setTimeout(() => {
+                            setButtonFeedback((prev) => {
+                                const updated = { ...prev };
+                                delete updated[issueId];
+                                return updated;
+                            });
+                        }, 3000);
+                    }, 100);
                 }
             } else {
                 const { error: insertError } = await supabase
