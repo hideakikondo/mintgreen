@@ -45,14 +45,6 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
     useEffect(() => {
         const initializeAuth = async () => {
             try {
-                if (
-                    import.meta.env.MODE === "test" ||
-                    process.env.NODE_ENV === "test"
-                ) {
-                    setLoading(false);
-                    return;
-                }
-
                 const {
                     data: { session: currentSession },
                 } = await supabase.auth.getSession();
@@ -80,13 +72,6 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
         };
 
         initializeAuth();
-
-        if (
-            import.meta.env.MODE === "test" ||
-            process.env.NODE_ENV === "test"
-        ) {
-            return () => {};
-        }
 
         const {
             data: { subscription },
