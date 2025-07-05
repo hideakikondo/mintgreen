@@ -90,13 +90,47 @@ export default function IssueRanking({ maxItems = 5 }: IssueRankingProps) {
     const [error, setError] = useState<string | null>(null);
 
     useEffect(() => {
-        fetchRankedIssues();
+        let isMounted = true;
+        let retryCount = 0;
+        const maxRetries = 3;
 
+        const fetchWithRetry = async () => {
+            if (!isMounted) return;
+
+            try {
+                await fetchRankedIssues();
+                retryCount = 0; // 成功時はリセット
+            } catch (err) {
+                retryCount++;
+                console.error(
+                    `Issue ranking fetch failed (attempt ${retryCount}):`,
+                    err,
+                );
+
+                if (retryCount < maxRetries && isMounted) {
+                    setTimeout(fetchWithRetry, 2000 * retryCount); // 指数バックオフ
+                } else {
+                    if (isMounted) {
+                        setError("ランキングの取得に失敗しました");
+                        setLoading(false);
+                    }
+                }
+            }
+        };
+
+        fetchWithRetry();
+
+        // 60秒間隔に変更（負荷軽減）
         const interval = setInterval(() => {
-            fetchRankedIssues();
-        }, 30000);
+            if (isMounted && !error) {
+                fetchWithRetry();
+            }
+        }, 60000);
 
-        return () => clearInterval(interval);
+        return () => {
+            isMounted = false;
+            clearInterval(interval);
+        };
     }, []);
 
     const fetchRankedIssues = async () => {
@@ -104,75 +138,107 @@ export default function IssueRanking({ maxItems = 5 }: IssueRankingProps) {
             setLoading(true);
             setError(null);
 
-            let allIssuesData: Tables<"github_issues">[] = [];
-            let from = 0;
-            const batchSize = 1000;
-
-            while (true) {
-                const { data: batchData, error: batchError } = await supabase
-                    .from("github_issues")
-                    .select("*")
-                    .order("created_at", { ascending: false })
-                    .range(from, from + batchSize - 1);
-
-                if (batchError) throw batchError;
-                if (!batchData || batchData.length === 0) break;
-
-                allIssuesData.push(...batchData);
-                if (batchData.length < batchSize) break;
-                from += batchSize;
-            }
-
-            const { data: allVotes, error: votesError } = await supabase
-                .from("issue_votes")
-                .select("issue_id, vote_type");
-
-            if (votesError) throw votesError;
-
-            const voteCountsMap: Record<string, { good: number; bad: number }> =
-                {};
-
-            allVotes?.forEach(
-                (vote: { issue_id: string | number; vote_type: string }) => {
-                    if (!voteCountsMap[vote.issue_id]) {
-                        voteCountsMap[vote.issue_id] = { good: 0, bad: 0 };
-                    }
-                    if (vote.vote_type === "good") {
-                        voteCountsMap[vote.issue_id].good++;
-                    } else if (vote.vote_type === "bad") {
-                        voteCountsMap[vote.issue_id].bad++;
-                    }
-                },
-            );
-
-            const issuesWithVotes: IssueWithVotes[] = [];
-            for (const issue of allIssuesData || []) {
-                const voteCounts = voteCountsMap[issue.issue_id] || {
-                    good: 0,
-                    bad: 0,
-                };
-
-                const totalGoodCount =
-                    voteCounts.good + (issue.plus_one_count || 0);
-                const totalBadCount =
-                    voteCounts.bad + (issue.minus_one_count || 0);
-                const score = totalGoodCount - totalBadCount;
-
-                issuesWithVotes.push({
-                    issue,
-                    goodVotes: voteCounts.good,
-                    badVotes: voteCounts.bad,
-                    totalGoodCount,
-                    totalBadCount,
-                    score,
+            // Supabase上でスコア計算とソートを実行（正確なランキング）
+            const { data: rankedIssuesData, error: issuesError } =
+                await supabase.rpc("get_top_ranked_issues", {
+                    limit_count: maxItems,
                 });
+
+            if (issuesError) {
+                // RPCが利用できない場合はフォールバック方式
+                console.warn(
+                    "RPC not available, using fallback method:",
+                    issuesError,
+                );
+
+                // 全issueを取得してクライアント側でランキング計算
+                const { data: allIssues, error: fallbackError } = await supabase
+                    .from("github_issues")
+                    .select("*");
+
+                if (fallbackError) throw fallbackError;
+
+                const { data: allVotes, error: votesError } = await supabase
+                    .from("issue_votes")
+                    .select("issue_id, vote_type");
+
+                if (votesError) throw votesError;
+
+                const voteCountsMap: Record<
+                    string,
+                    { good: number; bad: number }
+                > = {};
+
+                allVotes?.forEach(
+                    (vote: {
+                        issue_id: string | number;
+                        vote_type: string;
+                    }) => {
+                        if (!voteCountsMap[vote.issue_id]) {
+                            voteCountsMap[vote.issue_id] = { good: 0, bad: 0 };
+                        }
+                        if (vote.vote_type === "good") {
+                            voteCountsMap[vote.issue_id].good++;
+                        } else if (vote.vote_type === "bad") {
+                            voteCountsMap[vote.issue_id].bad++;
+                        }
+                    },
+                );
+
+                const issuesWithVotes: IssueWithVotes[] = [];
+                for (const issue of allIssues || []) {
+                    const voteCounts = voteCountsMap[issue.issue_id] || {
+                        good: 0,
+                        bad: 0,
+                    };
+
+                    const totalGoodCount =
+                        voteCounts.good + (issue.plus_one_count || 0);
+                    const totalBadCount =
+                        voteCounts.bad + (issue.minus_one_count || 0);
+                    const score = totalGoodCount - totalBadCount;
+
+                    issuesWithVotes.push({
+                        issue,
+                        goodVotes: voteCounts.good,
+                        badVotes: voteCounts.bad,
+                        totalGoodCount,
+                        totalBadCount,
+                        score,
+                    });
+                }
+
+                const ranked = issuesWithVotes
+                    .sort((a, b) => b.score - a.score)
+                    .slice(0, maxItems);
+
+                setRankedIssues(ranked);
+            } else {
+                // RPC結果を使用
+                const issuesWithVotes: IssueWithVotes[] = rankedIssuesData.map(
+                    (item: any) => ({
+                        issue: {
+                            issue_id: item.issue_id,
+                            title: item.title,
+                            body: item.body,
+                            github_issue_number: item.github_issue_number,
+                            repository_owner: item.repository_owner,
+                            repository_name: item.repository_name,
+                            created_at: item.created_at,
+                            plus_one_count: item.plus_one_count,
+                            minus_one_count: item.minus_one_count,
+                            branch_name: item.branch_name,
+                        },
+                        goodVotes: item.good_votes || 0,
+                        badVotes: item.bad_votes || 0,
+                        totalGoodCount: item.total_good_count || 0,
+                        totalBadCount: item.total_bad_count || 0,
+                        score: item.score || 0,
+                    }),
+                );
+
+                setRankedIssues(issuesWithVotes);
             }
-
-            const ranked = issuesWithVotes
-                .sort((a, b) => b.score - a.score)
-                .slice(0, maxItems);
-
-            setRankedIssues(ranked);
         } catch (err) {
             console.error("Error fetching ranked issues:", err);
             setError("ランキングの取得に失敗しました");

@@ -118,6 +118,70 @@ npm run sync-prs
 
 2. ワークフローは毎日午前9時（UTC）= 日本時間18時に自動実行されます
 
+## データベース設定
+
+### ランキング用RPC関数の作成
+
+正確なIssueランキングを高速で取得するため、以下のPostgreSQL関数をSupabaseダッシュボードで実行してください：
+
+```sql
+CREATE OR REPLACE FUNCTION get_top_ranked_issues(limit_count INT DEFAULT 5)
+RETURNS TABLE (
+    issue_id TEXT,
+    title TEXT,
+    body TEXT,
+    github_issue_number BIGINT,
+    repository_owner TEXT,
+    repository_name TEXT,
+    created_at TIMESTAMPTZ,
+    plus_one_count INT,
+    minus_one_count INT,
+    branch_name TEXT,
+    good_votes BIGINT,
+    bad_votes BIGINT,
+    total_good_count BIGINT,
+    total_bad_count BIGINT,
+    score BIGINT
+) 
+LANGUAGE plpgsql
+AS $$
+BEGIN
+    RETURN QUERY
+    WITH vote_counts AS (
+        SELECT 
+            iv.issue_id,
+            COALESCE(SUM(CASE WHEN iv.vote_type = 'good' THEN 1 ELSE 0 END), 0) as good_votes,
+            COALESCE(SUM(CASE WHEN iv.vote_type = 'bad' THEN 1 ELSE 0 END), 0) as bad_votes
+        FROM issue_votes iv
+        GROUP BY iv.issue_id
+    )
+    SELECT 
+        gi.issue_id,
+        gi.title,
+        gi.body,
+        gi.github_issue_number,
+        gi.repository_owner,
+        gi.repository_name,
+        gi.created_at,
+        gi.plus_one_count,
+        gi.minus_one_count,
+        gi.branch_name,
+        COALESCE(vc.good_votes, 0) as good_votes,
+        COALESCE(vc.bad_votes, 0) as bad_votes,
+        (COALESCE(vc.good_votes, 0) + COALESCE(gi.plus_one_count, 0)) as total_good_count,
+        (COALESCE(vc.bad_votes, 0) + COALESCE(gi.minus_one_count, 0)) as total_bad_count,
+        (COALESCE(vc.good_votes, 0) + COALESCE(gi.plus_one_count, 0)) - 
+        (COALESCE(vc.bad_votes, 0) + COALESCE(gi.minus_one_count, 0)) as score
+    FROM github_issues gi
+    LEFT JOIN vote_counts vc ON gi.issue_id = vc.issue_id
+    ORDER BY score DESC
+    LIMIT limit_count;
+END;
+$$;
+```
+
+この関数により、全てのIssueを対象とした正確なランキングを効率的に取得できます。関数が利用できない場合は、自動的にクライアント側での計算にフォールバックします。
+
 3. 手動実行も可能：「Actions」タブから「Sync GitHub Pull Requests」ワークフローを選択し、「Run workflow」をクリック
 
 #### 監視対象リポジトリ
