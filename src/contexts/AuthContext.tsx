@@ -59,22 +59,44 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
                     return;
                 }
 
-                // キャッシュクリア（古い認証情報の影響を回避）
+                // 必要な場合のみキャッシュクリア（認証状態を保持）
                 try {
-                    // Supabaseの古いセッション情報をクリア
-                    const oldKeys = Object.keys(localStorage).filter(
-                        (key) =>
-                            key.startsWith("sb-") || key.includes("supabase"),
-                    );
-
                     // バージョンチェック用のキー
-                    const currentVersion = "1.0.0";
+                    const currentVersion = "1.1.0"; // バージョンアップして一度だけクリア
                     const storedVersion = localStorage.getItem("app-version");
 
+                    // バージョンが変わった場合、または初回起動時のみキャッシュクリア
                     if (storedVersion !== currentVersion) {
-                        oldKeys.forEach((key) => localStorage.removeItem(key));
+                        // 現在の認証セッションを保持
+                        const {
+                            data: { session: currentSession },
+                        } = await supabase.auth.getSession();
+
+                        // 古いSupabaseキーのみクリア（現在のセッションは保持）
+                        const oldKeys = Object.keys(localStorage).filter(
+                            (key) =>
+                                key.startsWith("sb-") &&
+                                !key.includes("auth-token") &&
+                                !key.includes("session"),
+                        );
+
+                        // 認証関連以外の古いキーのみ削除
+                        oldKeys.forEach((key) => {
+                            if (
+                                !key.includes("auth") &&
+                                !key.includes("session")
+                            ) {
+                                localStorage.removeItem(key);
+                            }
+                        });
+
                         localStorage.setItem("app-version", currentVersion);
-                        console.log("キャッシュをクリアしました");
+                        console.log("選択的キャッシュクリアを実行しました");
+
+                        // セッションが存在する場合は保持
+                        if (currentSession) {
+                            console.log("既存の認証セッションを保持します");
+                        }
                     }
                 } catch (error) {
                     console.warn("キャッシュクリアに失敗:", error);
@@ -97,9 +119,15 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
                 // タイムアウト前に完了した場合の処理
                 if (isTimedOut) return;
 
+                // 認証セッションを取得（キャッシュクリア後に再取得）
                 const {
                     data: { session: currentSession },
                 } = await supabase.auth.getSession();
+
+                console.log(
+                    "セッション状態:",
+                    currentSession ? "認証済み" : "未認証",
+                );
 
                 if (!isMounted || isTimedOut) return;
 
@@ -107,32 +135,50 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
 
                 if (currentSession?.user?.email) {
                     console.log(
-                        "Querying voter for email:",
+                        "認証済みユーザー発見. 投票者情報を取得中:",
                         currentSession.user.email,
                     );
-                    const { data: voterData, error: voterError } =
-                        await supabase
-                            .from("voters")
-                            .select("*")
-                            .eq("user_email", currentSession.user.email)
-                            .single();
 
-                    if (!isMounted || isTimedOut) return;
+                    try {
+                        const { data: voterData, error: voterError } =
+                            await supabase
+                                .from("voters")
+                                .select("*")
+                                .eq("user_email", currentSession.user.email)
+                                .single();
 
-                    if (voterError) {
-                        console.error("Voter query error:", voterError);
-                        if (voterError.code !== "PGRST116") {
-                            // PGRST116は"No rows found"
-                            throw voterError;
+                        if (!isMounted || isTimedOut) return;
+
+                        if (voterError) {
+                            console.error("投票者クエリエラー:", voterError);
+                            if (voterError.code !== "PGRST116") {
+                                // PGRST116は"No rows found"
+                                throw voterError;
+                            }
+                        }
+
+                        if (voterData) {
+                            console.log(
+                                "投票者データ取得成功:",
+                                voterData.display_name,
+                            );
+                            setVoter(voterData);
+                            setNeedsDisplayName(false);
+                        } else {
+                            console.log("投票者データ未登録。表示名入力が必要");
+                            setNeedsDisplayName(true);
+                        }
+                    } catch (error) {
+                        console.error("投票者データ取得中にエラー:", error);
+                        // エラーがあっても認証状態は保持
+                        if (currentSession) {
+                            setNeedsDisplayName(true);
                         }
                     }
-
-                    if (voterData) {
-                        setVoter(voterData);
-                        setNeedsDisplayName(false);
-                    } else {
-                        setNeedsDisplayName(true);
-                    }
+                } else {
+                    console.log("認証されていないユーザー");
+                    setVoter(null);
+                    setNeedsDisplayName(false);
                 }
 
                 if (!isTimedOut) {
