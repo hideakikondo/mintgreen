@@ -492,7 +492,7 @@ export default function IssueVotePageComponent() {
                         textAlign: "center",
                     }}
                 >
-                    わたしの共感リスト
+                    共感の声を届ける
                 </h1>
 
                 <div style={{ textAlign: "center", marginBottom: "1.5rem" }}>
