@@ -1,4 +1,4 @@
-import { useState, useEffect } from "react";
+import { useEffect, useState } from "react";
 import { useNavigate } from "react-router-dom";
 import DisplayNameInput from "../components/DisplayNameInput";
 import IssueRanking from "../components/common/IssueRanking";
