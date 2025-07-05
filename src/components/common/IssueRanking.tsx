@@ -120,16 +120,8 @@ export default function IssueRanking({ maxItems = 5 }: IssueRankingProps) {
 
         fetchWithRetry();
 
-        // 60秒間隔に変更（負荷軽減）
-        const interval = setInterval(() => {
-            if (isMounted && !error) {
-                fetchWithRetry();
-            }
-        }, 60000);
-
         return () => {
             isMounted = false;
-            clearInterval(interval);
         };
     }, []);
 
