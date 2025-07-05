@@ -18,7 +18,7 @@ describe("View", () => {
             </AuthProvider>,
         );
         expect(
-            screen.getByText("いどばた政策 みんなの共感アプリ(α版)"),
+            screen.getByText("いどばた政策 みんなの共感表明(α版)"),
         ).toBeInTheDocument();
     });
 
