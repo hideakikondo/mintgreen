@@ -90,6 +90,10 @@ export default function IssueVotePageComponent() {
     const [showTimeoutOverlay, setShowTimeoutOverlay] = useState(false);
     const [showAuthRepairOverlay, setShowAuthRepairOverlay] = useState(false);
     const timeoutRef = useRef<NodeJS.Timeout | null>(null);
+
+    // 全件取得用の状態管理
+    const [isLoadingAll, setIsLoadingAll] = useState(false);
+    const [loadingProgress, setLoadingProgress] = useState("");
     const navigate = useNavigate();
     const { voter, isAuthenticated, loading: authLoading } = useAuth();
     const isMobile = useIsMobile();
@@ -114,14 +118,22 @@ export default function IssueVotePageComponent() {
         try {
             setLoading(true);
             setError(null);
+            setIsLoadingAll(true);
             setShowTimeoutOverlay(false);
 
             // タイムアウト検知（15秒後）
             timeoutRef.current = setTimeout(() => {
-                if (loading) {
+                if (loading || isLoadingAll) {
                     setShowTimeoutOverlay(true);
                 }
             }, 15000);
+
+            // 全体の件数を先に取得
+            const { count, error: countError } = await supabase
+                .from("github_issues")
+                .select("*", { count: "exact", head: true });
+
+            if (countError) throw countError;
 
             // 最初の50件を優先取得（ユーザーが早く操作できるように）
             const { data: initialIssues, error: initialError } = await supabase
@@ -136,6 +148,9 @@ export default function IssueVotePageComponent() {
                 setIssues(initialIssues);
                 setFilteredIssues(initialIssues);
                 setTotalPages(Math.ceil(initialIssues.length / ITEMS_PER_PAGE));
+                setLoadingProgress(
+                    `${initialIssues.length}件 / ${count || 0}件 読み込み完了`,
+                );
                 setLoading(false); // ユーザーが操作可能になる
 
                 // タイムアウト検知をクリア
@@ -145,43 +160,85 @@ export default function IssueVotePageComponent() {
                 }
             }
 
-            // 並行で残りのデータと投票データを取得
-            const [remainingIssuesResult] = await Promise.all([
-                fetchRemainingIssues(),
+            // 残りのissueを段階的に取得し、投票データも並行取得
+            await Promise.all([
+                fetchRemainingIssuesInBatches(initialIssues, count || 0),
                 fetchExistingVotes(),
             ]);
-
-            // 残りのissueを追加
-            if (remainingIssuesResult.data) {
-                const allIssues = [
-                    ...initialIssues,
-                    ...remainingIssuesResult.data,
-                ];
-                setIssues(allIssues);
-                if (!activeSearchTerm.trim()) {
-                    setFilteredIssues(allIssues);
-                    setTotalPages(Math.ceil(allIssues.length / ITEMS_PER_PAGE));
-                }
-            }
         } catch (err) {
             console.error("データ取得エラー:", err);
             setError("データの取得に失敗しました");
             setLoading(false);
+            setIsLoadingAll(false);
 
             // タイムアウト検知をクリア
             if (timeoutRef.current) {
                 clearTimeout(timeoutRef.current);
                 timeoutRef.current = null;
             }
+        } finally {
+            setIsLoadingAll(false);
         }
     };
 
-    const fetchRemainingIssues = async () => {
-        return await supabase
-            .from("github_issues")
-            .select("*")
-            .order("created_at", { ascending: false })
-            .range(50, 999999); // 51番目以降を取得
+    const fetchRemainingIssuesInBatches = async (
+        initialIssues: Tables<"github_issues">[],
+        totalCount: number,
+    ) => {
+        try {
+            const BATCH_SIZE = 1000;
+            let from = 50; // 最初の50件は既に取得済み
+            let allIssuesData = [...initialIssues];
+
+            while (from < totalCount) {
+                setLoadingProgress(
+                    `${Math.min(from, totalCount)}件 / ${totalCount}件 読み込み中...`,
+                );
+
+                const { data: batchData, error: batchError } = await supabase
+                    .from("github_issues")
+                    .select("*")
+                    .order("created_at", { ascending: false })
+                    .range(from, from + BATCH_SIZE - 1);
+
+                if (batchError) {
+                    console.error("バッチ取得エラー:", batchError);
+                    break;
+                }
+
+                if (!batchData || batchData.length === 0) break;
+
+                allIssuesData = [...allIssuesData, ...batchData];
+
+                // 定期的に画面を更新（パフォーマンスを考慮して500件ごと）
+                if (from % 500 === 0 || from + BATCH_SIZE >= totalCount) {
+                    setIssues(allIssuesData);
+                    if (!activeSearchTerm.trim()) {
+                        setFilteredIssues(allIssuesData);
+                        setTotalPages(
+                            Math.ceil(allIssuesData.length / ITEMS_PER_PAGE),
+                        );
+                    }
+                }
+
+                from += BATCH_SIZE;
+
+                // 適度なインターバルでユーザー操作をブロックしないように
+                await new Promise((resolve) => setTimeout(resolve, 50));
+            }
+
+            // 最終的な更新
+            setIssues(allIssuesData);
+            if (!activeSearchTerm.trim()) {
+                setFilteredIssues(allIssuesData);
+                setTotalPages(Math.ceil(allIssuesData.length / ITEMS_PER_PAGE));
+            }
+            setLoadingProgress(`全 ${allIssuesData.length}件の読み込み完了`);
+
+            console.log(`全件取得完了: ${allIssuesData.length}件`);
+        } catch (err) {
+            console.error("段階的取得エラー:", err);
+        }
     };
 
     // 検索フィルタリング
@@ -615,6 +672,17 @@ export default function IssueVotePageComponent() {
                         >
                             最新のIssueを取得中...
                         </h2>
+                        {isLoadingAll && loadingProgress && (
+                            <p
+                                style={{
+                                    margin: "0.5rem 0 0 0",
+                                    fontSize: "0.9rem",
+                                    color: "#666",
+                                }}
+                            >
+                                {loadingProgress}
+                            </p>
+                        )}
                         <div
                             style={{
                                 margin: "1rem 0 0 0",
