@@ -127,21 +127,21 @@ npm run sync-prs
 ```sql
 CREATE OR REPLACE FUNCTION get_top_ranked_issues(limit_count INT DEFAULT 5)
 RETURNS TABLE (
-    issue_id TEXT,
+    issue_id UUID,
     title TEXT,
     body TEXT,
-    github_issue_number BIGINT,
+    github_issue_number INT,
     repository_owner TEXT,
     repository_name TEXT,
     created_at TIMESTAMPTZ,
     plus_one_count INT,
     minus_one_count INT,
     branch_name TEXT,
-    good_votes BIGINT,
-    bad_votes BIGINT,
-    total_good_count BIGINT,
-    total_bad_count BIGINT,
-    score BIGINT
+    good_votes INT,
+    bad_votes INT,
+    total_good_count INT,
+    total_bad_count INT,
+    score INT
 ) 
 LANGUAGE plpgsql
 AS $$
@@ -150,8 +150,8 @@ BEGIN
     WITH vote_counts AS (
         SELECT 
             iv.issue_id,
-            COALESCE(SUM(CASE WHEN iv.vote_type = 'good' THEN 1 ELSE 0 END), 0) as good_votes,
-            COALESCE(SUM(CASE WHEN iv.vote_type = 'bad' THEN 1 ELSE 0 END), 0) as bad_votes
+            COALESCE(SUM(CASE WHEN iv.vote_type = 'good' THEN 1 ELSE 0 END), 0)::INT as good_votes,
+            COALESCE(SUM(CASE WHEN iv.vote_type = 'bad' THEN 1 ELSE 0 END), 0)::INT as bad_votes
         FROM issue_votes iv
         GROUP BY iv.issue_id
     )
@@ -178,6 +178,9 @@ BEGIN
     LIMIT limit_count;
 END;
 $$;
+
+-- 権限付与
+GRANT EXECUTE ON FUNCTION get_top_ranked_issues TO anon, authenticated;
 ```
 
 この関数により、全てのIssueを対象とした正確なランキングを効率的に取得できます。関数が利用できない場合は、自動的にクライアント側での計算にフォールバックします。
