@@ -1,6 +1,7 @@
 import { useEffect, useRef, useState } from "react";
 import { useNavigate } from "react-router-dom";
 import NetworkTimeoutOverlay from "../../components/common/NetworkTimeoutOverlay";
+import ScrollToTopButton from "../../components/common/ScrollToTopButton";
 import { useAuth } from "../../contexts/AuthContext";
 import { supabase } from "../../lib/supabaseClient";
 import type { Tables } from "../../types/supabase";
@@ -1726,6 +1727,9 @@ export default function IssueVotePageComponent() {
                 onClose={handleTimeoutClose}
                 message="Issueデータの取得に時間がかかっています"
             />
+
+            {/* スクロールトップボタン */}
+            <ScrollToTopButton isMobile={isMobile} threshold={400} />
         </div>
     );
 }
