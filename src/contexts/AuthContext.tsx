@@ -45,6 +45,7 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
     useEffect(() => {
         let isMounted = true;
         let authTimeout: NodeJS.Timeout;
+        let isTimedOut = false;
 
         const initializeAuth = async () => {
             try {
@@ -79,17 +80,25 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
 
                 // 5秒タイムアウトを設定
                 authTimeout = setTimeout(() => {
-                    if (isMounted) {
+                    if (isMounted && !isTimedOut) {
                         console.warn("認証初期化がタイムアウトしました");
+                        isTimedOut = true;
+                        // タイムアウト時は認証なし状態でアプリケーション続行
+                        setSession(null);
+                        setVoter(null);
+                        setNeedsDisplayName(false);
                         setLoading(false);
                     }
                 }, 5000);
+
+                // タイムアウト前に完了した場合の処理
+                if (isTimedOut) return;
 
                 const {
                     data: { session: currentSession },
                 } = await supabase.auth.getSession();
 
-                if (!isMounted) return;
+                if (!isMounted || isTimedOut) return;
 
                 setSession(currentSession);
 
@@ -105,7 +114,7 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
                             .eq("user_email", currentSession.user.email)
                             .single();
 
-                    if (!isMounted) return;
+                    if (!isMounted || isTimedOut) return;
 
                     if (voterError) {
                         console.error("Voter query error:", voterError);
@@ -123,12 +132,16 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
                     }
                 }
 
-                clearTimeout(authTimeout);
+                if (!isTimedOut) {
+                    clearTimeout(authTimeout);
+                }
             } catch (error) {
                 console.error("認証初期化エラー:", error);
-                clearTimeout(authTimeout);
+                if (!isTimedOut) {
+                    clearTimeout(authTimeout);
+                }
             } finally {
-                if (isMounted) {
+                if (isMounted && !isTimedOut) {
                     setLoading(false);
                 }
             }
