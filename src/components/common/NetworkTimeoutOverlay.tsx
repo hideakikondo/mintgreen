@@ -1,5 +1,3 @@
-import React from "react";
-
 interface NetworkTimeoutOverlayProps {
     isVisible: boolean;
     onRetry: () => void;
@@ -54,7 +52,7 @@ export default function NetworkTimeoutOverlay({
                 >
                     ⚠️
                 </div>
-                
+
                 <h3
                     style={{
                         margin: "0 0 1rem 0",
@@ -65,7 +63,7 @@ export default function NetworkTimeoutOverlay({
                 >
                     通信状況をご確認ください
                 </h3>
-                
+
                 <p
                     style={{
                         margin: "0 0 1.5rem 0",
@@ -76,7 +74,7 @@ export default function NetworkTimeoutOverlay({
                 >
                     {message}
                 </p>
-                
+
                 <div
                     style={{
                         backgroundColor: "#f8f9fa",
@@ -110,7 +108,7 @@ export default function NetworkTimeoutOverlay({
                         <li>ブラウザの設定やセキュリティソフト</li>
                     </ul>
                 </div>
-                
+
                 <div
                     style={{
                         display: "flex",
@@ -135,7 +133,8 @@ export default function NetworkTimeoutOverlay({
                         }}
                         onMouseEnter={(e) => {
                             e.currentTarget.style.backgroundColor = "#4DA894";
-                            e.currentTarget.style.transform = "translateY(-1px)";
+                            e.currentTarget.style.transform =
+                                "translateY(-1px)";
                         }}
                         onMouseLeave={(e) => {
                             e.currentTarget.style.backgroundColor = "#5FBEAA";
@@ -144,7 +143,7 @@ export default function NetworkTimeoutOverlay({
                     >
                         🔄 再試行
                     </button>
-                    
+
                     <button
                         onClick={onClose}
                         style={{
@@ -171,7 +170,7 @@ export default function NetworkTimeoutOverlay({
                         ✕ 閉じる
                     </button>
                 </div>
-                
+
                 <p
                     style={{
                         margin: "1rem 0 0 0",

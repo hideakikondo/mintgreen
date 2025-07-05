@@ -1,9 +1,9 @@
-import { useEffect, useState, useRef } from "react";
+import { useEffect, useRef, useState } from "react";
 import { useNavigate } from "react-router-dom";
+import NetworkTimeoutOverlay from "../../components/common/NetworkTimeoutOverlay";
 import { useAuth } from "../../contexts/AuthContext";
 import { supabase } from "../../lib/supabaseClient";
 import type { Tables } from "../../types/supabase";
-import NetworkTimeoutOverlay from "../../components/common/NetworkTimeoutOverlay";
 
 // スマートフォン判定のカスタムフック
 const useIsMobile = () => {
@@ -134,7 +134,7 @@ export default function IssueVotePageComponent() {
                 setFilteredIssues(initialIssues);
                 setTotalPages(Math.ceil(initialIssues.length / ITEMS_PER_PAGE));
                 setLoading(false); // ユーザーが操作可能になる
-                
+
                 // タイムアウト検知をクリア
                 if (timeoutRef.current) {
                     clearTimeout(timeoutRef.current);
@@ -164,7 +164,7 @@ export default function IssueVotePageComponent() {
             console.error("データ取得エラー:", err);
             setError("データの取得に失敗しました");
             setLoading(false);
-            
+
             // タイムアウト検知をクリア
             if (timeoutRef.current) {
                 clearTimeout(timeoutRef.current);
@@ -622,7 +622,8 @@ export default function IssueVotePageComponent() {
                                         height: "8px",
                                         borderRadius: "50%",
                                         backgroundColor: "#5FBEAA",
-                                        animation: "bounce 1.4s infinite ease-in-out both",
+                                        animation:
+                                            "bounce 1.4s infinite ease-in-out both",
                                         animationDelay: "0s",
                                     }}
                                 />
@@ -632,7 +633,8 @@ export default function IssueVotePageComponent() {
                                         height: "8px",
                                         borderRadius: "50%",
                                         backgroundColor: "#5FBEAA",
-                                        animation: "bounce 1.4s infinite ease-in-out both",
+                                        animation:
+                                            "bounce 1.4s infinite ease-in-out both",
                                         animationDelay: "0.16s",
                                     }}
                                 />
@@ -642,7 +644,8 @@ export default function IssueVotePageComponent() {
                                         height: "8px",
                                         borderRadius: "50%",
                                         backgroundColor: "#5FBEAA",
-                                        animation: "bounce 1.4s infinite ease-in-out both",
+                                        animation:
+                                            "bounce 1.4s infinite ease-in-out both",
                                         animationDelay: "0.32s",
                                     }}
                                 />
@@ -1715,7 +1718,7 @@ export default function IssueVotePageComponent() {
                     </>
                 )}
             </div>
-            
+
             {/* ネットワークタイムアウトオーバーレイ */}
             <NetworkTimeoutOverlay
                 isVisible={showTimeoutOverlay}

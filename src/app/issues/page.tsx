@@ -1,8 +1,8 @@
 import React, { useEffect, useState, useRef } from "react";
+import NetworkTimeoutOverlay from "../../components/common/NetworkTimeoutOverlay";
 import { useAuth } from "../../contexts/AuthContext";
 import { supabase } from "../../lib/supabaseClient";
 import type { Tables } from "../../types/supabase";
-import NetworkTimeoutOverlay from "../../components/common/NetworkTimeoutOverlay";
 
 // スマートフォン判定のカスタムフック
 const useIsMobile = () => {
@@ -143,7 +143,7 @@ export default function IssuesPageComponent() {
                     `${initialIssues.length}件 / ${count || 0}件 読み込み完了`,
                 );
                 setLoading(false); // ユーザーが操作可能になる
-                
+
                 // タイムアウト検知をクリア
                 if (timeoutRef.current) {
                     clearTimeout(timeoutRef.current);
@@ -162,7 +162,7 @@ export default function IssuesPageComponent() {
             setError("Issue情報の取得に失敗しました");
             setLoading(false);
             setIsLoadingAll(false);
-            
+
             // タイムアウト検知をクリア
             if (timeoutRef.current) {
                 clearTimeout(timeoutRef.current);
@@ -896,7 +896,8 @@ export default function IssuesPageComponent() {
                                                 height: "8px",
                                                 borderRadius: "50%",
                                                 backgroundColor: "#5FBEAA",
-                                                animation: "bounce 1.4s infinite ease-in-out both",
+                                                animation:
+                                                    "bounce 1.4s infinite ease-in-out both",
                                                 animationDelay: "0s",
                                             }}
                                         />
@@ -906,7 +907,8 @@ export default function IssuesPageComponent() {
                                                 height: "8px",
                                                 borderRadius: "50%",
                                                 backgroundColor: "#5FBEAA",
-                                                animation: "bounce 1.4s infinite ease-in-out both",
+                                                animation:
+                                                    "bounce 1.4s infinite ease-in-out both",
                                                 animationDelay: "0.16s",
                                             }}
                                         />
@@ -916,12 +918,18 @@ export default function IssuesPageComponent() {
                                                 height: "8px",
                                                 borderRadius: "50%",
                                                 backgroundColor: "#5FBEAA",
-                                                animation: "bounce 1.4s infinite ease-in-out both",
+                                                animation:
+                                                    "bounce 1.4s infinite ease-in-out both",
                                                 animationDelay: "0.32s",
                                             }}
                                         />
                                     </div>
-                                    <p style={{ margin: 0, textAlign: "center" }}>
+                                    <p
+                                        style={{
+                                            margin: 0,
+                                            textAlign: "center",
+                                        }}
+                                    >
                                         まもなく表示されます
                                     </p>
                                 </div>
@@ -1438,7 +1446,7 @@ export default function IssuesPageComponent() {
                     </>
                 )}
             </div>
-            
+
             {/* ネットワークタイムアウトオーバーレイ */}
             <NetworkTimeoutOverlay
                 isVisible={showTimeoutOverlay}
