@@ -1,4 +1,5 @@
-import React, { useEffect, useState } from "react";
+import React, { useEffect, useState, useRef } from "react";
+import NetworkTimeoutOverlay from "../../components/common/NetworkTimeoutOverlay";
 import { useAuth } from "../../contexts/AuthContext";
 import { supabase } from "../../lib/supabaseClient";
 import type { Tables } from "../../types/supabase";
@@ -74,6 +75,8 @@ export default function IssuesPageComponent() {
     const [totalCount, setTotalCount] = useState(0);
     const [loadedCount, setLoadedCount] = useState(0);
     const [loadingProgress, setLoadingProgress] = useState("");
+    const [showTimeoutOverlay, setShowTimeoutOverlay] = useState(false);
+    const timeoutRef = useRef<NodeJS.Timeout | null>(null);
 
     const ITEMS_PER_PAGE = 50;
     const [sortOption, setSortOption] = useState<SortOption>("created_at_desc");
@@ -91,6 +94,14 @@ export default function IssuesPageComponent() {
             setLoading(true);
             setError(null);
             setIsLoadingAll(true);
+            setShowTimeoutOverlay(false);
+
+            // タイムアウト検知（15秒後）
+            timeoutRef.current = setTimeout(() => {
+                if (loading || isLoadingAll) {
+                    setShowTimeoutOverlay(true);
+                }
+            }, 15000);
 
             // 全体の件数を先に取得
             const { count, error: countError } = await supabase
@@ -132,6 +143,12 @@ export default function IssuesPageComponent() {
                     `${initialIssues.length}件 / ${count || 0}件 読み込み完了`,
                 );
                 setLoading(false); // ユーザーが操作可能になる
+
+                // タイムアウト検知をクリア
+                if (timeoutRef.current) {
+                    clearTimeout(timeoutRef.current);
+                    timeoutRef.current = null;
+                }
             }
 
             // 残りのissueを段階的に取得
@@ -145,6 +162,12 @@ export default function IssuesPageComponent() {
             setError("Issue情報の取得に失敗しました");
             setLoading(false);
             setIsLoadingAll(false);
+
+            // タイムアウト検知をクリア
+            if (timeoutRef.current) {
+                clearTimeout(timeoutRef.current);
+                timeoutRef.current = null;
+            }
         }
     };
 
@@ -369,6 +392,28 @@ export default function IssuesPageComponent() {
             setSearchError(null);
         }
     };
+
+    const handleTimeoutRetry = () => {
+        setShowTimeoutOverlay(false);
+        if (timeoutRef.current) {
+            clearTimeout(timeoutRef.current);
+            timeoutRef.current = null;
+        }
+        fetchIssuesOptimized();
+    };
+
+    const handleTimeoutClose = () => {
+        setShowTimeoutOverlay(false);
+    };
+
+    // コンポーネントのアンマウント時にタイムアウトをクリア
+    useEffect(() => {
+        return () => {
+            if (timeoutRef.current) {
+                clearTimeout(timeoutRef.current);
+            }
+        };
+    }, []);
 
     const sortIssues = (
         issues: IssueWithVotes[],
@@ -827,15 +872,67 @@ export default function IssuesPageComponent() {
                                 >
                                     Issue一覧を取得中...
                                 </p>
-                                <p
+                                <div
                                     style={{
-                                        margin: "0.5rem 0 0 0",
+                                        margin: "1rem 0 0 0",
                                         color: "#666",
                                         fontSize: "0.9rem",
+                                        display: "flex",
+                                        flexDirection: "column",
+                                        gap: "0.5rem",
                                     }}
                                 >
-                                    まもなく表示されます
-                                </p>
+                                    <div
+                                        style={{
+                                            display: "flex",
+                                            alignItems: "center",
+                                            justifyContent: "center",
+                                            gap: "0.5rem",
+                                        }}
+                                    >
+                                        <div
+                                            style={{
+                                                width: "8px",
+                                                height: "8px",
+                                                borderRadius: "50%",
+                                                backgroundColor: "#5FBEAA",
+                                                animation:
+                                                    "bounce 1.4s infinite ease-in-out both",
+                                                animationDelay: "0s",
+                                            }}
+                                        />
+                                        <div
+                                            style={{
+                                                width: "8px",
+                                                height: "8px",
+                                                borderRadius: "50%",
+                                                backgroundColor: "#5FBEAA",
+                                                animation:
+                                                    "bounce 1.4s infinite ease-in-out both",
+                                                animationDelay: "0.16s",
+                                            }}
+                                        />
+                                        <div
+                                            style={{
+                                                width: "8px",
+                                                height: "8px",
+                                                borderRadius: "50%",
+                                                backgroundColor: "#5FBEAA",
+                                                animation:
+                                                    "bounce 1.4s infinite ease-in-out both",
+                                                animationDelay: "0.32s",
+                                            }}
+                                        />
+                                    </div>
+                                    <p
+                                        style={{
+                                            margin: 0,
+                                            textAlign: "center",
+                                        }}
+                                    >
+                                        まもなく表示されます
+                                    </p>
+                                </div>
                             </div>
                         </div>
 
@@ -1349,6 +1446,14 @@ export default function IssuesPageComponent() {
                     </>
                 )}
             </div>
+
+            {/* ネットワークタイムアウトオーバーレイ */}
+            <NetworkTimeoutOverlay
+                isVisible={showTimeoutOverlay}
+                onRetry={handleTimeoutRetry}
+                onClose={handleTimeoutClose}
+                message="Issue一覧の取得に時間がかかっています"
+            />
         </div>
     );
 }
