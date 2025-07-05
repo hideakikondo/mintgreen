@@ -1,8 +1,9 @@
-import { useEffect, useState } from "react";
+import { useEffect, useState, useRef } from "react";
 import { useNavigate } from "react-router-dom";
 import { useAuth } from "../../contexts/AuthContext";
 import { supabase } from "../../lib/supabaseClient";
 import type { Tables } from "../../types/supabase";
+import NetworkTimeoutOverlay from "../../components/common/NetworkTimeoutOverlay";
 
 // スマートフォン判定のカスタムフック
 const useIsMobile = () => {
@@ -84,6 +85,8 @@ export default function IssueVotePageComponent() {
         Tables<"github_issues">[]
     >([]);
     const [searchError, setSearchError] = useState<string | null>(null);
+    const [showTimeoutOverlay, setShowTimeoutOverlay] = useState(false);
+    const timeoutRef = useRef<NodeJS.Timeout | null>(null);
     const navigate = useNavigate();
     const { voter, isAuthenticated, loading: authLoading } = useAuth();
     const isMobile = useIsMobile();
@@ -108,6 +111,14 @@ export default function IssueVotePageComponent() {
         try {
             setLoading(true);
             setError(null);
+            setShowTimeoutOverlay(false);
+
+            // タイムアウト検知（15秒後）
+            timeoutRef.current = setTimeout(() => {
+                if (loading) {
+                    setShowTimeoutOverlay(true);
+                }
+            }, 15000);
 
             // 最初の50件を優先取得（ユーザーが早く操作できるように）
             const { data: initialIssues, error: initialError } = await supabase
@@ -123,6 +134,12 @@ export default function IssueVotePageComponent() {
                 setFilteredIssues(initialIssues);
                 setTotalPages(Math.ceil(initialIssues.length / ITEMS_PER_PAGE));
                 setLoading(false); // ユーザーが操作可能になる
+                
+                // タイムアウト検知をクリア
+                if (timeoutRef.current) {
+                    clearTimeout(timeoutRef.current);
+                    timeoutRef.current = null;
+                }
             }
 
             // 並行で残りのデータと投票データを取得
@@ -147,6 +164,12 @@ export default function IssueVotePageComponent() {
             console.error("データ取得エラー:", err);
             setError("データの取得に失敗しました");
             setLoading(false);
+            
+            // タイムアウト検知をクリア
+            if (timeoutRef.current) {
+                clearTimeout(timeoutRef.current);
+                timeoutRef.current = null;
+            }
         }
     };
 
@@ -319,6 +342,28 @@ export default function IssueVotePageComponent() {
             [issueId]: voteType,
         }));
     };
+
+    const handleTimeoutRetry = () => {
+        setShowTimeoutOverlay(false);
+        if (timeoutRef.current) {
+            clearTimeout(timeoutRef.current);
+            timeoutRef.current = null;
+        }
+        fetchDataConcurrently();
+    };
+
+    const handleTimeoutClose = () => {
+        setShowTimeoutOverlay(false);
+    };
+
+    // コンポーネントのアンマウント時にタイムアウトをクリア
+    useEffect(() => {
+        return () => {
+            if (timeoutRef.current) {
+                clearTimeout(timeoutRef.current);
+            }
+        };
+    }, []);
 
     const handleVoteSubmit = async (issueId: string) => {
         if (!voter || !selectedVotes[issueId]) return;
@@ -553,15 +598,59 @@ export default function IssueVotePageComponent() {
                         >
                             最新のIssueを取得中...
                         </h2>
-                        <p
+                        <div
                             style={{
-                                margin: "0.5rem 0 0 0",
+                                margin: "1rem 0 0 0",
                                 color: "#666",
                                 fontSize: "0.9rem",
+                                display: "flex",
+                                flexDirection: "column",
+                                gap: "0.5rem",
                             }}
                         >
-                            まもなく操作可能になります
-                        </p>
+                            <div
+                                style={{
+                                    display: "flex",
+                                    alignItems: "center",
+                                    justifyContent: "center",
+                                    gap: "0.5rem",
+                                }}
+                            >
+                                <div
+                                    style={{
+                                        width: "8px",
+                                        height: "8px",
+                                        borderRadius: "50%",
+                                        backgroundColor: "#5FBEAA",
+                                        animation: "bounce 1.4s infinite ease-in-out both",
+                                        animationDelay: "0s",
+                                    }}
+                                />
+                                <div
+                                    style={{
+                                        width: "8px",
+                                        height: "8px",
+                                        borderRadius: "50%",
+                                        backgroundColor: "#5FBEAA",
+                                        animation: "bounce 1.4s infinite ease-in-out both",
+                                        animationDelay: "0.16s",
+                                    }}
+                                />
+                                <div
+                                    style={{
+                                        width: "8px",
+                                        height: "8px",
+                                        borderRadius: "50%",
+                                        backgroundColor: "#5FBEAA",
+                                        animation: "bounce 1.4s infinite ease-in-out both",
+                                        animationDelay: "0.32s",
+                                    }}
+                                />
+                            </div>
+                            <p style={{ margin: 0, textAlign: "center" }}>
+                                まもなく操作可能になります
+                            </p>
+                        </div>
                     </div>
 
                     {/* スケルトンローディング */}
@@ -1626,6 +1715,14 @@ export default function IssueVotePageComponent() {
                     </>
                 )}
             </div>
+            
+            {/* ネットワークタイムアウトオーバーレイ */}
+            <NetworkTimeoutOverlay
+                isVisible={showTimeoutOverlay}
+                onRetry={handleTimeoutRetry}
+                onClose={handleTimeoutClose}
+                message="Issueデータの取得に時間がかかっています"
+            />
         </div>
     );
 }
