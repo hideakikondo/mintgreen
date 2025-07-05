@@ -17,8 +17,9 @@ describe("View", () => {
                 </BrowserRouter>
             </AuthProvider>,
         );
+        expect(screen.getByText("いどばた政策")).toBeInTheDocument();
         expect(
-            screen.getByText("いどばた政策 みんなの共感表明(α版)"),
+            screen.getByText("みんなの共感表明(α版)"),
         ).toBeInTheDocument();
     });
 

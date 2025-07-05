@@ -5,8 +5,9 @@ import App from "./App";
 describe("App", () => {
     it("renders main title", () => {
         render(<App />);
+        expect(screen.getByText("いどばた政策")).toBeInTheDocument();
         expect(
-            screen.getByText("いどばた政策 みんなの共感表明(α版)"),
+            screen.getByText("みんなの共感表明(α版)"),
         ).toBeInTheDocument();
     });
 
