@@ -629,6 +629,7 @@ export default function IssuesPageComponent() {
                                         searchTerm.trim().length === 0
                                             ? 0.6
                                             : 1,
+                                    width: isExtraSmallMobile ? "100%" : "auto",
                                 }}
                                 onMouseEnter={(e) => {
                                     if (
@@ -670,6 +671,9 @@ export default function IssuesPageComponent() {
                                         cursor: "pointer",
                                         transition: "all 0.2s ease",
                                         whiteSpace: "nowrap",
+                                        width: isExtraSmallMobile
+                                            ? "100%"
+                                            : "auto",
                                     }}
                                     onMouseEnter={(e) => {
                                         e.currentTarget.style.backgroundColor =
