@@ -403,20 +403,26 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
     }> => {
         try {
             console.log("セッション更新を試行中...");
-            const { data, error } = await supabase.auth.refreshSession();
 
-            if (error) {
-                console.error("セッション更新エラー:", error);
-                return { success: false, error: error.message };
+            // 現在のセッションを再取得して状態を更新
+            const { data: sessionData, error: sessionError } =
+                await supabase.auth.getSession();
+
+            if (sessionError) {
+                console.error("セッション取得エラー:", sessionError);
+                return {
+                    success: false,
+                    error: "セッション情報の取得に失敗しました",
+                };
             }
 
-            if (data.session) {
+            if (sessionData.session) {
                 console.log("セッション更新成功");
-                setSession(data.session);
+                setSession(sessionData.session);
                 return { success: true };
             }
 
-            return { success: false, error: "セッション更新に失敗しました" };
+            return { success: false, error: "セッションが存在しません" };
         } catch (err) {
             console.error("セッション更新で予期しないエラー:", err);
             return {
@@ -436,7 +442,7 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
 
             // Step 1: ネットワーク接続の確認
             try {
-                const response = await fetch("https://www.google.com", {
+                await fetch("https://www.google.com", {
                     method: "HEAD",
                     mode: "no-cors",
                 });
