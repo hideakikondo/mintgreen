@@ -1,4 +1,5 @@
 import React, { useEffect, useState } from "react";
+import { useAuth } from "../../contexts/AuthContext";
 import { supabase } from "../../lib/supabaseClient";
 import type { Tables } from "../../types/supabase";
 
@@ -76,10 +77,14 @@ export default function IssuesPageComponent() {
 
     const ITEMS_PER_PAGE = 50;
     const [sortOption, setSortOption] = useState<SortOption>("created_at_desc");
+    const { loading: authLoading, authInitialized } = useAuth();
 
     useEffect(() => {
-        fetchIssuesOptimized();
-    }, []);
+        // 認証初期化が完了してからデータ取得を実行
+        if (!authLoading || authInitialized) {
+            fetchIssuesOptimized();
+        }
+    }, [authLoading, authInitialized]);
 
     const fetchIssuesOptimized = async () => {
         try {

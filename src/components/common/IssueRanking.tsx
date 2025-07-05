@@ -82,9 +82,13 @@ interface IssueWithVotes {
 
 interface IssueRankingProps {
     maxItems?: number;
+    refreshTrigger?: number;
 }
 
-export default function IssueRanking({ maxItems = 5 }: IssueRankingProps) {
+export default function IssueRanking({
+    maxItems = 5,
+    refreshTrigger,
+}: IssueRankingProps) {
     const [rankedIssues, setRankedIssues] = useState<IssueWithVotes[]>([]);
     const [loading, setLoading] = useState(true);
     const [error, setError] = useState<string | null>(null);
@@ -123,7 +127,7 @@ export default function IssueRanking({ maxItems = 5 }: IssueRankingProps) {
         return () => {
             isMounted = false;
         };
-    }, []);
+    }, [refreshTrigger]);
 
     const fetchRankedIssues = async () => {
         try {
