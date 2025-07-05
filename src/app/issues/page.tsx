@@ -73,6 +73,9 @@ export default function IssuesPageComponent() {
     const [filteredIssues, setFilteredIssues] = useState<IssueWithVotes[]>([]);
     const [searchError, setSearchError] = useState<string | null>(null);
 
+    // メニューの状態管理
+    const [isMenuOpen, setIsMenuOpen] = useState(false);
+
     // 全件取得用の状態管理
     const [isLoadingAll, setIsLoadingAll] = useState(false);
     const [totalCount, setTotalCount] = useState(0);
@@ -89,6 +92,7 @@ export default function IssuesPageComponent() {
         authInitialized,
         isAuthenticated,
         logout,
+        voter,
     } = useAuth();
 
     const { navigateToHome } = useNavigationSafely();
@@ -102,6 +106,9 @@ export default function IssuesPageComponent() {
             console.error("ログアウト処理でエラーが発生:", error);
             // エラー時は強制的にページリロード
             window.location.href = "/";
+        } finally {
+            // メニューを閉じる
+            setIsMenuOpen(false);
         }
     };
 
@@ -451,6 +458,23 @@ export default function IssuesPageComponent() {
             }
         };
     }, []);
+
+    // メニュー外クリックで閉じる
+    useEffect(() => {
+        const handleClickOutside = (event: MouseEvent) => {
+            if (
+                isMenuOpen &&
+                !(event.target as Element).closest("[data-menu]")
+            ) {
+                setIsMenuOpen(false);
+            }
+        };
+
+        document.addEventListener("mousedown", handleClickOutside);
+        return () => {
+            document.removeEventListener("mousedown", handleClickOutside);
+        };
+    }, [isMenuOpen]);
 
     const sortIssues = (
         issues: IssueWithVotes[],
@@ -1484,37 +1508,202 @@ export default function IssuesPageComponent() {
                 )}
             </div>
 
-            {/* ログアウトボタン */}
-            {isAuthenticated && (
-                <button
-                    onClick={handleLogout}
-                    style={{
-                        position: "fixed" as const,
-                        top: "20px",
-                        right: "20px",
-                        backgroundColor: "#ff6b6b",
-                        color: "white",
-                        border: "none",
-                        borderRadius: "8px",
-                        padding: "0.75rem 1.5rem",
-                        cursor: "pointer",
-                        fontSize: "0.9rem",
-                        fontWeight: "500",
-                        boxShadow: "0 4px 12px rgba(255, 107, 107, 0.3)",
-                        zIndex: 1000,
-                        transition: "all 0.2s ease",
-                    }}
-                    onMouseEnter={(e) => {
-                        e.currentTarget.style.backgroundColor = "#ff5252";
-                        e.currentTarget.style.transform = "translateY(-1px)";
-                    }}
-                    onMouseLeave={(e) => {
-                        e.currentTarget.style.backgroundColor = "#ff6b6b";
-                        e.currentTarget.style.transform = "translateY(0)";
-                    }}
-                >
-                    🚪 ログアウト
-                </button>
+            {/* ログアウトボタン（ハンバーガーメニュー） */}
+            {isAuthenticated && voter && (
+                <>
+                    <button
+                        data-menu
+                        onClick={() => setIsMenuOpen(!isMenuOpen)}
+                        style={{
+                            position: "fixed" as const,
+                            top: "20px",
+                            right: "20px",
+                            width: "50px",
+                            height: "50px",
+                            backgroundColor: "#5FBEAA",
+                            border: "none",
+                            borderRadius: "50%",
+                            cursor: "pointer",
+                            zIndex: 1001,
+                            display: "flex",
+                            alignItems: "center",
+                            justifyContent: "center",
+                            boxShadow: "0 4px 12px rgba(95, 190, 170, 0.4)",
+                            transition: "all 0.3s ease",
+                        }}
+                        onMouseEnter={(e) => {
+                            (e.target as HTMLElement).style.backgroundColor =
+                                "#4DA894";
+                        }}
+                        onMouseLeave={(e) => {
+                            (e.target as HTMLElement).style.backgroundColor =
+                                "#5FBEAA";
+                        }}
+                    >
+                        <div
+                            style={{
+                                position: "relative",
+                                width: "20px",
+                                height: "20px",
+                            }}
+                        >
+                            {/* サインイン状態インジケーター */}
+                            <div
+                                style={{
+                                    position: "absolute",
+                                    top: "-2px",
+                                    right: "-2px",
+                                    width: "8px",
+                                    height: "8px",
+                                    backgroundColor: "#4ade80",
+                                    borderRadius: "50%",
+                                    border: "1px solid white",
+                                    zIndex: 1,
+                                }}
+                            />
+                            {/* ハンバーガーアイコン */}
+                            <div
+                                style={{
+                                    position: "relative",
+                                    width: "20px",
+                                    height: "20px",
+                                }}
+                            >
+                                <div
+                                    style={{
+                                        width: "16px",
+                                        height: "2px",
+                                        backgroundColor: "white",
+                                        borderRadius: "1px",
+                                        transition: "all 0.3s ease",
+                                        transformOrigin: "center",
+                                        position: "absolute" as const,
+                                        top: isMenuOpen ? "9px" : "6px",
+                                        left: "2px",
+                                        transform: isMenuOpen
+                                            ? "rotate(45deg)"
+                                            : "rotate(0deg)",
+                                    }}
+                                />
+                                <div
+                                    style={{
+                                        width: "16px",
+                                        height: "2px",
+                                        backgroundColor: "white",
+                                        borderRadius: "1px",
+                                        transition: "all 0.3s ease",
+                                        opacity: isMenuOpen ? 0 : 1,
+                                        position: "absolute" as const,
+                                        top: "9px",
+                                        left: "2px",
+                                    }}
+                                />
+                                <div
+                                    style={{
+                                        width: "16px",
+                                        height: "2px",
+                                        backgroundColor: "white",
+                                        borderRadius: "1px",
+                                        transition: "all 0.3s ease",
+                                        transformOrigin: "center",
+                                        position: "absolute" as const,
+                                        top: isMenuOpen ? "9px" : "12px",
+                                        left: "2px",
+                                        transform: isMenuOpen
+                                            ? "rotate(-45deg)"
+                                            : "rotate(0deg)",
+                                    }}
+                                />
+                            </div>
+                        </div>
+                    </button>
+
+                    {/* メニューパネル */}
+                    {isMenuOpen && (
+                        <div
+                            data-menu
+                            style={{
+                                position: "fixed" as const,
+                                top: "80px",
+                                right: "20px",
+                                backgroundColor: "#5FBEAA",
+                                color: "white",
+                                border: "none",
+                                borderRadius: "12px",
+                                padding: "1.2rem",
+                                boxShadow: "0 6px 20px rgba(95, 190, 170, 0.3)",
+                                zIndex: 1000,
+                                minWidth: "200px",
+                                animation: "fadeIn 0.3s ease",
+                            }}
+                        >
+                            <div
+                                style={{
+                                    display: "flex",
+                                    alignItems: "center",
+                                    marginBottom: "1rem",
+                                    gap: "0.5rem",
+                                }}
+                            >
+                                <div
+                                    style={{
+                                        width: "8px",
+                                        height: "8px",
+                                        backgroundColor: "#4ade80",
+                                        borderRadius: "50%",
+                                    }}
+                                />
+                                <span
+                                    style={{
+                                        fontSize: "0.8em",
+                                        opacity: 0.9,
+                                    }}
+                                >
+                                    サインイン中
+                                </span>
+                            </div>
+                            <p
+                                style={{
+                                    marginBottom: "1rem",
+                                    fontSize: "1em",
+                                    fontWeight: "600",
+                                    margin: "0 0 1rem 0",
+                                }}
+                            >
+                                {voter.display_name} さん
+                            </p>
+                            <button
+                                onClick={handleLogout}
+                                style={{
+                                    backgroundColor: "rgba(255, 255, 255, 0.2)",
+                                    color: "white",
+                                    border: "1px solid rgba(255, 255, 255, 0.3)",
+                                    padding: "0.6em 1.2em",
+                                    borderRadius: "8px",
+                                    cursor: "pointer",
+                                    fontSize: "0.9em",
+                                    width: "100%",
+                                    fontWeight: "500",
+                                    transition: "all 0.2s ease",
+                                }}
+                                onMouseEnter={(e) => {
+                                    (
+                                        e.target as HTMLElement
+                                    ).style.backgroundColor =
+                                        "rgba(255, 255, 255, 0.3)";
+                                }}
+                                onMouseLeave={(e) => {
+                                    (
+                                        e.target as HTMLElement
+                                    ).style.backgroundColor =
+                                        "rgba(255, 255, 255, 0.2)";
+                                }}
+                            >
+                                ログアウト
+                            </button>
+                        </div>
+                    )}
+                </>
             )}
 
             {/* ネットワークタイムアウトオーバーレイ */}
