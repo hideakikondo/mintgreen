@@ -3,6 +3,7 @@ import AuthRepairOverlay from "../../components/common/AuthRepairOverlay";
 import NetworkTimeoutOverlay from "../../components/common/NetworkTimeoutOverlay";
 import ScrollToTopButton from "../../components/common/ScrollToTopButton";
 import { useAuth } from "../../contexts/AuthContext";
+import { useNavigationSafely } from "../../hooks/useNavigationSafely";
 import { supabase } from "../../lib/supabaseClient";
 import type { Tables } from "../../types/supabase";
 
@@ -90,9 +91,18 @@ export default function IssuesPageComponent() {
         logout,
     } = useAuth();
 
+    const { navigateToHome } = useNavigationSafely();
+
     const handleLogout = async () => {
-        await logout();
-        window.location.href = "/";
+        try {
+            await logout();
+            // 認証状態をクリアしてホームに遷移
+            navigateToHome(false);
+        } catch (error) {
+            console.error("ログアウト処理でエラーが発生:", error);
+            // エラー時は強制的にページリロード
+            window.location.href = "/";
+        }
     };
 
     useEffect(() => {
@@ -604,7 +614,7 @@ export default function IssuesPageComponent() {
 
                 <div style={{ textAlign: "center", marginBottom: "2rem" }}>
                     <button
-                        onClick={() => (window.location.href = "/")}
+                        onClick={() => navigateToHome(true)}
                         style={{ ...buttonStyle, backgroundColor: "#5FBEAA" }}
                     >
                         トップに戻る
