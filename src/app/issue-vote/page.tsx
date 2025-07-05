@@ -95,13 +95,18 @@ export default function IssueVotePageComponent() {
     const [isLoadingAll, setIsLoadingAll] = useState(false);
     const [loadingProgress, setLoadingProgress] = useState("");
     const navigate = useNavigate();
-    const { voter, isAuthenticated, loading: authLoading } = useAuth();
+    const { voter, isAuthenticated, loading: authLoading, logout } = useAuth();
     const isMobile = useIsMobile();
     const isExtraSmallMobile = useIsExtraSmallMobile();
     const isMidMobile = useIsMidMobile();
 
     const ITEMS_PER_PAGE = 50;
     const [sortOption, setSortOption] = useState<SortOption>("created_at_desc");
+
+    const handleLogout = async () => {
+        await logout();
+        navigate("/");
+    };
 
     useEffect(() => {
         if (!authLoading) {
@@ -1803,6 +1808,39 @@ export default function IssueVotePageComponent() {
                     </>
                 )}
             </div>
+
+            {/* ログアウトボタン */}
+            {isAuthenticated && voter && (
+                <button
+                    onClick={handleLogout}
+                    style={{
+                        position: "fixed" as const,
+                        top: "20px",
+                        right: "20px",
+                        backgroundColor: "#ff6b6b",
+                        color: "white",
+                        border: "none",
+                        borderRadius: "8px",
+                        padding: "0.75rem 1.5rem",
+                        cursor: "pointer",
+                        fontSize: "0.9rem",
+                        fontWeight: "500",
+                        boxShadow: "0 4px 12px rgba(255, 107, 107, 0.3)",
+                        zIndex: 1000,
+                        transition: "all 0.2s ease",
+                    }}
+                    onMouseEnter={(e) => {
+                        e.currentTarget.style.backgroundColor = "#ff5252";
+                        e.currentTarget.style.transform = "translateY(-1px)";
+                    }}
+                    onMouseLeave={(e) => {
+                        e.currentTarget.style.backgroundColor = "#ff6b6b";
+                        e.currentTarget.style.transform = "translateY(0)";
+                    }}
+                >
+                    🚪 ログアウト
+                </button>
+            )}
 
             {/* ネットワークタイムアウトオーバーレイ */}
             <NetworkTimeoutOverlay
