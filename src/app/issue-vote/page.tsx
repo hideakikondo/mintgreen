@@ -1,5 +1,6 @@
 import { useEffect, useRef, useState } from "react";
 import { useNavigate } from "react-router-dom";
+import AuthRepairOverlay from "../../components/common/AuthRepairOverlay";
 import NetworkTimeoutOverlay from "../../components/common/NetworkTimeoutOverlay";
 import ScrollToTopButton from "../../components/common/ScrollToTopButton";
 import { useAuth } from "../../contexts/AuthContext";
@@ -87,6 +88,7 @@ export default function IssueVotePageComponent() {
     >([]);
     const [searchError, setSearchError] = useState<string | null>(null);
     const [showTimeoutOverlay, setShowTimeoutOverlay] = useState(false);
+    const [showAuthRepairOverlay, setShowAuthRepairOverlay] = useState(false);
     const timeoutRef = useRef<NodeJS.Timeout | null>(null);
     const navigate = useNavigate();
     const { voter, isAuthenticated, loading: authLoading } = useAuth();
@@ -355,6 +357,20 @@ export default function IssueVotePageComponent() {
 
     const handleTimeoutClose = () => {
         setShowTimeoutOverlay(false);
+    };
+
+    const handleAuthRepair = () => {
+        setShowTimeoutOverlay(false);
+        setShowAuthRepairOverlay(true);
+    };
+
+    const handleAuthRepairSuccess = () => {
+        setShowAuthRepairOverlay(false);
+        fetchDataConcurrently();
+    };
+
+    const handleAuthRepairClose = () => {
+        setShowAuthRepairOverlay(false);
     };
 
     // コンポーネントのアンマウント時にタイムアウトをクリア
@@ -1726,6 +1742,15 @@ export default function IssueVotePageComponent() {
                 onRetry={handleTimeoutRetry}
                 onClose={handleTimeoutClose}
                 message="Issueデータの取得に時間がかかっています"
+                enableAuthRepair={isAuthenticated}
+                onAuthRepair={handleAuthRepair}
+            />
+
+            {/* 認証修復オーバーレイ */}
+            <AuthRepairOverlay
+                isVisible={showAuthRepairOverlay}
+                onClose={handleAuthRepairClose}
+                onSuccess={handleAuthRepairSuccess}
             />
 
             {/* スクロールトップボタン */}
