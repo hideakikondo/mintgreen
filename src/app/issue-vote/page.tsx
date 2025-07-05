@@ -79,10 +79,64 @@ export default function IssueVotePageComponent() {
                 navigate("/");
                 return;
             }
-            fetchIssues();
-            fetchExistingVotes();
+            // 並行でデータ取得を実行
+            fetchDataConcurrently();
         }
     }, [navigate, isAuthenticated, authLoading]);
+
+    const fetchDataConcurrently = async () => {
+        try {
+            setLoading(true);
+            setError(null);
+
+            // 最初の50件を優先取得（ユーザーが早く操作できるように）
+            const { data: initialIssues, error: initialError } = await supabase
+                .from("github_issues")
+                .select("*")
+                .order("created_at", { ascending: false })
+                .limit(50);
+
+            if (initialError) throw initialError;
+
+            if (initialIssues) {
+                setIssues(initialIssues);
+                setFilteredIssues(initialIssues);
+                setTotalPages(Math.ceil(initialIssues.length / ITEMS_PER_PAGE));
+                setLoading(false); // ユーザーが操作可能になる
+            }
+
+            // 並行で残りのデータと投票データを取得
+            const [remainingIssuesResult] = await Promise.all([
+                fetchRemainingIssues(),
+                fetchExistingVotes(),
+            ]);
+
+            // 残りのissueを追加
+            if (remainingIssuesResult.data) {
+                const allIssues = [
+                    ...initialIssues,
+                    ...remainingIssuesResult.data,
+                ];
+                setIssues(allIssues);
+                if (!activeSearchTerm.trim()) {
+                    setFilteredIssues(allIssues);
+                    setTotalPages(Math.ceil(allIssues.length / ITEMS_PER_PAGE));
+                }
+            }
+        } catch (err) {
+            console.error("データ取得エラー:", err);
+            setError("データの取得に失敗しました");
+            setLoading(false);
+        }
+    };
+
+    const fetchRemainingIssues = async () => {
+        return await supabase
+            .from("github_issues")
+            .select("*")
+            .order("created_at", { ascending: false })
+            .range(50, 999999); // 51番目以降を取得
+    };
 
     // 検索フィルタリング
     useEffect(() => {
@@ -192,47 +246,6 @@ export default function IssueVotePageComponent() {
             setSearchError("検索キーワードは100文字以内で入力してください");
         } else {
             setSearchError(null);
-        }
-    };
-
-    const fetchIssues = async () => {
-        try {
-            setLoading(true);
-            setError(null);
-
-            const { count, error: countError } = await supabase
-                .from("github_issues")
-                .select("*", { count: "exact", head: true });
-
-            if (countError) throw countError;
-
-            let allIssuesData: Tables<"github_issues">[] = [];
-            let from = 0;
-            const batchSize = 1000;
-
-            while (true) {
-                const { data: batchData, error: batchError } = await supabase
-                    .from("github_issues")
-                    .select("*")
-                    .order("created_at", { ascending: false })
-                    .range(from, from + batchSize - 1);
-
-                if (batchError) throw batchError;
-                if (!batchData || batchData.length === 0) break;
-
-                allIssuesData.push(...batchData);
-                if (batchData.length < batchSize) break;
-                from += batchSize;
-            }
-
-            setIssues(allIssuesData || []);
-            setFilteredIssues(allIssuesData || []);
-            setTotalPages(Math.ceil((count || 0) / ITEMS_PER_PAGE));
-        } catch (err) {
-            console.error("GitHub Issue取得エラー:", err);
-            setError("GitHub Issueの取得に失敗しました");
-        } finally {
-            setLoading(false);
         }
     };
 
@@ -509,10 +522,110 @@ export default function IssueVotePageComponent() {
                 }}
             >
                 <div style={{ maxWidth: "800px", margin: "0 auto" }}>
-                    <div style={{ textAlign: "center" }}>
+                    <div style={{ textAlign: "center", marginBottom: "2rem" }}>
                         <div className="spinner"></div>
-                        <h2 style={{ margin: 0 }}>読み込み中...</h2>
+                        <h2
+                            style={{
+                                margin: 0,
+                                fontSize: "1.5rem",
+                                color: "#333",
+                            }}
+                        >
+                            最新のIssueを取得中...
+                        </h2>
+                        <p
+                            style={{
+                                margin: "0.5rem 0 0 0",
+                                color: "#666",
+                                fontSize: "0.9rem",
+                            }}
+                        >
+                            まもなく操作可能になります
+                        </p>
                     </div>
+
+                    {/* スケルトンローディング */}
+                    {Array.from({ length: 3 }, (_, index) => (
+                        <div
+                            key={index}
+                            style={{
+                                backgroundColor: "white",
+                                borderRadius: "8px",
+                                padding: "1.5rem",
+                                marginBottom: "1rem",
+                                boxShadow: "0 2px 4px rgba(0,0,0,0.1)",
+                            }}
+                        >
+                            <div
+                                style={{
+                                    display: "flex",
+                                    alignItems: "flex-start",
+                                    gap: "1rem",
+                                    animation:
+                                        "pulse 1.5s ease-in-out infinite",
+                                }}
+                            >
+                                <div
+                                    style={{
+                                        width: "60px",
+                                        height: "60px",
+                                        backgroundColor: "#f0f0f0",
+                                        borderRadius: "8px",
+                                    }}
+                                />
+                                <div style={{ flex: 1 }}>
+                                    <div
+                                        style={{
+                                            height: "20px",
+                                            backgroundColor: "#f0f0f0",
+                                            borderRadius: "4px",
+                                            marginBottom: "8px",
+                                            width: "80%",
+                                        }}
+                                    />
+                                    <div
+                                        style={{
+                                            height: "60px",
+                                            backgroundColor: "#f0f0f0",
+                                            borderRadius: "4px",
+                                            marginBottom: "8px",
+                                        }}
+                                    />
+                                    <div
+                                        style={{
+                                            height: "16px",
+                                            backgroundColor: "#f0f0f0",
+                                            borderRadius: "4px",
+                                            width: "40%",
+                                        }}
+                                    />
+                                </div>
+                                <div
+                                    style={{
+                                        display: "flex",
+                                        flexDirection: "column",
+                                        gap: "0.5rem",
+                                        minWidth: "80px",
+                                    }}
+                                >
+                                    <div
+                                        style={{
+                                            height: "32px",
+                                            backgroundColor: "#f0f0f0",
+                                            borderRadius: "4px",
+                                        }}
+                                    />
+                                    <div
+                                        style={{
+                                            height: "32px",
+                                            backgroundColor: "#f0f0f0",
+                                            borderRadius: "4px",
+                                        }}
+                                    />
+                                </div>
+                            </div>
+                        </div>
+                    ))}
                 </div>
             </div>
         );

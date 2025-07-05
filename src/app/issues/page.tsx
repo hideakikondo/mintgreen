@@ -63,7 +63,6 @@ export default function IssuesPageComponent() {
 
     const [currentPage, setCurrentPage] = useState(1);
     const [totalPages, setTotalPages] = useState(1);
-    const [totalCount, setTotalCount] = useState(0);
     const [searchTerm, setSearchTerm] = useState("");
     const [activeSearchTerm, setActiveSearchTerm] = useState("");
     const [filteredIssues, setFilteredIssues] = useState<IssueWithVotes[]>([]);
@@ -73,95 +72,110 @@ export default function IssuesPageComponent() {
     const [sortOption, setSortOption] = useState<SortOption>("created_at_desc");
 
     useEffect(() => {
-        fetchIssues();
+        fetchIssuesOptimized();
     }, []);
 
-    const fetchIssues = async () => {
+    const fetchIssuesOptimized = async () => {
         try {
             setLoading(true);
             setError(null);
 
-            const { count, error: countError } = await supabase
+            // 最初の50件を優先取得
+            const { data: initialIssues, error: initialError } = await supabase
                 .from("github_issues")
-                .select("*", { count: "exact", head: true });
+                .select("*")
+                .order("created_at", { ascending: false })
+                .limit(50);
 
-            if (countError) throw countError;
-            setTotalCount(count || 0);
+            if (initialError) throw initialError;
 
-            let allIssuesData: Tables<"github_issues">[] = [];
-            let from = 0;
-            const batchSize = 1000;
-
-            while (true) {
-                const { data: batchData, error: batchError } = await supabase
-                    .from("github_issues")
-                    .select("*")
-                    .order("created_at", { ascending: false })
-                    .range(from, from + batchSize - 1);
-
-                if (batchError) throw batchError;
-                if (!batchData || batchData.length === 0) break;
-
-                allIssuesData.push(...batchData);
-                if (batchData.length < batchSize) break;
-                from += batchSize;
-            }
-
-            const issuesWithVotes: IssueWithVotes[] = [];
-
+            // 投票データも並行取得
             const { data: allVotes, error: votesError } = await supabase
                 .from("issue_votes")
                 .select("issue_id, vote_type");
 
             if (votesError) throw votesError;
 
-            const voteCountsMap: Record<string, { good: number; bad: number }> =
-                {};
-
-            allVotes?.forEach(
-                (vote: { issue_id: string | number; vote_type: string }) => {
-                    if (!voteCountsMap[vote.issue_id]) {
-                        voteCountsMap[vote.issue_id] = { good: 0, bad: 0 };
-                    }
-                    if (vote.vote_type === "good") {
-                        voteCountsMap[vote.issue_id].good++;
-                    } else if (vote.vote_type === "bad") {
-                        voteCountsMap[vote.issue_id].bad++;
-                    }
-                },
-            );
-
-            for (const issue of allIssuesData || []) {
-                const voteCounts = voteCountsMap[issue.issue_id] || {
-                    good: 0,
-                    bad: 0,
-                };
-                let userVote: Tables<"issue_votes"> | null = null;
-
-                const totalGoodCount =
-                    voteCounts.good + (issue.plus_one_count || 0);
-                const totalBadCount =
-                    voteCounts.bad + (issue.minus_one_count || 0);
-
-                issuesWithVotes.push({
-                    issue,
-                    goodVotes: voteCounts.good,
-                    badVotes: voteCounts.bad,
-                    totalGoodCount,
-                    totalBadCount,
-                    userVote,
-                });
+            if (initialIssues) {
+                // 最初の50件の投票数を計算
+                const initialWithVotes = calculateIssuesWithVotes(
+                    initialIssues,
+                    allVotes || [],
+                );
+                setIssues(initialWithVotes);
+                setFilteredIssues(initialWithVotes);
+                setTotalPages(
+                    Math.ceil(initialWithVotes.length / ITEMS_PER_PAGE),
+                );
+                setLoading(false); // ユーザーが操作可能になる
             }
 
-            setIssues(issuesWithVotes);
-            setFilteredIssues(issuesWithVotes);
-            setTotalPages(Math.ceil((count || 0) / ITEMS_PER_PAGE));
+            // 残りのissueを背景で取得
+            const { data: remainingIssues, error: remainingError } =
+                await supabase
+                    .from("github_issues")
+                    .select("*")
+                    .order("created_at", { ascending: false })
+                    .range(50, 999999);
+
+            if (!remainingError && remainingIssues) {
+                const allIssuesData = [...initialIssues, ...remainingIssues];
+                const allWithVotes = calculateIssuesWithVotes(
+                    allIssuesData,
+                    allVotes || [],
+                );
+                setIssues(allWithVotes);
+                if (!activeSearchTerm.trim()) {
+                    setFilteredIssues(allWithVotes);
+                    setTotalPages(
+                        Math.ceil(allWithVotes.length / ITEMS_PER_PAGE),
+                    );
+                }
+            }
         } catch (err) {
             console.error("Error fetching issues:", err);
             setError("Issue情報の取得に失敗しました");
-        } finally {
             setLoading(false);
         }
+    };
+
+    const calculateIssuesWithVotes = (
+        issuesData: Tables<"github_issues">[],
+        votesData: any[],
+    ) => {
+        const voteCountsMap: Record<string, { good: number; bad: number }> = {};
+
+        votesData.forEach(
+            (vote: { issue_id: string | number; vote_type: string }) => {
+                if (!voteCountsMap[vote.issue_id]) {
+                    voteCountsMap[vote.issue_id] = { good: 0, bad: 0 };
+                }
+                if (vote.vote_type === "good") {
+                    voteCountsMap[vote.issue_id].good++;
+                } else if (vote.vote_type === "bad") {
+                    voteCountsMap[vote.issue_id].bad++;
+                }
+            },
+        );
+
+        return issuesData.map((issue) => {
+            const voteCounts = voteCountsMap[issue.issue_id] || {
+                good: 0,
+                bad: 0,
+            };
+            const totalGoodCount =
+                voteCounts.good + (issue.plus_one_count || 0);
+            const totalBadCount = voteCounts.bad + (issue.minus_one_count || 0);
+
+            return {
+                issue,
+                goodVotes: voteCounts.good,
+                badVotes: voteCounts.bad,
+                totalGoodCount,
+                totalBadCount,
+                userVote: null,
+            };
+        });
     };
 
     // 検索フィルタリング
@@ -708,12 +722,145 @@ export default function IssuesPageComponent() {
                 </div>
 
                 {loading && (
-                    <div style={isMobile ? mobileCardStyle : cardStyle}>
-                        <div style={{ textAlign: "center" }}>
-                            <div className="spinner"></div>
-                            <p style={{ margin: 0 }}>読み込み中...</p>
+                    <>
+                        <div style={isMobile ? mobileCardStyle : cardStyle}>
+                            <div
+                                style={{
+                                    textAlign: "center",
+                                    marginBottom: "1rem",
+                                }}
+                            >
+                                <div className="spinner"></div>
+                                <p
+                                    style={{
+                                        margin: 0,
+                                        fontSize: "1.1rem",
+                                        color: "#333",
+                                    }}
+                                >
+                                    Issue一覧を取得中...
+                                </p>
+                                <p
+                                    style={{
+                                        margin: "0.5rem 0 0 0",
+                                        color: "#666",
+                                        fontSize: "0.9rem",
+                                    }}
+                                >
+                                    まもなく表示されます
+                                </p>
+                            </div>
                         </div>
-                    </div>
+
+                        {/* スケルトンローディング */}
+                        {Array.from({ length: 3 }, (_, index) => (
+                            <div
+                                key={index}
+                                style={
+                                    isMobile
+                                        ? mobileIssueCardStyle
+                                        : issueCardStyle
+                                }
+                            >
+                                <div
+                                    style={{
+                                        display: "flex",
+                                        justifyContent: "space-between",
+                                        alignItems: "flex-start",
+                                        gap: "1rem",
+                                        animation:
+                                            "pulse 1.5s ease-in-out infinite",
+                                    }}
+                                >
+                                    <div style={{ flex: 1 }}>
+                                        <div
+                                            style={{
+                                                display: "flex",
+                                                flexDirection: isMobile
+                                                    ? "column"
+                                                    : "row",
+                                                alignItems: "flex-start",
+                                                gap: "0.5rem",
+                                                marginBottom: "0.5rem",
+                                            }}
+                                        >
+                                            <div
+                                                style={{
+                                                    width: "60px",
+                                                    height: "20px",
+                                                    backgroundColor: "#f0f0f0",
+                                                    borderRadius: "4px",
+                                                }}
+                                            />
+                                            <div
+                                                style={{
+                                                    width: "120px",
+                                                    height: "20px",
+                                                    backgroundColor: "#f0f0f0",
+                                                    borderRadius: "4px",
+                                                }}
+                                            />
+                                        </div>
+                                        <div
+                                            style={{
+                                                height: "24px",
+                                                backgroundColor: "#f0f0f0",
+                                                borderRadius: "4px",
+                                                marginBottom: "0.5rem",
+                                                width: "85%",
+                                            }}
+                                        />
+                                        <div
+                                            style={{
+                                                height: "60px",
+                                                backgroundColor: "#f0f0f0",
+                                                borderRadius: "4px",
+                                                marginBottom: "1rem",
+                                            }}
+                                        />
+                                        <div
+                                            style={{
+                                                height: "16px",
+                                                backgroundColor: "#f0f0f0",
+                                                borderRadius: "4px",
+                                                width: "50%",
+                                            }}
+                                        />
+                                    </div>
+                                    <div
+                                        style={{
+                                            display: "flex",
+                                            flexDirection: isMobile
+                                                ? "row"
+                                                : "column",
+                                            alignItems: "center",
+                                            gap: "0.5rem",
+                                            minWidth: isMobile
+                                                ? "auto"
+                                                : "120px",
+                                        }}
+                                    >
+                                        <div
+                                            style={{
+                                                width: "60px",
+                                                height: "32px",
+                                                backgroundColor: "#f0f0f0",
+                                                borderRadius: "4px",
+                                            }}
+                                        />
+                                        <div
+                                            style={{
+                                                width: "60px",
+                                                height: "32px",
+                                                backgroundColor: "#f0f0f0",
+                                                borderRadius: "4px",
+                                            }}
+                                        />
+                                    </div>
+                                </div>
+                            </div>
+                        ))}
+                    </>
                 )}
 
                 {error && (
@@ -753,7 +900,7 @@ export default function IssuesPageComponent() {
                             ページ {currentPage} / {totalPages}
                             {activeSearchTerm
                                 ? `(検索結果: ${filteredIssues.length}件)`
-                                : `(全 ${totalCount}件)`}
+                                : `(全 ${issues.length}件)`}
                         </div>
 
                         <div
