@@ -491,18 +491,21 @@ export default function IssuesPageComponent() {
         display: "flex",
         justifyContent: "center",
         alignItems: "center",
-        gap: "0.5rem",
+        gap: isExtraSmallMobile ? "0.25rem" : "0.5rem",
         marginTop: "2rem",
+        flexWrap: "wrap",
     };
 
     const pageButtonStyle: React.CSSProperties = {
         backgroundColor: "#f8f9fa",
         color: "#333",
         border: "1px solid #dee2e6",
-        padding: "0.5rem 0.75rem",
+        padding: isExtraSmallMobile ? "0.4rem 0.5rem" : "0.5rem 0.75rem",
         borderRadius: "4px",
         cursor: "pointer",
-        fontSize: "0.9rem",
+        fontSize: isExtraSmallMobile ? "0.8rem" : "0.9rem",
+        minWidth: isExtraSmallMobile ? "auto" : "unset",
+        whiteSpace: "nowrap",
     };
 
     const activePageButtonStyle: React.CSSProperties = {
@@ -734,7 +737,7 @@ export default function IssuesPageComponent() {
                                 disabled={currentPage === 1}
                                 style={pageButtonStyle}
                             >
-                                ≪ 最初
+                                {isExtraSmallMobile ? "≪" : "≪ 最初"}
                             </button>
                             <button
                                 onClick={() =>
@@ -743,7 +746,7 @@ export default function IssuesPageComponent() {
                                 disabled={currentPage === 1}
                                 style={pageButtonStyle}
                             >
-                                前へ
+                                {isExtraSmallMobile ? "←" : "前へ"}
                             </button>
 
                             {Array.from(
@@ -783,14 +786,14 @@ export default function IssuesPageComponent() {
                                 disabled={currentPage === totalPages}
                                 style={pageButtonStyle}
                             >
-                                次へ
+                                {isExtraSmallMobile ? "→" : "次へ"}
                             </button>
                             <button
                                 onClick={() => setCurrentPage(totalPages)}
                                 disabled={currentPage === totalPages}
                                 style={pageButtonStyle}
                             >
-                                最後 ≫
+                                {isExtraSmallMobile ? "≫" : "最後 ≫"}
                             </button>
                         </div>
                     )}
@@ -1269,7 +1272,7 @@ export default function IssuesPageComponent() {
                                     disabled={currentPage === 1}
                                     style={pageButtonStyle}
                                 >
-                                    ≪ 最初
+                                    {isExtraSmallMobile ? "≪" : "≪ 最初"}
                                 </button>
                                 <button
                                     onClick={() =>
@@ -1280,7 +1283,7 @@ export default function IssuesPageComponent() {
                                     disabled={currentPage === 1}
                                     style={pageButtonStyle}
                                 >
-                                    前へ
+                                    {isExtraSmallMobile ? "←" : "前へ"}
                                 </button>
 
                                 {Array.from(
@@ -1323,14 +1326,14 @@ export default function IssuesPageComponent() {
                                     disabled={currentPage === totalPages}
                                     style={pageButtonStyle}
                                 >
-                                    次へ
+                                    {isExtraSmallMobile ? "→" : "次へ"}
                                 </button>
                                 <button
                                     onClick={() => setCurrentPage(totalPages)}
                                     disabled={currentPage === totalPages}
                                     style={pageButtonStyle}
                                 >
-                                    最後 ≫
+                                    {isExtraSmallMobile ? "≫" : "最後 ≫"}
                                 </button>
                             </div>
                         )}
