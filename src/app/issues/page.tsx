@@ -1,4 +1,5 @@
 import React, { useEffect, useState } from "react";
+import { useAuth } from "../../contexts/AuthContext";
 import { supabase } from "../../lib/supabaseClient";
 import type { Tables } from "../../types/supabase";
 
@@ -78,8 +79,11 @@ export default function IssuesPageComponent() {
     const [sortOption, setSortOption] = useState<SortOption>("created_at_desc");
 
     useEffect(() => {
-        fetchIssuesOptimized();
-    }, []);
+        // 認証初期化が完了してからデータ取得を実行
+        if (!authLoading || authInitialized) {
+            fetchIssuesOptimized();
+        }
+    }, [authLoading, authInitialized]);
 
     const fetchIssuesOptimized = async () => {
         try {
@@ -489,6 +493,7 @@ export default function IssuesPageComponent() {
 
     const isMobile = useIsMobile();
     const isExtraSmallMobile = useIsExtraSmallMobile();
+    const { loading: authLoading, authInitialized } = useAuth();
 
     const paginationStyle: React.CSSProperties = {
         display: "flex",
