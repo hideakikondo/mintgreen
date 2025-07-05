@@ -4,24 +4,6 @@ import DisplayNameInput from "../components/DisplayNameInput";
 import IssueRanking from "../components/common/IssueRanking";
 import { useAuth } from "../contexts/AuthContext";
 
-// スマートフォン/タブレット判定のカスタムフック
-const useIsTablet = () => {
-    const [isTablet, setIsTablet] = useState(false);
-
-    useEffect(() => {
-        const checkIfTablet = () => {
-            setIsTablet(window.innerWidth <= 760);
-        };
-
-        checkIfTablet();
-        window.addEventListener("resize", checkIfTablet);
-
-        return () => window.removeEventListener("resize", checkIfTablet);
-    }, []);
-
-    return isTablet;
-};
-
 function View() {
     const navigate = useNavigate();
     const {
@@ -37,7 +19,6 @@ function View() {
     const [loggingIn, setLoggingIn] = useState(false);
     const [isMenuOpen, setIsMenuOpen] = useState(false);
     const [refreshTrigger, setRefreshTrigger] = useState(0);
-    const isTablet = useIsTablet();
 
     const buttonStyle = {
         width: "300px",
@@ -307,85 +288,7 @@ function View() {
                     </div>
                 )}
 
-                {isAuthenticated && voter && !isTablet && (
-                    <div
-                        style={{
-                            position: "fixed" as const,
-                            top: "20px",
-                            right: "20px",
-                            backgroundColor: "#5FBEAA",
-                            color: "white",
-                            border: "none",
-                            borderRadius: "12px",
-                            padding: "1.2rem",
-                            boxShadow: "0 6px 20px rgba(95, 190, 170, 0.3)",
-                            zIndex: 999,
-                            minWidth: "200px",
-                        }}
-                    >
-                        <div
-                            style={{
-                                display: "flex",
-                                alignItems: "center",
-                                marginBottom: "1rem",
-                                gap: "0.5rem",
-                            }}
-                        >
-                            <div
-                                style={{
-                                    width: "8px",
-                                    height: "8px",
-                                    backgroundColor: "#4ade80",
-                                    borderRadius: "50%",
-                                }}
-                            />
-                            <span style={{ fontSize: "0.8em", opacity: 0.9 }}>
-                                サインイン中
-                            </span>
-                        </div>
-                        <p
-                            style={{
-                                marginBottom: "1rem",
-                                fontSize: "1em",
-                                fontWeight: "600",
-                                margin: "0 0 1rem 0",
-                            }}
-                        >
-                            {voter.display_name} さん
-                        </p>
-                        <button
-                            onClick={handleLogout}
-                            style={{
-                                backgroundColor: "rgba(255, 255, 255, 0.2)",
-                                color: "white",
-                                border: "1px solid rgba(255, 255, 255, 0.3)",
-                                padding: "0.6em 1.2em",
-                                borderRadius: "8px",
-                                cursor: "pointer",
-                                fontSize: "0.9em",
-                                width: "100%",
-                                fontWeight: "500",
-                                transition: "all 0.2s ease",
-                            }}
-                            onMouseEnter={(e) => {
-                                (
-                                    e.target as HTMLElement
-                                ).style.backgroundColor =
-                                    "rgba(255, 255, 255, 0.3)";
-                            }}
-                            onMouseLeave={(e) => {
-                                (
-                                    e.target as HTMLElement
-                                ).style.backgroundColor =
-                                    "rgba(255, 255, 255, 0.2)";
-                            }}
-                        >
-                            ログアウト
-                        </button>
-                    </div>
-                )}
-
-                {isAuthenticated && voter && isTablet && (
+                {isAuthenticated && voter && (
                     <>
                         <button
                             data-menu
