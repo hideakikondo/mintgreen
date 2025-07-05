@@ -287,6 +287,7 @@ function View() {
                                     fontSize: "14px",
                                     fontWeight: "500",
                                     color: "#1f1f1f",
+                                    textShadow: "none",
                                 }}
                             >
                                 Googleでログイン
