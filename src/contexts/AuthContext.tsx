@@ -78,7 +78,7 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
                     console.warn("キャッシュクリアに失敗:", error);
                 }
 
-                // 5秒タイムアウトを設定
+                // 3秒タイムアウトを設定
                 authTimeout = setTimeout(() => {
                     if (isMounted && !isTimedOut) {
                         console.warn("認証初期化がタイムアウトしました");
@@ -89,7 +89,7 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
                         setNeedsDisplayName(false);
                         setLoading(false);
                     }
-                }, 5000);
+                }, 3000);
 
                 // タイムアウト前に完了した場合の処理
                 if (isTimedOut) return;
