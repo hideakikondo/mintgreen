@@ -439,32 +439,104 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
     const logout = async () => {
         try {
             setIsNavigating(true);
-            console.log("ログアウト処理を開始");
+            console.log("包括的なログアウト処理を開始");
 
-            // Supabaseからサインアウト（状態クリアより先に実行）
+            // 1. Supabaseからサインアウト（デフォルトで全セッション削除）
             const { error } = await supabase.auth.signOut();
             if (error) {
-                console.error("ログアウトエラー:", error);
-                // エラーがあっても状態はクリアする
+                console.error("Supabaseログアウトエラー:", error);
+                // エラーがあっても残りの処理は続行
             }
 
-            // 状態をクリア
+            // 2. React状態をクリア
             setVoter(null);
             setSession(null);
             setNeedsDisplayName(false);
 
-            console.log("ログアウト完了");
+            // 3. ローカルストレージとセッションストレージを完全クリア
+            try {
+                // Supabase関連のキーを特定してクリア
+                const keysToRemove = [];
+                for (let i = 0; i < localStorage.length; i++) {
+                    const key = localStorage.key(i);
+                    if (
+                        key &&
+                        (key.startsWith("sb-") ||
+                            key.includes("supabase") ||
+                            key.includes("auth"))
+                    ) {
+                        keysToRemove.push(key);
+                    }
+                }
+                keysToRemove.forEach((key) => localStorage.removeItem(key));
+
+                // セッションストレージもクリア
+                const sessionKeysToRemove = [];
+                for (let i = 0; i < sessionStorage.length; i++) {
+                    const key = sessionStorage.key(i);
+                    if (
+                        key &&
+                        (key.startsWith("sb-") ||
+                            key.includes("supabase") ||
+                            key.includes("auth"))
+                    ) {
+                        sessionKeysToRemove.push(key);
+                    }
+                }
+                sessionKeysToRemove.forEach((key) =>
+                    sessionStorage.removeItem(key),
+                );
+
+                console.log(
+                    "ローカルストレージとセッションストレージをクリアしました",
+                );
+            } catch (storageError) {
+                console.warn("ストレージクリア中にエラー:", storageError);
+            }
+
+            // 4. Cookieクリア（Supabase関連）
+            try {
+                const cookiesToClear = [
+                    "sb-access-token",
+                    "sb-refresh-token",
+                    "supabase-auth-token",
+                    "supabase.auth.token",
+                ];
+
+                cookiesToClear.forEach((cookieName) => {
+                    // 複数のドメインとパスでクッキーを削除
+                    document.cookie = `${cookieName}=; expires=Thu, 01 Jan 1970 00:00:00 UTC; path=/;`;
+                    document.cookie = `${cookieName}=; expires=Thu, 01 Jan 1970 00:00:00 UTC; path=/; domain=${window.location.hostname};`;
+                    document.cookie = `${cookieName}=; expires=Thu, 01 Jan 1970 00:00:00 UTC; path=/; domain=.${window.location.hostname};`;
+                });
+
+                console.log("認証関連のクッキーをクリアしました");
+            } catch (cookieError) {
+                console.warn("クッキークリア中にエラー:", cookieError);
+            }
+
+            console.log("包括的なログアウト処理完了");
         } catch (error) {
-            console.error("ログアウト処理中にエラー:", error);
-            // エラー時も状態をクリア
+            console.error("ログアウト処理中に予期しないエラー:", error);
+
+            // エラー時も最低限の状態クリアは実行
             setVoter(null);
             setSession(null);
             setNeedsDisplayName(false);
+
+            // 緊急時のローカルストレージ全削除
+            try {
+                localStorage.clear();
+                sessionStorage.clear();
+                console.log("緊急時: 全ストレージをクリアしました");
+            } catch (clearError) {
+                console.error("緊急時のストレージクリアも失敗:", clearError);
+            }
         } finally {
             // ナビゲーション完了後に状態をリセット
             setTimeout(() => {
                 setIsNavigating(false);
-            }, 100); // 時間を短縮してより早く正常状態に戻す
+            }, 100);
         }
     };
 
