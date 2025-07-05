@@ -77,6 +77,7 @@ export default function IssuesPageComponent() {
 
     const ITEMS_PER_PAGE = 50;
     const [sortOption, setSortOption] = useState<SortOption>("created_at_desc");
+    const { loading: authLoading, authInitialized } = useAuth();
 
     useEffect(() => {
         // 認証初期化が完了してからデータ取得を実行
@@ -493,7 +494,6 @@ export default function IssuesPageComponent() {
 
     const isMobile = useIsMobile();
     const isExtraSmallMobile = useIsExtraSmallMobile();
-    const { loading: authLoading, authInitialized } = useAuth();
 
     const paginationStyle: React.CSSProperties = {
         display: "flex",
