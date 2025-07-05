@@ -7,7 +7,12 @@
     },
     "files": {
         "ignoreUnknown": false,
-        "ignore": ["**/tsconfig*.json", "dist", "node_modules"]
+        "ignore": [
+            "**/tsconfig*.json",
+            "dist",
+            "node_modules",
+            ".claude/settings.local.json"
+        ]
     },
     "formatter": {
         "enabled": true,
