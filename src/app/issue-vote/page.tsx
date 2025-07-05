@@ -41,6 +41,25 @@ const useIsExtraSmallMobile = () => {
     return isExtraSmallMobile;
 };
 
+// 中間サイズモバイル判定のカスタムフック（380px〜500px）
+const useIsMidMobile = () => {
+    const [isMidMobile, setIsMidMobile] = useState(false);
+
+    useEffect(() => {
+        const checkIfMidMobile = () => {
+            const width = window.innerWidth;
+            setIsMidMobile(width > 380 && width <= 500);
+        };
+
+        checkIfMidMobile();
+        window.addEventListener("resize", checkIfMidMobile);
+
+        return () => window.removeEventListener("resize", checkIfMidMobile);
+    }, []);
+
+    return isMidMobile;
+};
+
 type SortOption = "created_at_desc" | "id_asc";
 
 export default function IssueVotePageComponent() {
@@ -69,6 +88,7 @@ export default function IssueVotePageComponent() {
     const { voter, isAuthenticated, loading: authLoading } = useAuth();
     const isMobile = useIsMobile();
     const isExtraSmallMobile = useIsExtraSmallMobile();
+    const isMidMobile = useIsMidMobile();
 
     const ITEMS_PER_PAGE = 50;
     const [sortOption, setSortOption] = useState<SortOption>("created_at_desc");
@@ -698,15 +718,16 @@ export default function IssueVotePageComponent() {
                             display: "flex",
                             gap: isExtraSmallMobile ? "0.25rem" : "0.5rem",
                             alignItems: "flex-start",
-                            flexDirection: isExtraSmallMobile
-                                ? "column"
-                                : "row",
+                            flexDirection:
+                                isExtraSmallMobile || isMidMobile
+                                    ? "column"
+                                    : "row",
                         }}
                     >
                         <input
                             type="text"
                             placeholder={
-                                isExtraSmallMobile
+                                isExtraSmallMobile || isMidMobile
                                     ? "検索キーワード..."
                                     : "検索キーワード（スペース区切りでAND検索）..."
                             }
@@ -715,20 +736,25 @@ export default function IssueVotePageComponent() {
                             onKeyDown={handleKeyDown}
                             style={{
                                 flex: 1,
-                                padding: isExtraSmallMobile
-                                    ? "0.6rem"
-                                    : "0.75rem",
+                                padding:
+                                    isExtraSmallMobile || isMidMobile
+                                        ? "0.6rem"
+                                        : "0.75rem",
                                 borderRadius: "8px",
                                 border: "2px solid var(--border-strong)",
-                                fontSize: isExtraSmallMobile
-                                    ? "0.9rem"
-                                    : "1rem",
+                                fontSize:
+                                    isExtraSmallMobile || isMidMobile
+                                        ? "0.9rem"
+                                        : "1rem",
                                 backgroundColor: "var(--bg-secondary)",
                                 color: "var(--text-primary)",
                                 transition: "all 0.2s ease",
                                 outline: "none",
                                 boxShadow: "inset 0 1px 3px rgba(0, 0, 0, 0.1)",
-                                width: isExtraSmallMobile ? "100%" : "auto",
+                                width:
+                                    isExtraSmallMobile || isMidMobile
+                                        ? "100%"
+                                        : "auto",
                             }}
                             onFocus={(e) => {
                                 e.target.style.borderColor = "#5FBEAA";
@@ -742,7 +768,7 @@ export default function IssueVotePageComponent() {
                                     "inset 0 1px 3px rgba(0, 0, 0, 0.1)";
                             }}
                         />
-                        {isExtraSmallMobile ? (
+                        {isExtraSmallMobile || isMidMobile ? (
                             <>
                                 <button
                                     onClick={handleSearch}
@@ -751,7 +777,9 @@ export default function IssueVotePageComponent() {
                                         searchTerm.trim().length === 0
                                     }
                                     style={{
-                                        padding: "0.6rem 1rem",
+                                        padding: isMidMobile
+                                            ? "0.65rem 1rem"
+                                            : "0.6rem 1rem",
                                         borderRadius: "8px",
                                         border: "none",
                                         backgroundColor:
@@ -760,7 +788,9 @@ export default function IssueVotePageComponent() {
                                                 ? "#ccc"
                                                 : "#5FBEAA",
                                         color: "white",
-                                        fontSize: "0.9rem",
+                                        fontSize: isMidMobile
+                                            ? "1rem"
+                                            : "0.9rem",
                                         fontWeight: "500",
                                         cursor:
                                             !!searchError ||
@@ -806,13 +836,17 @@ export default function IssueVotePageComponent() {
                                     <button
                                         onClick={handleClearSearch}
                                         style={{
-                                            padding: "0.6rem 1rem",
+                                            padding: isMidMobile
+                                                ? "0.65rem 1rem"
+                                                : "0.6rem 1rem",
                                             borderRadius: "8px",
                                             border: "2px solid var(--border-strong)",
                                             backgroundColor:
                                                 "var(--bg-secondary)",
                                             color: "var(--text-primary)",
-                                            fontSize: "0.9rem",
+                                            fontSize: isMidMobile
+                                                ? "1rem"
+                                                : "0.9rem",
                                             cursor: "pointer",
                                             transition: "all 0.2s ease",
                                             whiteSpace: "nowrap",
