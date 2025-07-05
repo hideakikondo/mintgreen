@@ -2,6 +2,43 @@ import React, { useEffect, useState } from "react";
 import { supabase } from "../../lib/supabaseClient";
 import type { Tables } from "../../types/supabase";
 
+// スマートフォン判定のカスタムフック
+const useIsMobile = () => {
+    const [isMobile, setIsMobile] = useState(false);
+
+    useEffect(() => {
+        const checkIfMobile = () => {
+            setIsMobile(window.innerWidth <= 480);
+        };
+
+        checkIfMobile();
+        window.addEventListener("resize", checkIfMobile);
+
+        return () => window.removeEventListener("resize", checkIfMobile);
+    }, []);
+
+    return isMobile;
+};
+
+// 極小スマートフォン判定のカスタムフック
+const useIsExtraSmallMobile = () => {
+    const [isExtraSmallMobile, setIsExtraSmallMobile] = useState(false);
+
+    useEffect(() => {
+        const checkIfExtraSmallMobile = () => {
+            setIsExtraSmallMobile(window.innerWidth <= 380);
+        };
+
+        checkIfExtraSmallMobile();
+        window.addEventListener("resize", checkIfExtraSmallMobile);
+
+        return () =>
+            window.removeEventListener("resize", checkIfExtraSmallMobile);
+    }, []);
+
+    return isExtraSmallMobile;
+};
+
 type SortOption =
     | "created_at_desc"
     | "id_asc"
@@ -386,7 +423,8 @@ export default function IssuesPageComponent() {
         borderColor: "#5FBEAA",
     };
 
-    const isMobile = window.innerWidth <= 768;
+    const isMobile = useIsMobile();
+    const isExtraSmallMobile = useIsExtraSmallMobile();
 
     return (
         <div style={isMobile ? mobileContainerStyle : containerStyle}>
@@ -412,18 +450,28 @@ export default function IssuesPageComponent() {
                     <div
                         style={{
                             display: "flex",
+                            flexDirection: isExtraSmallMobile
+                                ? "column"
+                                : "row",
                             gap: "0.5rem",
-                            alignItems: "flex-start",
+                            alignItems: isExtraSmallMobile
+                                ? "stretch"
+                                : "flex-start",
                         }}
                     >
                         <input
                             type="text"
-                            placeholder="検索キーワード（スペース区切りでAND検索）..."
+                            placeholder={
+                                isExtraSmallMobile
+                                    ? "検索キーワード..."
+                                    : "検索キーワード（スペース区切りでAND検索）..."
+                            }
                             value={searchTerm}
                             onChange={handleInputChange}
                             onKeyDown={handleKeyDown}
                             style={{
-                                flex: 1,
+                                flex: isExtraSmallMobile ? "none" : 1,
+                                width: isExtraSmallMobile ? "100%" : "auto",
                                 padding: "0.75rem",
                                 borderRadius: "8px",
                                 border: "2px solid var(--border-strong)",
@@ -446,88 +494,104 @@ export default function IssuesPageComponent() {
                                     "inset 0 1px 3px rgba(0, 0, 0, 0.1)";
                             }}
                         />
-                        <button
-                            onClick={handleSearch}
-                            disabled={
-                                !!searchError || searchTerm.trim().length === 0
-                            }
+                        <div
                             style={{
-                                padding: "0.75rem 1.5rem",
-                                borderRadius: "8px",
-                                border: "none",
-                                backgroundColor:
-                                    !!searchError ||
-                                    searchTerm.trim().length === 0
-                                        ? "#ccc"
-                                        : "#5FBEAA",
-                                color: "white",
-                                fontSize: "1rem",
-                                fontWeight: "500",
-                                cursor:
-                                    !!searchError ||
-                                    searchTerm.trim().length === 0
-                                        ? "not-allowed"
-                                        : "pointer",
-                                transition: "all 0.2s ease",
-                                boxShadow: "var(--card-shadow)",
-                                whiteSpace: "nowrap",
-                                opacity:
-                                    !!searchError ||
-                                    searchTerm.trim().length === 0
-                                        ? 0.6
-                                        : 1,
-                            }}
-                            onMouseEnter={(e) => {
-                                if (
-                                    !searchError &&
-                                    searchTerm.trim().length > 0
-                                ) {
-                                    e.currentTarget.style.backgroundColor =
-                                        "#4DA894";
-                                    e.currentTarget.style.transform =
-                                        "translateY(-1px)";
-                                }
-                            }}
-                            onMouseLeave={(e) => {
-                                if (
-                                    !searchError &&
-                                    searchTerm.trim().length > 0
-                                ) {
-                                    e.currentTarget.style.backgroundColor =
-                                        "#5FBEAA";
-                                    e.currentTarget.style.transform =
-                                        "translateY(0)";
-                                }
+                                display: "flex",
+                                gap: "0.5rem",
+                                flexDirection: isExtraSmallMobile
+                                    ? "column"
+                                    : "row",
+                                alignItems: "stretch",
                             }}
                         >
-                            🔍 検索
-                        </button>
-                        {activeSearchTerm && (
                             <button
-                                onClick={handleClearSearch}
+                                onClick={handleSearch}
+                                disabled={
+                                    !!searchError ||
+                                    searchTerm.trim().length === 0
+                                }
                                 style={{
-                                    padding: "0.75rem 1rem",
+                                    padding: isExtraSmallMobile
+                                        ? "0.75rem"
+                                        : "0.75rem 1.5rem",
                                     borderRadius: "8px",
-                                    border: "2px solid var(--border-strong)",
-                                    backgroundColor: "var(--bg-secondary)",
-                                    color: "var(--text-primary)",
+                                    border: "none",
+                                    backgroundColor:
+                                        !!searchError ||
+                                        searchTerm.trim().length === 0
+                                            ? "#ccc"
+                                            : "#5FBEAA",
+                                    color: "white",
                                     fontSize: "1rem",
-                                    cursor: "pointer",
+                                    fontWeight: "500",
+                                    cursor:
+                                        !!searchError ||
+                                        searchTerm.trim().length === 0
+                                            ? "not-allowed"
+                                            : "pointer",
                                     transition: "all 0.2s ease",
+                                    boxShadow: "var(--card-shadow)",
                                     whiteSpace: "nowrap",
+                                    opacity:
+                                        !!searchError ||
+                                        searchTerm.trim().length === 0
+                                            ? 0.6
+                                            : 1,
                                 }}
                                 onMouseEnter={(e) => {
-                                    e.currentTarget.style.backgroundColor =
-                                        "var(--hover-bg)";
+                                    if (
+                                        !searchError &&
+                                        searchTerm.trim().length > 0
+                                    ) {
+                                        e.currentTarget.style.backgroundColor =
+                                            "#4DA894";
+                                        e.currentTarget.style.transform =
+                                            "translateY(-1px)";
+                                    }
                                 }}
                                 onMouseLeave={(e) => {
-                                    e.currentTarget.style.backgroundColor =
-                                        "var(--bg-secondary)";
+                                    if (
+                                        !searchError &&
+                                        searchTerm.trim().length > 0
+                                    ) {
+                                        e.currentTarget.style.backgroundColor =
+                                            "#5FBEAA";
+                                        e.currentTarget.style.transform =
+                                            "translateY(0)";
+                                    }
                                 }}
                             >
-                                ✕ クリア
+                                🔍 検索
                             </button>
-                        )}
+                            {activeSearchTerm && (
+                                <button
+                                    onClick={handleClearSearch}
+                                    style={{
+                                        padding: isExtraSmallMobile
+                                            ? "0.75rem"
+                                            : "0.75rem 1rem",
+                                        borderRadius: "8px",
+                                        border: "2px solid var(--border-strong)",
+                                        backgroundColor: "var(--bg-secondary)",
+                                        color: "var(--text-primary)",
+                                        fontSize: "1rem",
+                                        cursor: "pointer",
+                                        transition: "all 0.2s ease",
+                                        whiteSpace: "nowrap",
+                                    }}
+                                    onMouseEnter={(e) => {
+                                        e.currentTarget.style.backgroundColor =
+                                            "var(--hover-bg)";
+                                    }}
+                                    onMouseLeave={(e) => {
+                                        e.currentTarget.style.backgroundColor =
+                                            "var(--bg-secondary)";
+                                    }}
+                                >
+                                    ✕ クリア
+                                </button>
+                            )}
+                        </div>
                     </div>
 
                     {/* エラーメッセージ */}

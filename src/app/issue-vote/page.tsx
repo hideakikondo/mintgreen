@@ -22,6 +22,25 @@ const useIsMobile = () => {
     return isMobile;
 };
 
+// 極小スマートフォン判定のカスタムフック
+const useIsExtraSmallMobile = () => {
+    const [isExtraSmallMobile, setIsExtraSmallMobile] = useState(false);
+
+    useEffect(() => {
+        const checkIfExtraSmallMobile = () => {
+            setIsExtraSmallMobile(window.innerWidth <= 380);
+        };
+
+        checkIfExtraSmallMobile();
+        window.addEventListener("resize", checkIfExtraSmallMobile);
+
+        return () =>
+            window.removeEventListener("resize", checkIfExtraSmallMobile);
+    }, []);
+
+    return isExtraSmallMobile;
+};
+
 type SortOption = "created_at_desc" | "id_asc";
 
 export default function IssueVotePageComponent() {
@@ -49,6 +68,7 @@ export default function IssueVotePageComponent() {
     const navigate = useNavigate();
     const { voter, isAuthenticated, loading: authLoading } = useAuth();
     const isMobile = useIsMobile();
+    const isExtraSmallMobile = useIsExtraSmallMobile();
 
     const ITEMS_PER_PAGE = 50;
     const [sortOption, setSortOption] = useState<SortOption>("created_at_desc");
@@ -563,27 +583,39 @@ export default function IssueVotePageComponent() {
                     <div
                         style={{
                             display: "flex",
-                            gap: "0.5rem",
+                            gap: isExtraSmallMobile ? "0.25rem" : "0.5rem",
                             alignItems: "flex-start",
+                            flexDirection: isExtraSmallMobile
+                                ? "column"
+                                : "row",
                         }}
                     >
                         <input
                             type="text"
-                            placeholder="検索キーワード（スペース区切りでAND検索）..."
+                            placeholder={
+                                isExtraSmallMobile
+                                    ? "検索キーワード..."
+                                    : "検索キーワード（スペース区切りでAND検索）..."
+                            }
                             value={searchTerm}
                             onChange={handleInputChange}
                             onKeyDown={handleKeyDown}
                             style={{
                                 flex: 1,
-                                padding: "0.75rem",
+                                padding: isExtraSmallMobile
+                                    ? "0.6rem"
+                                    : "0.75rem",
                                 borderRadius: "8px",
                                 border: "2px solid var(--border-strong)",
-                                fontSize: "1rem",
+                                fontSize: isExtraSmallMobile
+                                    ? "0.9rem"
+                                    : "1rem",
                                 backgroundColor: "var(--bg-secondary)",
                                 color: "var(--text-primary)",
                                 transition: "all 0.2s ease",
                                 outline: "none",
                                 boxShadow: "inset 0 1px 3px rgba(0, 0, 0, 0.1)",
+                                width: isExtraSmallMobile ? "100%" : "auto",
                             }}
                             onFocus={(e) => {
                                 e.target.style.borderColor = "#5FBEAA";
@@ -597,87 +629,182 @@ export default function IssueVotePageComponent() {
                                     "inset 0 1px 3px rgba(0, 0, 0, 0.1)";
                             }}
                         />
-                        <button
-                            onClick={handleSearch}
-                            disabled={
-                                !!searchError || searchTerm.trim().length === 0
-                            }
-                            style={{
-                                padding: "0.75rem 1.5rem",
-                                borderRadius: "8px",
-                                border: "none",
-                                backgroundColor:
-                                    !!searchError ||
-                                    searchTerm.trim().length === 0
-                                        ? "#ccc"
-                                        : "#5FBEAA",
-                                color: "white",
-                                fontSize: "1rem",
-                                fontWeight: "500",
-                                cursor:
-                                    !!searchError ||
-                                    searchTerm.trim().length === 0
-                                        ? "not-allowed"
-                                        : "pointer",
-                                transition: "all 0.2s ease",
-                                boxShadow: "var(--card-shadow)",
-                                whiteSpace: "nowrap",
-                                opacity:
-                                    !!searchError ||
-                                    searchTerm.trim().length === 0
-                                        ? 0.6
-                                        : 1,
-                            }}
-                            onMouseEnter={(e) => {
-                                if (
-                                    !searchError &&
-                                    searchTerm.trim().length > 0
-                                ) {
-                                    e.currentTarget.style.backgroundColor =
-                                        "#4DA894";
-                                    e.currentTarget.style.transform =
-                                        "translateY(-1px)";
-                                }
-                            }}
-                            onMouseLeave={(e) => {
-                                if (
-                                    !searchError &&
-                                    searchTerm.trim().length > 0
-                                ) {
-                                    e.currentTarget.style.backgroundColor =
-                                        "#5FBEAA";
-                                    e.currentTarget.style.transform =
-                                        "translateY(0)";
-                                }
-                            }}
-                        >
-                            🔍 検索
-                        </button>
-                        {activeSearchTerm && (
-                            <button
-                                onClick={handleClearSearch}
-                                style={{
-                                    padding: "0.75rem 1rem",
-                                    borderRadius: "8px",
-                                    border: "2px solid var(--border-strong)",
-                                    backgroundColor: "var(--bg-secondary)",
-                                    color: "var(--text-primary)",
-                                    fontSize: "1rem",
-                                    cursor: "pointer",
-                                    transition: "all 0.2s ease",
-                                    whiteSpace: "nowrap",
-                                }}
-                                onMouseEnter={(e) => {
-                                    e.currentTarget.style.backgroundColor =
-                                        "var(--hover-bg)";
-                                }}
-                                onMouseLeave={(e) => {
-                                    e.currentTarget.style.backgroundColor =
-                                        "var(--bg-secondary)";
-                                }}
-                            >
-                                ✕ クリア
-                            </button>
+                        {isExtraSmallMobile ? (
+                            <>
+                                <button
+                                    onClick={handleSearch}
+                                    disabled={
+                                        !!searchError ||
+                                        searchTerm.trim().length === 0
+                                    }
+                                    style={{
+                                        padding: "0.6rem 1rem",
+                                        borderRadius: "8px",
+                                        border: "none",
+                                        backgroundColor:
+                                            !!searchError ||
+                                            searchTerm.trim().length === 0
+                                                ? "#ccc"
+                                                : "#5FBEAA",
+                                        color: "white",
+                                        fontSize: "0.9rem",
+                                        fontWeight: "500",
+                                        cursor:
+                                            !!searchError ||
+                                            searchTerm.trim().length === 0
+                                                ? "not-allowed"
+                                                : "pointer",
+                                        transition: "all 0.2s ease",
+                                        boxShadow: "var(--card-shadow)",
+                                        whiteSpace: "nowrap",
+                                        opacity:
+                                            !!searchError ||
+                                            searchTerm.trim().length === 0
+                                                ? 0.6
+                                                : 1,
+                                        width: "100%",
+                                    }}
+                                    onMouseEnter={(e) => {
+                                        if (
+                                            !searchError &&
+                                            searchTerm.trim().length > 0
+                                        ) {
+                                            e.currentTarget.style.backgroundColor =
+                                                "#4DA894";
+                                            e.currentTarget.style.transform =
+                                                "translateY(-1px)";
+                                        }
+                                    }}
+                                    onMouseLeave={(e) => {
+                                        if (
+                                            !searchError &&
+                                            searchTerm.trim().length > 0
+                                        ) {
+                                            e.currentTarget.style.backgroundColor =
+                                                "#5FBEAA";
+                                            e.currentTarget.style.transform =
+                                                "translateY(0)";
+                                        }
+                                    }}
+                                >
+                                    🔍 検索
+                                </button>
+                                {activeSearchTerm && (
+                                    <button
+                                        onClick={handleClearSearch}
+                                        style={{
+                                            padding: "0.6rem 1rem",
+                                            borderRadius: "8px",
+                                            border: "2px solid var(--border-strong)",
+                                            backgroundColor:
+                                                "var(--bg-secondary)",
+                                            color: "var(--text-primary)",
+                                            fontSize: "0.9rem",
+                                            cursor: "pointer",
+                                            transition: "all 0.2s ease",
+                                            whiteSpace: "nowrap",
+                                            width: "100%",
+                                        }}
+                                        onMouseEnter={(e) => {
+                                            e.currentTarget.style.backgroundColor =
+                                                "var(--hover-bg)";
+                                        }}
+                                        onMouseLeave={(e) => {
+                                            e.currentTarget.style.backgroundColor =
+                                                "var(--bg-secondary)";
+                                        }}
+                                    >
+                                        ✕ クリア
+                                    </button>
+                                )}
+                            </>
+                        ) : (
+                            <>
+                                <button
+                                    onClick={handleSearch}
+                                    disabled={
+                                        !!searchError ||
+                                        searchTerm.trim().length === 0
+                                    }
+                                    style={{
+                                        padding: "0.75rem 1.5rem",
+                                        borderRadius: "8px",
+                                        border: "none",
+                                        backgroundColor:
+                                            !!searchError ||
+                                            searchTerm.trim().length === 0
+                                                ? "#ccc"
+                                                : "#5FBEAA",
+                                        color: "white",
+                                        fontSize: "1rem",
+                                        fontWeight: "500",
+                                        cursor:
+                                            !!searchError ||
+                                            searchTerm.trim().length === 0
+                                                ? "not-allowed"
+                                                : "pointer",
+                                        transition: "all 0.2s ease",
+                                        boxShadow: "var(--card-shadow)",
+                                        whiteSpace: "nowrap",
+                                        opacity:
+                                            !!searchError ||
+                                            searchTerm.trim().length === 0
+                                                ? 0.6
+                                                : 1,
+                                    }}
+                                    onMouseEnter={(e) => {
+                                        if (
+                                            !searchError &&
+                                            searchTerm.trim().length > 0
+                                        ) {
+                                            e.currentTarget.style.backgroundColor =
+                                                "#4DA894";
+                                            e.currentTarget.style.transform =
+                                                "translateY(-1px)";
+                                        }
+                                    }}
+                                    onMouseLeave={(e) => {
+                                        if (
+                                            !searchError &&
+                                            searchTerm.trim().length > 0
+                                        ) {
+                                            e.currentTarget.style.backgroundColor =
+                                                "#5FBEAA";
+                                            e.currentTarget.style.transform =
+                                                "translateY(0)";
+                                        }
+                                    }}
+                                >
+                                    🔍 検索
+                                </button>
+                                {activeSearchTerm && (
+                                    <button
+                                        onClick={handleClearSearch}
+                                        style={{
+                                            padding: "0.75rem 1rem",
+                                            borderRadius: "8px",
+                                            border: "2px solid var(--border-strong)",
+                                            backgroundColor:
+                                                "var(--bg-secondary)",
+                                            color: "var(--text-primary)",
+                                            fontSize: "1rem",
+                                            cursor: "pointer",
+                                            transition: "all 0.2s ease",
+                                            whiteSpace: "nowrap",
+                                        }}
+                                        onMouseEnter={(e) => {
+                                            e.currentTarget.style.backgroundColor =
+                                                "var(--hover-bg)";
+                                        }}
+                                        onMouseLeave={(e) => {
+                                            e.currentTarget.style.backgroundColor =
+                                                "var(--bg-secondary)";
+                                        }}
+                                    >
+                                        ✕ クリア
+                                    </button>
+                                )}
+                            </>
                         )}
                     </div>
 

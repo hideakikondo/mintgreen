@@ -154,17 +154,34 @@ function View() {
             <div
                 style={{ maxWidth: "1200px", width: "100%", margin: "0 auto" }}
             >
-                <h1
+                <div
                     style={{
-                        fontSize: "2rem",
-                        fontWeight: "600",
-                        color: "#333",
-                        marginBottom: "3rem",
                         textAlign: "center",
+                        marginBottom: "3rem",
                     }}
                 >
-                    いどばた政策 みんなの共感アプリ(α版)
-                </h1>
+                    <h1
+                        style={{
+                            fontSize: "2rem",
+                            fontWeight: "600",
+                            color: "#333",
+                            marginBottom: "0.5rem",
+                            margin: "0 0 0.5rem 0",
+                        }}
+                    >
+                        いどばた政策
+                    </h1>
+                    <p
+                        style={{
+                            fontSize: "1.2rem",
+                            fontWeight: "400",
+                            color: "#666",
+                            margin: "0",
+                        }}
+                    >
+                        みんなの共感表明(α版)
+                    </p>
+                </div>
 
                 <div
                     style={{
@@ -413,11 +430,9 @@ function View() {
                                 {/* ハンバーガーアイコン */}
                                 <div
                                     style={{
-                                        display: "flex",
-                                        flexDirection: "column",
-                                        gap: "3px",
-                                        alignItems: "center",
-                                        justifyContent: "center",
+                                        position: "relative",
+                                        width: "20px",
+                                        height: "20px",
                                     }}
                                 >
                                     <div
@@ -427,9 +442,13 @@ function View() {
                                             backgroundColor: "white",
                                             borderRadius: "1px",
                                             transition: "all 0.3s ease",
+                                            transformOrigin: "center",
+                                            position: "absolute" as const,
+                                            top: isMenuOpen ? "9px" : "6px",
+                                            left: "2px",
                                             transform: isMenuOpen
-                                                ? "rotate(45deg) translate(5px, 5px)"
-                                                : "none",
+                                                ? "rotate(45deg)"
+                                                : "rotate(0deg)",
                                         }}
                                     />
                                     <div
@@ -440,6 +459,9 @@ function View() {
                                             borderRadius: "1px",
                                             transition: "all 0.3s ease",
                                             opacity: isMenuOpen ? 0 : 1,
+                                            position: "absolute" as const,
+                                            top: "9px",
+                                            left: "2px",
                                         }}
                                     />
                                     <div
@@ -449,9 +471,13 @@ function View() {
                                             backgroundColor: "white",
                                             borderRadius: "1px",
                                             transition: "all 0.3s ease",
+                                            transformOrigin: "center",
+                                            position: "absolute" as const,
+                                            top: isMenuOpen ? "9px" : "12px",
+                                            left: "2px",
                                             transform: isMenuOpen
-                                                ? "rotate(-45deg) translate(5px, -5px)"
-                                                : "none",
+                                                ? "rotate(-45deg)"
+                                                : "rotate(0deg)",
                                         }}
                                     />
                                 </div>
