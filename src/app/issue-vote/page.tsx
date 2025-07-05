@@ -93,6 +93,8 @@ export default function IssueVotePageComponent() {
 
     // 全件取得用の状態管理
     const [isLoadingAll, setIsLoadingAll] = useState(false);
+    const [totalCount, setTotalCount] = useState(0);
+    const [loadedCount, setLoadedCount] = useState(0);
     const [loadingProgress, setLoadingProgress] = useState("");
     const navigate = useNavigate();
     const { voter, isAuthenticated, loading: authLoading, logout } = useAuth();
@@ -139,6 +141,7 @@ export default function IssueVotePageComponent() {
                 .select("*", { count: "exact", head: true });
 
             if (countError) throw countError;
+            setTotalCount(count || 0);
 
             // 最初の50件を優先取得（ユーザーが早く操作できるように）
             const { data: initialIssues, error: initialError } = await supabase
@@ -153,6 +156,7 @@ export default function IssueVotePageComponent() {
                 setIssues(initialIssues);
                 setFilteredIssues(initialIssues);
                 setTotalPages(Math.ceil(initialIssues.length / ITEMS_PER_PAGE));
+                setLoadedCount(initialIssues.length);
                 setLoadingProgress(
                     `${initialIssues.length}件 / ${count || 0}件 読み込み完了`,
                 );
@@ -214,6 +218,7 @@ export default function IssueVotePageComponent() {
                 if (!batchData || batchData.length === 0) break;
 
                 allIssuesData = [...allIssuesData, ...batchData];
+                setLoadedCount(allIssuesData.length);
 
                 // 定期的に画面を更新（パフォーマンスを考慮して500件ごと）
                 if (from % 500 === 0 || from + BATCH_SIZE >= totalCount) {
@@ -887,6 +892,60 @@ export default function IssueVotePageComponent() {
                         }}
                     >
                         {error}
+                    </div>
+                )}
+
+                {/* 全件取得の進捗表示 */}
+                {isLoadingAll && !loading && (
+                    <div style={cardStyle}>
+                        <div
+                            style={{
+                                textAlign: "center",
+                                padding: "1rem",
+                            }}
+                        >
+                            <div
+                                className="spinner"
+                                style={{ marginBottom: "0.5rem" }}
+                            ></div>
+                            <p
+                                style={{
+                                    margin: 0,
+                                    fontSize: "1rem",
+                                    color: "#333",
+                                }}
+                            >
+                                全データを読み込み中...
+                            </p>
+                            <p
+                                style={{
+                                    margin: "0.5rem 0 0 0",
+                                    color: "#666",
+                                    fontSize: "0.9rem",
+                                }}
+                            >
+                                {loadingProgress}
+                            </p>
+                            <div
+                                style={{
+                                    width: "100%",
+                                    height: "8px",
+                                    backgroundColor: "#f0f0f0",
+                                    borderRadius: "4px",
+                                    marginTop: "0.5rem",
+                                    overflow: "hidden",
+                                }}
+                            >
+                                <div
+                                    style={{
+                                        width: `${totalCount > 0 ? (loadedCount / totalCount) * 100 : 0}%`,
+                                        height: "100%",
+                                        backgroundColor: "#4CAF50",
+                                        transition: "width 0.3s ease",
+                                    }}
+                                />
+                            </div>
+                        </div>
                     </div>
                 )}
 
