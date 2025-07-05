@@ -4,7 +4,6 @@ import DisplayNameInput from "../components/DisplayNameInput";
 import IssueRanking from "../components/common/IssueRanking";
 import { useAuth } from "../contexts/AuthContext";
 
-
 function View() {
     const navigate = useNavigate();
     const {
