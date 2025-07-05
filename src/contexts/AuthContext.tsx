@@ -43,19 +43,54 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
     const [needsDisplayName, setNeedsDisplayName] = useState(false);
 
     useEffect(() => {
+        let isMounted = true;
+        let authTimeout: NodeJS.Timeout;
+
         const initializeAuth = async () => {
             try {
                 if (
                     import.meta.env.MODE === "test" ||
                     process.env.NODE_ENV === "test"
                 ) {
-                    setLoading(false);
+                    if (isMounted) setLoading(false);
                     return;
                 }
+
+                // キャッシュクリア（古い認証情報の影響を回避）
+                try {
+                    // Supabaseの古いセッション情報をクリア
+                    const oldKeys = Object.keys(localStorage).filter(
+                        (key) =>
+                            key.startsWith("sb-") || key.includes("supabase"),
+                    );
+
+                    // バージョンチェック用のキー
+                    const currentVersion = "1.0.0";
+                    const storedVersion = localStorage.getItem("app-version");
+
+                    if (storedVersion !== currentVersion) {
+                        oldKeys.forEach((key) => localStorage.removeItem(key));
+                        localStorage.setItem("app-version", currentVersion);
+                        console.log("キャッシュをクリアしました");
+                    }
+                } catch (error) {
+                    console.warn("キャッシュクリアに失敗:", error);
+                }
+
+                // 5秒タイムアウトを設定
+                authTimeout = setTimeout(() => {
+                    if (isMounted) {
+                        console.warn("認証初期化がタイムアウトしました");
+                        setLoading(false);
+                    }
+                }, 5000);
 
                 const {
                     data: { session: currentSession },
                 } = await supabase.auth.getSession();
+
+                if (!isMounted) return;
+
                 setSession(currentSession);
 
                 if (currentSession?.user?.email) {
@@ -69,6 +104,8 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
                             .select("*")
                             .eq("user_email", currentSession.user.email)
                             .single();
+
+                    if (!isMounted) return;
 
                     if (voterError) {
                         console.error("Voter query error:", voterError);
@@ -85,10 +122,15 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
                         setNeedsDisplayName(true);
                     }
                 }
+
+                clearTimeout(authTimeout);
             } catch (error) {
                 console.error("認証初期化エラー:", error);
+                clearTimeout(authTimeout);
             } finally {
-                setLoading(false);
+                if (isMounted) {
+                    setLoading(false);
+                }
             }
         };
 
@@ -98,12 +140,16 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
             import.meta.env.MODE === "test" ||
             process.env.NODE_ENV === "test"
         ) {
-            return () => {};
+            return () => {
+                clearTimeout(authTimeout);
+            };
         }
 
         const {
             data: { subscription },
         } = supabase.auth.onAuthStateChange(async (_event, session) => {
+            if (!isMounted) return;
+
             setSession(session);
 
             if (session?.user?.email) {
@@ -111,28 +157,38 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
                     "Auth state change - querying voter for email:",
                     session.user.email,
                 );
-                const { data: voterData, error: voterError } = await supabase
-                    .from("voters")
-                    .select("*")
-                    .eq("user_email", session.user.email)
-                    .single();
+                try {
+                    const { data: voterData, error: voterError } =
+                        await supabase
+                            .from("voters")
+                            .select("*")
+                            .eq("user_email", session.user.email)
+                            .single();
 
-                if (voterError) {
-                    console.error("Auth state voter query error:", voterError);
-                    if (voterError.code !== "PGRST116") {
-                        // PGRST116は"No rows found"
+                    if (!isMounted) return;
+
+                    if (voterError) {
                         console.error(
-                            "Unexpected voter query error:",
+                            "Auth state voter query error:",
                             voterError,
                         );
+                        if (voterError.code !== "PGRST116") {
+                            // PGRST116は"No rows found"
+                            console.error(
+                                "Unexpected voter query error:",
+                                voterError,
+                            );
+                        }
                     }
-                }
 
-                if (voterData) {
-                    setVoter(voterData);
-                    setNeedsDisplayName(false);
-                } else {
-                    setNeedsDisplayName(true);
+                    if (voterData) {
+                        setVoter(voterData);
+                        setNeedsDisplayName(false);
+                    } else {
+                        setNeedsDisplayName(true);
+                    }
+                } catch (error) {
+                    console.error("Auth state change error:", error);
                 }
             } else {
                 setVoter(null);
@@ -140,7 +196,11 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
             }
         });
 
-        return () => subscription.unsubscribe();
+        return () => {
+            isMounted = false;
+            clearTimeout(authTimeout);
+            subscription.unsubscribe();
+        };
     }, []);
 
     const signInWithGoogle = async (): Promise<{

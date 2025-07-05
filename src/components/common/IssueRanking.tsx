@@ -90,13 +90,47 @@ export default function IssueRanking({ maxItems = 5 }: IssueRankingProps) {
     const [error, setError] = useState<string | null>(null);
 
     useEffect(() => {
-        fetchRankedIssues();
+        let isMounted = true;
+        let retryCount = 0;
+        const maxRetries = 3;
 
+        const fetchWithRetry = async () => {
+            if (!isMounted) return;
+
+            try {
+                await fetchRankedIssues();
+                retryCount = 0; // 成功時はリセット
+            } catch (err) {
+                retryCount++;
+                console.error(
+                    `Issue ranking fetch failed (attempt ${retryCount}):`,
+                    err,
+                );
+
+                if (retryCount < maxRetries && isMounted) {
+                    setTimeout(fetchWithRetry, 2000 * retryCount); // 指数バックオフ
+                } else {
+                    if (isMounted) {
+                        setError("ランキングの取得に失敗しました");
+                        setLoading(false);
+                    }
+                }
+            }
+        };
+
+        fetchWithRetry();
+
+        // 60秒間隔に変更（負荷軽減）
         const interval = setInterval(() => {
-            fetchRankedIssues();
-        }, 30000);
+            if (isMounted && !error) {
+                fetchWithRetry();
+            }
+        }, 60000);
 
-        return () => clearInterval(interval);
+        return () => {
+            isMounted = false;
+            clearInterval(interval);
+        };
     }, []);
 
     const fetchRankedIssues = async () => {
@@ -104,24 +138,14 @@ export default function IssueRanking({ maxItems = 5 }: IssueRankingProps) {
             setLoading(true);
             setError(null);
 
-            let allIssuesData: Tables<"github_issues">[] = [];
-            let from = 0;
-            const batchSize = 1000;
+            // データ取得量を制限（最新1000件に限定）
+            const { data: recentIssues, error: issuesError } = await supabase
+                .from("github_issues")
+                .select("*")
+                .order("created_at", { ascending: false })
+                .limit(1000);
 
-            while (true) {
-                const { data: batchData, error: batchError } = await supabase
-                    .from("github_issues")
-                    .select("*")
-                    .order("created_at", { ascending: false })
-                    .range(from, from + batchSize - 1);
-
-                if (batchError) throw batchError;
-                if (!batchData || batchData.length === 0) break;
-
-                allIssuesData.push(...batchData);
-                if (batchData.length < batchSize) break;
-                from += batchSize;
-            }
+            if (issuesError) throw issuesError;
 
             const { data: allVotes, error: votesError } = await supabase
                 .from("issue_votes")
@@ -146,7 +170,7 @@ export default function IssueRanking({ maxItems = 5 }: IssueRankingProps) {
             );
 
             const issuesWithVotes: IssueWithVotes[] = [];
-            for (const issue of allIssuesData || []) {
+            for (const issue of recentIssues || []) {
                 const voteCounts = voteCountsMap[issue.issue_id] || {
                     good: 0,
                     bad: 0,
