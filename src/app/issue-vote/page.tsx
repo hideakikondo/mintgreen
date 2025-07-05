@@ -4,6 +4,24 @@ import { useAuth } from "../../contexts/AuthContext";
 import { supabase } from "../../lib/supabaseClient";
 import type { Tables } from "../../types/supabase";
 
+// スマートフォン判定のカスタムフック
+const useIsMobile = () => {
+    const [isMobile, setIsMobile] = useState(false);
+
+    useEffect(() => {
+        const checkIfMobile = () => {
+            setIsMobile(window.innerWidth <= 480);
+        };
+
+        checkIfMobile();
+        window.addEventListener("resize", checkIfMobile);
+
+        return () => window.removeEventListener("resize", checkIfMobile);
+    }, []);
+
+    return isMobile;
+};
+
 type SortOption = "created_at_desc" | "id_asc";
 
 export default function IssueVotePageComponent() {
@@ -30,6 +48,7 @@ export default function IssueVotePageComponent() {
     const [searchError, setSearchError] = useState<string | null>(null);
     const navigate = useNavigate();
     const { voter, isAuthenticated, loading: authLoading } = useAuth();
+    const isMobile = useIsMobile();
 
     const ITEMS_PER_PAGE = 50;
     const [sortOption, setSortOption] = useState<SortOption>("created_at_desc");
@@ -433,6 +452,7 @@ export default function IssueVotePageComponent() {
         alignItems: "center",
         gap: "0.5rem",
         marginTop: "2rem",
+        flexWrap: "wrap" as const,
     };
 
     const pageButtonStyle = {
@@ -444,6 +464,11 @@ export default function IssueVotePageComponent() {
         cursor: "pointer",
         fontSize: "0.9rem",
         fontWeight: "500",
+        minWidth: "44px",
+        minHeight: "44px",
+        display: "flex",
+        alignItems: "center",
+        justifyContent: "center",
     };
 
     const activePageButtonStyle = {
@@ -714,7 +739,7 @@ export default function IssueVotePageComponent() {
                                             : "pointer",
                                 }}
                             >
-                                ≪ 最初
+                                {isMobile ? "≪" : "≪ 最初"}
                             </button>
                             <button
                                 onClick={() =>
@@ -730,15 +755,20 @@ export default function IssueVotePageComponent() {
                                             : "pointer",
                                 }}
                             >
-                                前へ
+                                {isMobile ? "‹" : "前へ"}
                             </button>
 
                             {Array.from(
-                                { length: Math.min(5, totalPages) },
+                                {
+                                    length: Math.min(
+                                        isMobile ? 3 : 5,
+                                        totalPages,
+                                    ),
+                                },
                                 (_, i) => {
                                     const startPage = Math.max(
                                         1,
-                                        currentPage - 2,
+                                        currentPage - (isMobile ? 1 : 2),
                                     );
                                     const pageNum = startPage + i;
                                     if (pageNum > totalPages) return null;
@@ -778,7 +808,7 @@ export default function IssueVotePageComponent() {
                                             : "pointer",
                                 }}
                             >
-                                次へ
+                                {isMobile ? "›" : "次へ"}
                             </button>
                             <button
                                 onClick={() => setCurrentPage(totalPages)}
@@ -793,7 +823,7 @@ export default function IssueVotePageComponent() {
                                             : "pointer",
                                 }}
                             >
-                                最後 ≫
+                                {isMobile ? "≫" : "最後 ≫"}
                             </button>
                         </div>
                     )}
@@ -1083,22 +1113,35 @@ export default function IssueVotePageComponent() {
                                                 justifyContent: "space-between",
                                                 flexWrap: "wrap",
                                                 gap: "1rem",
+                                                ...(isMobile && {
+                                                    flexDirection: "column",
+                                                    alignItems: "stretch",
+                                                }),
                                             }}
                                         >
                                             <div
                                                 style={{
                                                     display: "flex",
                                                     gap: "0.5rem",
+                                                    ...(isMobile && {
+                                                        justifyContent:
+                                                            "center",
+                                                    }),
                                                 }}
                                             >
                                                 <button
-                                                    style={
-                                                        selectedVote ===
+                                                    style={{
+                                                        ...(selectedVote ===
                                                             "good" ||
                                                         existingVote === "good"
                                                             ? selectedGoodButtonStyle
-                                                            : goodButtonStyle
-                                                    }
+                                                            : goodButtonStyle),
+                                                        ...(isMobile && {
+                                                            fontSize: "1rem",
+                                                            padding:
+                                                                "0.6rem 1rem",
+                                                        }),
+                                                    }}
                                                     onClick={() =>
                                                         handleVoteSelect(
                                                             issue.issue_id,
@@ -1106,16 +1149,23 @@ export default function IssueVotePageComponent() {
                                                         )
                                                     }
                                                 >
-                                                    👍 Good
+                                                    {isMobile
+                                                        ? "👍"
+                                                        : "👍 Good"}
                                                 </button>
                                                 <button
-                                                    style={
-                                                        selectedVote ===
+                                                    style={{
+                                                        ...(selectedVote ===
                                                             "bad" ||
                                                         existingVote === "bad"
                                                             ? selectedBadButtonStyle
-                                                            : badButtonStyle
-                                                    }
+                                                            : badButtonStyle),
+                                                        ...(isMobile && {
+                                                            fontSize: "1rem",
+                                                            padding:
+                                                                "0.6rem 1rem",
+                                                        }),
+                                                    }}
                                                     onClick={() =>
                                                         handleVoteSelect(
                                                             issue.issue_id,
@@ -1123,7 +1173,7 @@ export default function IssueVotePageComponent() {
                                                         )
                                                     }
                                                 >
-                                                    👎 Bad
+                                                    {isMobile ? "👎" : "👎 Bad"}
                                                 </button>
                                             </div>
 
@@ -1144,6 +1194,11 @@ export default function IssueVotePageComponent() {
                                                         cursor: submitting
                                                             ? "not-allowed"
                                                             : "pointer",
+                                                        ...(isMobile && {
+                                                            fontSize: "0.9rem",
+                                                            padding:
+                                                                "0.7rem 1.5rem",
+                                                        }),
                                                     }}
                                                 >
                                                     {submitting
@@ -1166,9 +1221,17 @@ export default function IssueVotePageComponent() {
                                                     backgroundColor: "#24292e",
                                                     textDecoration: "none",
                                                     display: "inline-block",
+                                                    textAlign: "center",
+                                                    ...(isMobile && {
+                                                        fontSize: "0.9rem",
+                                                        padding:
+                                                            "0.7rem 1.5rem",
+                                                    }),
                                                 }}
                                             >
-                                                🔗 GitHubで開く
+                                                {isMobile
+                                                    ? "GitHub"
+                                                    : "🔗 GitHubで開く"}
                                             </a>
                                         </div>
                                     </div>
@@ -1189,7 +1252,7 @@ export default function IssueVotePageComponent() {
                                                 : "pointer",
                                     }}
                                 >
-                                    ≪ 最初
+                                    {isMobile ? "≪" : "≪ 最初"}
                                 </button>
                                 <button
                                     onClick={() =>
@@ -1207,15 +1270,20 @@ export default function IssueVotePageComponent() {
                                                 : "pointer",
                                     }}
                                 >
-                                    前へ
+                                    {isMobile ? "‹" : "前へ"}
                                 </button>
 
                                 {Array.from(
-                                    { length: Math.min(5, totalPages) },
+                                    {
+                                        length: Math.min(
+                                            isMobile ? 3 : 5,
+                                            totalPages,
+                                        ),
+                                    },
                                     (_, i) => {
                                         const startPage = Math.max(
                                             1,
-                                            currentPage - 2,
+                                            currentPage - (isMobile ? 1 : 2),
                                         );
                                         const pageNum = startPage + i;
                                         if (pageNum > totalPages) return null;
@@ -1260,7 +1328,7 @@ export default function IssueVotePageComponent() {
                                                 : "pointer",
                                     }}
                                 >
-                                    次へ
+                                    {isMobile ? "›" : "次へ"}
                                 </button>
                                 <button
                                     onClick={() => setCurrentPage(totalPages)}
@@ -1277,7 +1345,7 @@ export default function IssueVotePageComponent() {
                                                 : "pointer",
                                     }}
                                 >
-                                    最後 ≫
+                                    {isMobile ? "≫" : "最後 ≫"}
                                 </button>
                             </div>
                         )}

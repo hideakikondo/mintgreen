@@ -1,8 +1,26 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
 import DisplayNameInput from "../components/DisplayNameInput";
 import IssueRanking from "../components/common/IssueRanking";
 import { useAuth } from "../contexts/AuthContext";
+
+// スマートフォン/タブレット判定のカスタムフック
+const useIsTablet = () => {
+    const [isTablet, setIsTablet] = useState(false);
+
+    useEffect(() => {
+        const checkIfTablet = () => {
+            setIsTablet(window.innerWidth <= 760);
+        };
+
+        checkIfTablet();
+        window.addEventListener("resize", checkIfTablet);
+
+        return () => window.removeEventListener("resize", checkIfTablet);
+    }, []);
+
+    return isTablet;
+};
 
 function View() {
     const navigate = useNavigate();
@@ -16,6 +34,8 @@ function View() {
     } = useAuth();
     const [loginError, setLoginError] = useState<string | null>(null);
     const [loggingIn, setLoggingIn] = useState(false);
+    const [isMenuOpen, setIsMenuOpen] = useState(false);
+    const isTablet = useIsTablet();
 
     const buttonStyle = {
         width: "300px",
@@ -61,6 +81,23 @@ function View() {
     const handleLogout = () => {
         logout();
     };
+
+    // メニュー外クリックで閉じる
+    useEffect(() => {
+        const handleClickOutside = (event: MouseEvent) => {
+            if (
+                isMenuOpen &&
+                !(event.target as Element).closest("[data-menu]")
+            ) {
+                setIsMenuOpen(false);
+            }
+        };
+
+        document.addEventListener("mousedown", handleClickOutside);
+        return () => {
+            document.removeEventListener("mousedown", handleClickOutside);
+        };
+    }, [isMenuOpen]);
 
     if (loading) {
         return (
@@ -241,7 +278,7 @@ function View() {
                     </div>
                 )}
 
-                {isAuthenticated && voter && (
+                {isAuthenticated && voter && !isTablet && (
                     <div
                         style={{
                             position: "fixed" as const,
@@ -317,6 +354,201 @@ function View() {
                             ログアウト
                         </button>
                     </div>
+                )}
+
+                {isAuthenticated && voter && isTablet && (
+                    <>
+                        <button
+                            data-menu
+                            onClick={() => setIsMenuOpen(!isMenuOpen)}
+                            style={{
+                                position: "fixed" as const,
+                                top: "20px",
+                                right: "20px",
+                                width: "50px",
+                                height: "50px",
+                                backgroundColor: "#5FBEAA",
+                                border: "none",
+                                borderRadius: "50%",
+                                cursor: "pointer",
+                                zIndex: 1001,
+                                display: "flex",
+                                alignItems: "center",
+                                justifyContent: "center",
+                                boxShadow: "0 4px 12px rgba(95, 190, 170, 0.4)",
+                                transition: "all 0.3s ease",
+                            }}
+                            onMouseEnter={(e) => {
+                                (
+                                    e.target as HTMLElement
+                                ).style.backgroundColor = "#4DA894";
+                            }}
+                            onMouseLeave={(e) => {
+                                (
+                                    e.target as HTMLElement
+                                ).style.backgroundColor = "#5FBEAA";
+                            }}
+                        >
+                            <div
+                                style={{
+                                    position: "relative",
+                                    width: "20px",
+                                    height: "20px",
+                                }}
+                            >
+                                {/* サインイン状態インジケーター */}
+                                <div
+                                    style={{
+                                        position: "absolute",
+                                        top: "-2px",
+                                        right: "-2px",
+                                        width: "8px",
+                                        height: "8px",
+                                        backgroundColor: "#4ade80",
+                                        borderRadius: "50%",
+                                        border: "1px solid white",
+                                        zIndex: 1,
+                                    }}
+                                />
+                                {/* ハンバーガーアイコン */}
+                                <div
+                                    style={{
+                                        display: "flex",
+                                        flexDirection: "column",
+                                        gap: "3px",
+                                        alignItems: "center",
+                                        justifyContent: "center",
+                                    }}
+                                >
+                                    <div
+                                        style={{
+                                            width: "16px",
+                                            height: "2px",
+                                            backgroundColor: "white",
+                                            borderRadius: "1px",
+                                            transition: "all 0.3s ease",
+                                            transform: isMenuOpen
+                                                ? "rotate(45deg) translate(5px, 5px)"
+                                                : "none",
+                                        }}
+                                    />
+                                    <div
+                                        style={{
+                                            width: "16px",
+                                            height: "2px",
+                                            backgroundColor: "white",
+                                            borderRadius: "1px",
+                                            transition: "all 0.3s ease",
+                                            opacity: isMenuOpen ? 0 : 1,
+                                        }}
+                                    />
+                                    <div
+                                        style={{
+                                            width: "16px",
+                                            height: "2px",
+                                            backgroundColor: "white",
+                                            borderRadius: "1px",
+                                            transition: "all 0.3s ease",
+                                            transform: isMenuOpen
+                                                ? "rotate(-45deg) translate(5px, -5px)"
+                                                : "none",
+                                        }}
+                                    />
+                                </div>
+                            </div>
+                        </button>
+
+                        {/* メニューパネル */}
+                        {isMenuOpen && (
+                            <div
+                                data-menu
+                                style={{
+                                    position: "fixed" as const,
+                                    top: "80px",
+                                    right: "20px",
+                                    backgroundColor: "#5FBEAA",
+                                    color: "white",
+                                    border: "none",
+                                    borderRadius: "12px",
+                                    padding: "1.2rem",
+                                    boxShadow:
+                                        "0 6px 20px rgba(95, 190, 170, 0.3)",
+                                    zIndex: 1000,
+                                    minWidth: "200px",
+                                    animation: "fadeIn 0.3s ease",
+                                }}
+                            >
+                                <div
+                                    style={{
+                                        display: "flex",
+                                        alignItems: "center",
+                                        marginBottom: "1rem",
+                                        gap: "0.5rem",
+                                    }}
+                                >
+                                    <div
+                                        style={{
+                                            width: "8px",
+                                            height: "8px",
+                                            backgroundColor: "#4ade80",
+                                            borderRadius: "50%",
+                                        }}
+                                    />
+                                    <span
+                                        style={{
+                                            fontSize: "0.8em",
+                                            opacity: 0.9,
+                                        }}
+                                    >
+                                        サインイン中
+                                    </span>
+                                </div>
+                                <p
+                                    style={{
+                                        marginBottom: "1rem",
+                                        fontSize: "1em",
+                                        fontWeight: "600",
+                                        margin: "0 0 1rem 0",
+                                    }}
+                                >
+                                    {voter.display_name} さん
+                                </p>
+                                <button
+                                    onClick={() => {
+                                        handleLogout();
+                                        setIsMenuOpen(false);
+                                    }}
+                                    style={{
+                                        backgroundColor:
+                                            "rgba(255, 255, 255, 0.2)",
+                                        color: "white",
+                                        border: "1px solid rgba(255, 255, 255, 0.3)",
+                                        padding: "0.6em 1.2em",
+                                        borderRadius: "8px",
+                                        cursor: "pointer",
+                                        fontSize: "0.9em",
+                                        width: "100%",
+                                        fontWeight: "500",
+                                        transition: "all 0.2s ease",
+                                    }}
+                                    onMouseEnter={(e) => {
+                                        (
+                                            e.target as HTMLElement
+                                        ).style.backgroundColor =
+                                            "rgba(255, 255, 255, 0.3)";
+                                    }}
+                                    onMouseLeave={(e) => {
+                                        (
+                                            e.target as HTMLElement
+                                        ).style.backgroundColor =
+                                            "rgba(255, 255, 255, 0.2)";
+                                    }}
+                                >
+                                    ログアウト
+                                </button>
+                            </div>
+                        )}
+                    </>
                 )}
 
                 {needsDisplayName && (
