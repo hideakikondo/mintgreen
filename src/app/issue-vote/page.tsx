@@ -249,7 +249,6 @@ export default function IssueVotePageComponent() {
         }
     };
 
-
     const fetchExistingVotes = async () => {
         if (!voter) return;
 
