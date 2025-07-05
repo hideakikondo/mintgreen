@@ -138,7 +138,51 @@ export default function IssueRanking({ maxItems = 5 }: IssueRankingProps) {
             setLoading(true);
             setError(null);
 
-            // クライアント側でランキング計算（安定版）
+            // まずRPC関数を試行（README.mdに記載の関数が存在する場合）
+            try {
+                const { data: rpcData, error: rpcError } = await (supabase as any).rpc(
+                    "get_top_ranked_issues",
+                    { limit_count: maxItems },
+                );
+
+                if (!rpcError && rpcData && rpcData.length > 0) {
+                    // RPC成功時: データを適切な形式に変換
+                    const rpcRankedIssues: IssueWithVotes[] = rpcData.map(
+                        (item: any) => ({
+                            issue: {
+                                issue_id: item.issue_id,
+                                title: item.title,
+                                body: item.body,
+                                github_issue_number: item.github_issue_number,
+                                repository_owner: item.repository_owner,
+                                repository_name: item.repository_name,
+                                created_at: item.created_at,
+                                plus_one_count: item.plus_one_count,
+                                minus_one_count: item.minus_one_count,
+                                branch_name: item.branch_name,
+                            },
+                            goodVotes: Number(item.good_votes),
+                            badVotes: Number(item.bad_votes),
+                            totalGoodCount: Number(item.total_good_count),
+                            totalBadCount: Number(item.total_bad_count),
+                            score: Number(item.score),
+                        }),
+                    );
+
+                    setRankedIssues(rpcRankedIssues);
+                    console.log("ランキングをRPC関数で取得しました");
+                    return;
+                }
+            } catch (rpcErr) {
+                console.log(
+                    "RPC関数が利用できません。クライアント側計算にフォールバック:",
+                    rpcErr,
+                );
+            }
+
+            // RPC失敗時またはRPC関数が存在しない場合: クライアント側でランキング計算
+            console.log("クライアント側でランキングを計算します");
+
             const { data: allIssues, error: issuesError } = await supabase
                 .from("github_issues")
                 .select("*");
