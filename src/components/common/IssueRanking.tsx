@@ -140,10 +140,9 @@ export default function IssueRanking({ maxItems = 5 }: IssueRankingProps) {
 
             // まずRPC関数を試行（README.mdに記載の関数が存在する場合）
             try {
-                const { data: rpcData, error: rpcError } = await (supabase as any).rpc(
-                    "get_top_ranked_issues",
-                    { limit_count: maxItems },
-                );
+                const { data: rpcData, error: rpcError } = await (
+                    supabase as any
+                ).rpc("get_top_ranked_issues", { limit_count: maxItems });
 
                 if (!rpcError && rpcData && rpcData.length > 0) {
                     // RPC成功時: データを適切な形式に変換
