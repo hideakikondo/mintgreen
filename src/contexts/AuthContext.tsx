@@ -65,6 +65,11 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
                     return;
                 }
 
+                // 現在の認証セッションを最初に取得
+                const {
+                    data: { session: currentSession },
+                } = await supabase.auth.getSession();
+
                 // 必要な場合のみキャッシュクリア（認証状態を保持）
                 try {
                     // バージョンチェック用のキー
@@ -73,11 +78,6 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
 
                     // バージョンが変わった場合、または初回起動時のみキャッシュクリア
                     if (storedVersion !== currentVersion) {
-                        // 現在の認証セッションを保持
-                        const {
-                            data: { session: currentSession },
-                        } = await supabase.auth.getSession();
-
                         // 古いSupabaseキーのみクリア（現在のセッションは保持）
                         const oldKeys = Object.keys(localStorage).filter(
                             (key) =>
@@ -108,41 +108,51 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
                     console.warn("キャッシュクリアに失敗:", error);
                 }
 
-                // 3秒タイムアウトを設定
-                authTimeout = setTimeout(() => {
-                    if (isMounted && !isTimedOut) {
-                        console.warn("認証初期化がタイムアウトしました");
-                        isTimedOut = true;
-                        // タイムアウト時は認証なし状態でアプリケーション続行
-                        setSession(null);
-                        setVoter(null);
-                        setNeedsDisplayName(false);
-                        setLoading(false);
-                        setAuthInitialized(true);
-                    }
-                }, 3000);
+                // 既存セッションがない場合のみ3秒タイムアウトを設定
+                if (!currentSession) {
+                    authTimeout = setTimeout(() => {
+                        if (isMounted && !isTimedOut) {
+                            console.warn("認証初期化がタイムアウトしました");
+                            isTimedOut = true;
+                            // タイムアウト時は認証なし状態でアプリケーション続行
+                            setSession(null);
+                            setVoter(null);
+                            setNeedsDisplayName(false);
+                            setLoading(false);
+                            setAuthInitialized(true);
+                        }
+                    }, 3000);
+                } else {
+                    console.log(
+                        "既存セッションが存在するためタイムアウトをスキップ",
+                    );
+                }
 
                 // タイムアウト前に完了した場合の処理
                 if (isTimedOut) return;
 
-                // 認証セッションを取得（キャッシュクリア後に再取得）
-                const {
-                    data: { session: currentSession },
-                } = await supabase.auth.getSession();
+                // 認証セッションを取得（既存セッションがない場合のみ再取得）
+                let finalSession = currentSession;
+                if (!currentSession) {
+                    const {
+                        data: { session: newSession },
+                    } = await supabase.auth.getSession();
+                    finalSession = newSession;
+                }
 
                 console.log(
                     "セッション状態:",
-                    currentSession ? "認証済み" : "未認証",
+                    finalSession ? "認証済み" : "未認証",
                 );
 
                 if (!isMounted || isTimedOut) return;
 
-                setSession(currentSession);
+                setSession(finalSession);
 
-                if (currentSession?.user?.email) {
+                if (finalSession?.user?.email) {
                     console.log(
                         "認証済みユーザー発見. 投票者情報を取得中:",
-                        currentSession.user.email,
+                        finalSession.user.email,
                     );
 
                     try {
@@ -150,7 +160,7 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
                             await supabase
                                 .from("voters")
                                 .select("*")
-                                .eq("user_email", currentSession.user.email)
+                                .eq("user_email", finalSession.user.email)
                                 .single();
 
                         if (!isMounted || isTimedOut) return;
