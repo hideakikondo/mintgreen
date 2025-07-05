@@ -487,6 +487,9 @@ export default function IssuesPageComponent() {
         margin: "0 0.25rem",
     };
 
+    const isMobile = useIsMobile();
+    const isExtraSmallMobile = useIsExtraSmallMobile();
+
     const paginationStyle: React.CSSProperties = {
         display: "flex",
         justifyContent: "center",
@@ -514,9 +517,6 @@ export default function IssuesPageComponent() {
         color: "white",
         borderColor: "#5FBEAA",
     };
-
-    const isMobile = useIsMobile();
-    const isExtraSmallMobile = useIsExtraSmallMobile();
 
     return (
         <div style={isMobile ? mobileContainerStyle : containerStyle}>
