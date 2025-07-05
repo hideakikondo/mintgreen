@@ -68,6 +68,12 @@ export default function IssuesPageComponent() {
     const [filteredIssues, setFilteredIssues] = useState<IssueWithVotes[]>([]);
     const [searchError, setSearchError] = useState<string | null>(null);
 
+    // 全件取得用の状態管理
+    const [isLoadingAll, setIsLoadingAll] = useState(false);
+    const [totalCount, setTotalCount] = useState(0);
+    const [loadedCount, setLoadedCount] = useState(0);
+    const [loadingProgress, setLoadingProgress] = useState("");
+
     const ITEMS_PER_PAGE = 50;
     const [sortOption, setSortOption] = useState<SortOption>("created_at_desc");
 
@@ -79,6 +85,15 @@ export default function IssuesPageComponent() {
         try {
             setLoading(true);
             setError(null);
+            setIsLoadingAll(true);
+
+            // 全体の件数を先に取得
+            const { count, error: countError } = await supabase
+                .from("github_issues")
+                .select("*", { count: "exact", head: true });
+
+            if (countError) throw countError;
+            setTotalCount(count || 0);
 
             // 最初の50件を優先取得
             const { data: initialIssues, error: initialError } = await supabase
@@ -107,35 +122,95 @@ export default function IssuesPageComponent() {
                 setTotalPages(
                     Math.ceil(initialWithVotes.length / ITEMS_PER_PAGE),
                 );
+                setLoadedCount(initialIssues.length);
+                setLoadingProgress(
+                    `${initialIssues.length}件 / ${count || 0}件 読み込み完了`,
+                );
                 setLoading(false); // ユーザーが操作可能になる
             }
 
-            // 残りのissueを背景で取得
-            const { data: remainingIssues, error: remainingError } =
-                await supabase
-                    .from("github_issues")
-                    .select("*")
-                    .order("created_at", { ascending: false })
-                    .range(50, 999999);
-
-            if (!remainingError && remainingIssues) {
-                const allIssuesData = [...initialIssues, ...remainingIssues];
-                const allWithVotes = calculateIssuesWithVotes(
-                    allIssuesData,
-                    allVotes || [],
-                );
-                setIssues(allWithVotes);
-                if (!activeSearchTerm.trim()) {
-                    setFilteredIssues(allWithVotes);
-                    setTotalPages(
-                        Math.ceil(allWithVotes.length / ITEMS_PER_PAGE),
-                    );
-                }
-            }
+            // 残りのissueを段階的に取得
+            await fetchRemainingIssuesInBatches(
+                initialIssues,
+                allVotes || [],
+                count || 0,
+            );
         } catch (err) {
             console.error("Error fetching issues:", err);
             setError("Issue情報の取得に失敗しました");
             setLoading(false);
+            setIsLoadingAll(false);
+        }
+    };
+
+    const fetchRemainingIssuesInBatches = async (
+        initialIssues: Tables<"github_issues">[],
+        allVotes: any[],
+        totalCount: number,
+    ) => {
+        try {
+            const BATCH_SIZE = 1000;
+            let from = 50; // 最初の50件は既に取得済み
+            let allIssuesData = [...initialIssues];
+
+            while (from < totalCount) {
+                setLoadingProgress(
+                    `${Math.min(from, totalCount)}件 / ${totalCount}件 読み込み中...`,
+                );
+
+                const { data: batchData, error: batchError } = await supabase
+                    .from("github_issues")
+                    .select("*")
+                    .order("created_at", { ascending: false })
+                    .range(from, from + BATCH_SIZE - 1);
+
+                if (batchError) {
+                    console.error("バッチ取得エラー:", batchError);
+                    break;
+                }
+
+                if (!batchData || batchData.length === 0) break;
+
+                allIssuesData = [...allIssuesData, ...batchData];
+                setLoadedCount(allIssuesData.length);
+
+                // 定期的に画面を更新（パフォーマンスを考慮して500件ごと）
+                if (from % 500 === 0 || from + BATCH_SIZE >= totalCount) {
+                    const allWithVotes = calculateIssuesWithVotes(
+                        allIssuesData,
+                        allVotes,
+                    );
+                    setIssues(allWithVotes);
+                    if (!activeSearchTerm.trim()) {
+                        setFilteredIssues(allWithVotes);
+                        setTotalPages(
+                            Math.ceil(allWithVotes.length / ITEMS_PER_PAGE),
+                        );
+                    }
+                }
+
+                from += BATCH_SIZE;
+
+                // UIの応答性を保つため、小さな遅延を入れる
+                await new Promise((resolve) => setTimeout(resolve, 10));
+            }
+
+            // 最終更新
+            const allWithVotes = calculateIssuesWithVotes(
+                allIssuesData,
+                allVotes,
+            );
+            setIssues(allWithVotes);
+            if (!activeSearchTerm.trim()) {
+                setFilteredIssues(allWithVotes);
+                setTotalPages(Math.ceil(allWithVotes.length / ITEMS_PER_PAGE));
+            }
+
+            setLoadingProgress(`全 ${allIssuesData.length}件 読み込み完了`);
+            setIsLoadingAll(false);
+        } catch (err) {
+            console.error("段階的取得エラー:", err);
+            setIsLoadingAll(false);
         }
     };
 
@@ -861,6 +936,60 @@ export default function IssuesPageComponent() {
                             </div>
                         ))}
                     </>
+                )}
+
+                {/* 全件取得の進捗表示 */}
+                {isLoadingAll && !loading && (
+                    <div style={isMobile ? mobileCardStyle : cardStyle}>
+                        <div
+                            style={{
+                                textAlign: "center",
+                                padding: "1rem",
+                            }}
+                        >
+                            <div
+                                className="spinner"
+                                style={{ marginBottom: "0.5rem" }}
+                            ></div>
+                            <p
+                                style={{
+                                    margin: 0,
+                                    fontSize: "1rem",
+                                    color: "#333",
+                                }}
+                            >
+                                全てのIssueを取得中...
+                            </p>
+                            <p
+                                style={{
+                                    margin: "0.5rem 0 0 0",
+                                    color: "#666",
+                                    fontSize: "0.9rem",
+                                }}
+                            >
+                                {loadingProgress}
+                            </p>
+                            <div
+                                style={{
+                                    width: "100%",
+                                    height: "8px",
+                                    backgroundColor: "#f0f0f0",
+                                    borderRadius: "4px",
+                                    marginTop: "0.5rem",
+                                    overflow: "hidden",
+                                }}
+                            >
+                                <div
+                                    style={{
+                                        width: `${totalCount > 0 ? (loadedCount / totalCount) * 100 : 0}%`,
+                                        height: "100%",
+                                        backgroundColor: "#4CAF50",
+                                        transition: "width 0.3s ease",
+                                    }}
+                                />
+                            </div>
+                        </div>
+                    </div>
                 )}
 
                 {error && (
