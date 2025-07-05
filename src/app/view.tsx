@@ -80,8 +80,10 @@ function View() {
         navigate("/issue-vote");
     };
 
-    const handleLogout = () => {
-        logout();
+    const handleLogout = async () => {
+        await logout();
+        // ログアウト後は初期画面に遷移
+        navigate("/");
     };
 
     // 認証初期化後にランキングを再レンダリング
@@ -550,8 +552,8 @@ function View() {
                                     {voter.display_name} さん
                                 </p>
                                 <button
-                                    onClick={() => {
-                                        handleLogout();
+                                    onClick={async () => {
+                                        await handleLogout();
                                         setIsMenuOpen(false);
                                     }}
                                     style={{

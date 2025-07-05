@@ -87,7 +87,13 @@ export default function IssuesPageComponent() {
         loading: authLoading,
         authInitialized,
         isAuthenticated,
+        logout,
     } = useAuth();
+
+    const handleLogout = async () => {
+        await logout();
+        window.location.href = "/";
+    };
 
     useEffect(() => {
         // 認証初期化が完了してからデータ取得を実行
@@ -1467,6 +1473,39 @@ export default function IssuesPageComponent() {
                     </>
                 )}
             </div>
+
+            {/* ログアウトボタン */}
+            {isAuthenticated && (
+                <button
+                    onClick={handleLogout}
+                    style={{
+                        position: "fixed" as const,
+                        top: "20px",
+                        right: "20px",
+                        backgroundColor: "#ff6b6b",
+                        color: "white",
+                        border: "none",
+                        borderRadius: "8px",
+                        padding: "0.75rem 1.5rem",
+                        cursor: "pointer",
+                        fontSize: "0.9rem",
+                        fontWeight: "500",
+                        boxShadow: "0 4px 12px rgba(255, 107, 107, 0.3)",
+                        zIndex: 1000,
+                        transition: "all 0.2s ease",
+                    }}
+                    onMouseEnter={(e) => {
+                        e.currentTarget.style.backgroundColor = "#ff5252";
+                        e.currentTarget.style.transform = "translateY(-1px)";
+                    }}
+                    onMouseLeave={(e) => {
+                        e.currentTarget.style.backgroundColor = "#ff6b6b";
+                        e.currentTarget.style.transform = "translateY(0)";
+                    }}
+                >
+                    🚪 ログアウト
+                </button>
+            )}
 
             {/* ネットワークタイムアウトオーバーレイ */}
             <NetworkTimeoutOverlay
