@@ -27,6 +27,7 @@ interface AuthContextType {
         error?: string;
     }>;
     refreshSession: () => Promise<{ success: boolean; error?: string }>;
+    isOnline: boolean;
 }
 
 const AuthContext = createContext<AuthContextType | undefined>(undefined);
@@ -49,11 +50,14 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
     const [loading, setLoading] = useState(true);
     const [needsDisplayName, setNeedsDisplayName] = useState(false);
     const [authInitialized, setAuthInitialized] = useState(false);
+    const [isNavigating, setIsNavigating] = useState(false);
+    const [isOnline, setIsOnline] = useState(navigator.onLine);
 
     useEffect(() => {
         let isMounted = true;
         let authTimeout: NodeJS.Timeout;
         let isTimedOut = false;
+        let authStateSubscription: any;
 
         const initializeAuth = async () => {
             try {
@@ -129,7 +133,7 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
                 }
 
                 // タイムアウト前に完了した場合の処理
-                if (isTimedOut) return;
+                if (isTimedOut || !isMounted) return;
 
                 // 認証セッションを取得（既存セッションがない場合のみ再取得）
                 let finalSession = currentSession;
@@ -226,7 +230,14 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
 
         const {
             data: { subscription },
-        } = supabase.auth.onAuthStateChange(async (_event, session) => {
+        } = supabase.auth.onAuthStateChange(async (event, session) => {
+            // ナビゲーション中は状態変更を無視（既存のセッションを保持）
+            if (isNavigating && event === "SIGNED_OUT") {
+                console.log(
+                    "ナビゲーション中のため、ログアウトイベントを無視します",
+                );
+                return;
+            }
             if (!isMounted) return;
 
             setSession(session);
@@ -275,10 +286,35 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
             }
         });
 
+        authStateSubscription = subscription;
+
         return () => {
             isMounted = false;
             clearTimeout(authTimeout);
-            subscription.unsubscribe();
+            if (authStateSubscription) {
+                authStateSubscription.unsubscribe();
+            }
+        };
+    }, []);
+
+    // オンライン/オフライン状態の監視
+    useEffect(() => {
+        const handleOnline = () => {
+            console.log("ネットワーク接続が復旧しました");
+            setIsOnline(true);
+        };
+
+        const handleOffline = () => {
+            console.log("ネットワーク接続が切断されました");
+            setIsOnline(false);
+        };
+
+        window.addEventListener("online", handleOnline);
+        window.addEventListener("offline", handleOffline);
+
+        return () => {
+            window.removeEventListener("online", handleOnline);
+            window.removeEventListener("offline", handleOffline);
         };
     }, []);
 
@@ -401,10 +437,35 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
     };
 
     const logout = async () => {
-        await supabase.auth.signOut();
-        setVoter(null);
-        setSession(null);
-        setNeedsDisplayName(false);
+        try {
+            setIsNavigating(true);
+            console.log("ログアウト処理を開始");
+
+            // Supabaseからサインアウト（状態クリアより先に実行）
+            const { error } = await supabase.auth.signOut();
+            if (error) {
+                console.error("ログアウトエラー:", error);
+                // エラーがあっても状態はクリアする
+            }
+
+            // 状態をクリア
+            setVoter(null);
+            setSession(null);
+            setNeedsDisplayName(false);
+
+            console.log("ログアウト完了");
+        } catch (error) {
+            console.error("ログアウト処理中にエラー:", error);
+            // エラー時も状態をクリア
+            setVoter(null);
+            setSession(null);
+            setNeedsDisplayName(false);
+        } finally {
+            // ナビゲーション完了後に状態をリセット
+            setTimeout(() => {
+                setIsNavigating(false);
+            }, 100); // 時間を短縮してより早く正常状態に戻す
+        }
     };
 
     const refreshSession = async (): Promise<{
@@ -587,13 +648,14 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
         session,
         signInWithGoogle,
         logout,
-        isAuthenticated: !!voter && !!session,
-        loading,
+        isAuthenticated: !!voter && !!session && !isNavigating,
+        loading: loading || isNavigating,
         needsDisplayName,
         setDisplayName,
-        authInitialized,
+        authInitialized: authInitialized && !isNavigating,
         diagnoseAndRepairAuth,
         refreshSession,
+        isOnline,
     };
 
     return (

@@ -3,9 +3,11 @@ import { useNavigate } from "react-router-dom";
 import DisplayNameInput from "../components/DisplayNameInput";
 import IssueRanking from "../components/common/IssueRanking";
 import { useAuth } from "../contexts/AuthContext";
+import { useNavigationSafely } from "../hooks/useNavigationSafely";
 
 function View() {
     const navigate = useNavigate();
+    const { navigateSafely } = useNavigationSafely();
     const {
         isAuthenticated,
         voter,
@@ -62,9 +64,15 @@ function View() {
     };
 
     const handleLogout = async () => {
-        await logout();
-        // ログアウト後は初期画面に遷移
-        navigate("/");
+        try {
+            await logout();
+            // ログアウト後は認証状態をクリアして初期画面に遷移
+            navigateSafely("/", { preserveAuth: false });
+        } catch (error) {
+            console.error("ログアウト処理でエラーが発生:", error);
+            // エラー時は強制的にページリロード
+            window.location.href = "/";
+        }
     };
 
     // 認証初期化後にランキングを再レンダリング
@@ -589,7 +597,9 @@ function View() {
 
                     <button
                         style={buttonStyle}
-                        onClick={() => navigate("/issues")}
+                        onClick={() =>
+                            navigateSafely("/issues", { preserveAuth: true })
+                        }
                         onMouseEnter={(e) => {
                             Object.assign(
                                 (e.target as HTMLElement).style,
