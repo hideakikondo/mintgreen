@@ -21,6 +21,12 @@ interface AuthContextType {
         displayName: string,
     ) => Promise<{ success: boolean; error?: string }>;
     authInitialized: boolean;
+    diagnoseAndRepairAuth: () => Promise<{
+        success: boolean;
+        level: "session_refresh" | "reauth_required" | "network_error";
+        error?: string;
+    }>;
+    refreshSession: () => Promise<{ success: boolean; error?: string }>;
 }
 
 const AuthContext = createContext<AuthContextType | undefined>(undefined);
@@ -391,6 +397,181 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
         setNeedsDisplayName(false);
     };
 
+    const refreshSession = async (): Promise<{
+        success: boolean;
+        error?: string;
+    }> => {
+        try {
+            console.log("セッション更新を試行中...");
+
+            // 現在のセッションを再取得して状態を更新
+            const { data: sessionData, error: sessionError } =
+                await supabase.auth.getSession();
+
+            if (sessionError) {
+                console.error("セッション取得エラー:", sessionError);
+                return {
+                    success: false,
+                    error: "セッション情報の取得に失敗しました",
+                };
+            }
+
+            if (sessionData.session) {
+                console.log("セッション更新成功");
+                setSession(sessionData.session);
+                return { success: true };
+            }
+
+            return { success: false, error: "セッションが存在しません" };
+        } catch (err) {
+            console.error("セッション更新で予期しないエラー:", err);
+            return {
+                success: false,
+                error: "セッション更新中にエラーが発生しました",
+            };
+        }
+    };
+
+    const diagnoseAndRepairAuth = async (): Promise<{
+        success: boolean;
+        level: "session_refresh" | "reauth_required" | "network_error";
+        error?: string;
+    }> => {
+        try {
+            console.log("認証診断を開始...");
+
+            // Step 1: ネットワーク接続の確認
+            try {
+                await fetch("https://www.google.com", {
+                    method: "HEAD",
+                    mode: "no-cors",
+                });
+                console.log("ネットワーク接続: OK");
+            } catch (networkError) {
+                console.error("ネットワーク接続エラー:", networkError);
+                return {
+                    success: false,
+                    level: "network_error",
+                    error: "インターネット接続を確認してください",
+                };
+            }
+
+            // Step 2: 現在のセッション状態確認
+            const {
+                data: { session: currentSession },
+                error: sessionError,
+            } = await supabase.auth.getSession();
+
+            if (sessionError) {
+                console.error("セッション取得エラー:", sessionError);
+                return {
+                    success: false,
+                    level: "reauth_required",
+                    error: "認証セッションの取得に失敗しました",
+                };
+            }
+
+            if (!currentSession) {
+                console.log("セッションが存在しません。再認証が必要");
+                return {
+                    success: false,
+                    level: "reauth_required",
+                    error: "認証セッションが見つかりません",
+                };
+            }
+
+            // Step 3: セッション有効期限確認
+            const now = Math.floor(Date.now() / 1000);
+            const expiresAt = currentSession.expires_at || 0;
+
+            if (expiresAt <= now + 300) {
+                // 5分以内に期限切れ
+                console.log(
+                    "セッションが期限切れ間近。更新を試行...",
+                    new Date(expiresAt * 1000),
+                );
+                const refreshResult = await refreshSession();
+
+                if (refreshResult.success) {
+                    // セッション更新後、データベース接続をテスト
+                    const testResult = await testDatabaseConnection();
+                    if (testResult.success) {
+                        return {
+                            success: true,
+                            level: "session_refresh",
+                        };
+                    }
+                    return {
+                        success: false,
+                        level: "reauth_required",
+                        error: testResult.error,
+                    };
+                }
+
+                return {
+                    success: false,
+                    level: "reauth_required",
+                    error: refreshResult.error,
+                };
+            }
+
+            // Step 4: データベース接続テスト
+            const testResult = await testDatabaseConnection();
+            if (testResult.success) {
+                console.log("認証状態は正常です");
+                return { success: true, level: "session_refresh" };
+            }
+
+            // Step 5: セッション更新を試行
+            console.log("DB接続失敗。セッション更新を試行...");
+            const refreshResult = await refreshSession();
+
+            if (refreshResult.success) {
+                const retestResult = await testDatabaseConnection();
+                if (retestResult.success) {
+                    return { success: true, level: "session_refresh" };
+                }
+            }
+
+            return {
+                success: false,
+                level: "reauth_required",
+                error: "認証の修復に失敗しました。再ログインが必要です",
+            };
+        } catch (error) {
+            console.error("認証診断中にエラー:", error);
+            return {
+                success: false,
+                level: "network_error",
+                error: "認証診断中にエラーが発生しました",
+            };
+        }
+    };
+
+    const testDatabaseConnection = async (): Promise<{
+        success: boolean;
+        error?: string;
+    }> => {
+        try {
+            // 軽量なクエリでDB接続をテスト
+            const { error } = await supabase
+                .from("github_issues")
+                .select("issue_id")
+                .limit(1);
+
+            if (error) {
+                console.error("DB接続テストエラー:", error);
+                return { success: false, error: error.message };
+            }
+
+            console.log("DB接続テスト成功");
+            return { success: true };
+        } catch (err) {
+            console.error("DB接続テスト中にエラー:", err);
+            return { success: false, error: "データベース接続テストに失敗" };
+        }
+    };
+
     const value: AuthContextType = {
         voter,
         session,
@@ -401,6 +582,8 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
         needsDisplayName,
         setDisplayName,
         authInitialized,
+        diagnoseAndRepairAuth,
+        refreshSession,
     };
 
     return (

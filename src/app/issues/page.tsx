@@ -1,4 +1,5 @@
 import React, { useEffect, useState, useRef } from "react";
+import AuthRepairOverlay from "../../components/common/AuthRepairOverlay";
 import NetworkTimeoutOverlay from "../../components/common/NetworkTimeoutOverlay";
 import ScrollToTopButton from "../../components/common/ScrollToTopButton";
 import { useAuth } from "../../contexts/AuthContext";
@@ -77,11 +78,16 @@ export default function IssuesPageComponent() {
     const [loadedCount, setLoadedCount] = useState(0);
     const [loadingProgress, setLoadingProgress] = useState("");
     const [showTimeoutOverlay, setShowTimeoutOverlay] = useState(false);
+    const [showAuthRepairOverlay, setShowAuthRepairOverlay] = useState(false);
     const timeoutRef = useRef<NodeJS.Timeout | null>(null);
 
     const ITEMS_PER_PAGE = 50;
     const [sortOption, setSortOption] = useState<SortOption>("created_at_desc");
-    const { loading: authLoading, authInitialized } = useAuth();
+    const {
+        loading: authLoading,
+        authInitialized,
+        isAuthenticated,
+    } = useAuth();
 
     useEffect(() => {
         // 認証初期化が完了してからデータ取得を実行
@@ -405,6 +411,20 @@ export default function IssuesPageComponent() {
 
     const handleTimeoutClose = () => {
         setShowTimeoutOverlay(false);
+    };
+
+    const handleAuthRepair = () => {
+        setShowTimeoutOverlay(false);
+        setShowAuthRepairOverlay(true);
+    };
+
+    const handleAuthRepairSuccess = () => {
+        setShowAuthRepairOverlay(false);
+        fetchIssuesOptimized();
+    };
+
+    const handleAuthRepairClose = () => {
+        setShowAuthRepairOverlay(false);
     };
 
     // コンポーネントのアンマウント時にタイムアウトをクリア
@@ -1454,6 +1474,15 @@ export default function IssuesPageComponent() {
                 onRetry={handleTimeoutRetry}
                 onClose={handleTimeoutClose}
                 message="Issue一覧の取得に時間がかかっています"
+                enableAuthRepair={isAuthenticated}
+                onAuthRepair={handleAuthRepair}
+            />
+
+            {/* 認証修復オーバーレイ */}
+            <AuthRepairOverlay
+                isVisible={showAuthRepairOverlay}
+                onClose={handleAuthRepairClose}
+                onSuccess={handleAuthRepairSuccess}
             />
 
             {/* スクロールトップボタン */}

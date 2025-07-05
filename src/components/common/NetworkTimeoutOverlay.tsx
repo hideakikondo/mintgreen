@@ -3,6 +3,8 @@ interface NetworkTimeoutOverlayProps {
     onRetry: () => void;
     onClose: () => void;
     message?: string;
+    enableAuthRepair?: boolean;
+    onAuthRepair?: () => void;
 }
 
 export default function NetworkTimeoutOverlay({
@@ -10,6 +12,8 @@ export default function NetworkTimeoutOverlay({
     onRetry,
     onClose,
     message = "サーバーとの通信に時間がかかっています",
+    enableAuthRepair = false,
+    onAuthRepair,
 }: NetworkTimeoutOverlayProps) {
     if (!isVisible) return null;
 
@@ -143,6 +147,38 @@ export default function NetworkTimeoutOverlay({
                     >
                         🔄 再試行
                     </button>
+
+                    {enableAuthRepair && onAuthRepair && (
+                        <button
+                            onClick={onAuthRepair}
+                            style={{
+                                backgroundColor: "#ff9800",
+                                color: "white",
+                                border: "none",
+                                padding: "0.75rem 1.5rem",
+                                borderRadius: "8px",
+                                cursor: "pointer",
+                                fontSize: "1rem",
+                                fontWeight: "500",
+                                transition: "all 0.2s ease",
+                                minWidth: "100px",
+                            }}
+                            onMouseEnter={(e) => {
+                                e.currentTarget.style.backgroundColor =
+                                    "#f57c00";
+                                e.currentTarget.style.transform =
+                                    "translateY(-1px)";
+                            }}
+                            onMouseLeave={(e) => {
+                                e.currentTarget.style.backgroundColor =
+                                    "#ff9800";
+                                e.currentTarget.style.transform =
+                                    "translateY(0)";
+                            }}
+                        >
+                            🔧 認証修復
+                        </button>
+                    )}
 
                     <button
                         onClick={onClose}
