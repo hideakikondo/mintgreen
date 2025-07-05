@@ -20,6 +20,7 @@ interface AuthContextType {
     setDisplayName: (
         displayName: string,
     ) => Promise<{ success: boolean; error?: string }>;
+    authInitialized: boolean;
 }
 
 const AuthContext = createContext<AuthContextType | undefined>(undefined);
@@ -41,6 +42,7 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
     const [session, setSession] = useState<Session | null>(null);
     const [loading, setLoading] = useState(true);
     const [needsDisplayName, setNeedsDisplayName] = useState(false);
+    const [authInitialized, setAuthInitialized] = useState(false);
 
     useEffect(() => {
         let isMounted = true;
@@ -88,6 +90,7 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
                         setVoter(null);
                         setNeedsDisplayName(false);
                         setLoading(false);
+                        setAuthInitialized(true);
                     }
                 }, 3000);
 
@@ -143,6 +146,7 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
             } finally {
                 if (isMounted && !isTimedOut) {
                     setLoading(false);
+                    setAuthInitialized(true);
                 }
             }
         };
@@ -350,6 +354,7 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
         loading,
         needsDisplayName,
         setDisplayName,
+        authInitialized,
     };
 
     return (

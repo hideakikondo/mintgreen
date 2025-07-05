@@ -31,10 +31,12 @@ function View() {
         logout,
         loading,
         needsDisplayName,
+        authInitialized,
     } = useAuth();
     const [loginError, setLoginError] = useState<string | null>(null);
     const [loggingIn, setLoggingIn] = useState(false);
     const [isMenuOpen, setIsMenuOpen] = useState(false);
+    const [refreshTrigger, setRefreshTrigger] = useState(0);
     const isTablet = useIsTablet();
 
     const buttonStyle = {
@@ -81,6 +83,13 @@ function View() {
     const handleLogout = () => {
         logout();
     };
+
+    // 認証初期化後にランキングを再レンダリング
+    useEffect(() => {
+        if (authInitialized) {
+            setRefreshTrigger((prev) => prev + 1);
+        }
+    }, [authInitialized]);
 
     // メニュー外クリックで閉じる
     useEffect(() => {
@@ -190,7 +199,7 @@ function View() {
                         marginBottom: "2rem",
                     }}
                 >
-                    <IssueRanking />
+                    <IssueRanking refreshTrigger={refreshTrigger} />
                 </div>
 
                 {!isAuthenticated && (
