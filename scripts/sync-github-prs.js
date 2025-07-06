@@ -129,7 +129,7 @@ async function fetchPRReactions(owner, repo, issueNumber) {
             `リアクション取得エラー (${owner}/${repo}#${issueNumber}):`,
             error.message,
         );
-        return { plusOne: 0, minusOne: 0 };
+        return null;
     }
 }
 
@@ -147,10 +147,8 @@ async function batchSyncPRsToDatabase(prs, owner, repo) {
 
     for (const pr of prs) {
         const reactions = await fetchPRReactions(owner, repo, pr.number);
-        console.log(
-            `処理中: PR #${pr.number} - ${pr.title} (👍${reactions.plusOne} 👎${reactions.minusOne})`,
-        );
-        issuesData.push({
+
+        const issue = {
             github_issue_number: pr.number,
             repository_owner: owner,
             repository_name: repo,
@@ -159,9 +157,22 @@ async function batchSyncPRsToDatabase(prs, owner, repo) {
             branch_name: pr.head.ref,
             created_at: pr.created_at,
             updated_at: pr.updated_at,
-            plus_one_count: reactions.plusOne,
-            minus_one_count: reactions.minusOne,
-        });
+        };
+
+        if (reactions) {
+            console.log(
+                `処理中: PR #${pr.number} - ${pr.title} (👍${reactions.plusOne} 👎${reactions.minusOne})`,
+            );
+            issue.plus_one_count = reactions.plusOne;
+            issue.minus_one_count = reactions.minusOne;
+        } else {
+            console.log(
+                `処理中: PR #${pr.number} - ${pr.title} (リアクション取得失敗、既存値を維持)`,
+            );
+            // plus_one_count と minus_one_count を含めないことで、既存の値を維持
+        }
+
+        issuesData.push(issue);
     }
 
     try {
