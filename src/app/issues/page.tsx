@@ -97,6 +97,66 @@ export default function IssuesPageComponent() {
 
     const { navigateToHome } = useNavigationSafely();
 
+    useEffect(() => {
+        const params = new URLSearchParams(window.location.search);
+        const query = params.get("q");
+        const sortBy = params.get("sort") as SortOption;
+        const page = params.get("page");
+
+        if (query) {
+            setSearchTerm(query);
+            setActiveSearchTerm(query);
+        }
+
+        if (
+            sortBy &&
+            [
+                "created_at_desc",
+                "id_asc",
+                "good_count",
+                "bad_count",
+                "user_evaluation",
+                "user_evaluation_reverse",
+            ].includes(sortBy)
+        ) {
+            setSortOption(sortBy);
+        }
+
+        if (page && !isNaN(parseInt(page, 10))) {
+            const pageNumber = parseInt(page, 10);
+            if (pageNumber > 0) {
+                setCurrentPage(pageNumber);
+            }
+        }
+    }, []);
+
+    useEffect(() => {
+        const params = new URLSearchParams(window.location.search);
+
+        if (activeSearchTerm) {
+            params.set("q", activeSearchTerm);
+        } else {
+            params.delete("q");
+        }
+
+        if (sortOption !== "created_at_desc") {
+            params.set("sort", sortOption);
+        } else {
+            params.delete("sort");
+        }
+
+        if (currentPage > 1) {
+            params.set("page", currentPage.toString());
+        } else {
+            params.delete("page");
+        }
+
+        const newUrl = `${window.location.pathname}?${params.toString()}`;
+
+        // `replaceState` を使用して、ブラウザの履歴スタックをクリーンに保つ
+        window.history.replaceState({}, "", newUrl);
+    }, [activeSearchTerm, sortOption, currentPage]);
+
     const handleLogout = async () => {
         try {
             await logout();
