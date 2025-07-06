@@ -207,57 +207,49 @@ async function batchSyncPRsToDatabase(prs, owner, repo) {
  */
 async function batchDeleteClosedPRs(owner, repo, allPRs) {
     try {
-        const { data: existingIssues, error: selectError } = await supabase
-            .from("github_issues")
-            .select("issue_id, github_issue_number")
-            .eq("repository_owner", owner)
-            .eq("repository_name", repo);
+        // stateが'closed'のPRを抽出 (mergedされたものも含む)
+        const closedPRs = allPRs.filter((pr) => pr.state === "closed");
 
-        if (selectError) {
-            throw selectError;
-        }
-
-        if (!existingIssues || existingIssues.length === 0) {
-            console.log(`${owner}/${repo}: データベースに既存のPRはありません`);
+        if (closedPRs.length === 0) {
+            console.log(
+                `${owner}/${repo}: 削除対象のクローズされたPRはありません`,
+            );
             return 0;
         }
 
-        const currentPRNumbers = new Set(allPRs.map((pr) => pr.number));
-        const issuesToDelete = existingIssues.filter(
-            (issue) => !currentPRNumbers.has(issue.github_issue_number),
-        );
-
-        const issueIdsToDelete = issuesToDelete.map((issue) => issue.issue_id);
-
-        if (issueIdsToDelete.length === 0) {
-            console.log(`${owner}/${repo}: 削除対象のPRはありません`);
-            return 0;
-        }
+        const closedPRNumbers = closedPRs.map((pr) => pr.number);
 
         console.log(
-            `${owner}/${repo}: ${issueIdsToDelete.length} 件のPRsをバッチ削除します`,
+            `${owner}/${repo}: ${closedPRNumbers.length} 件のクローズされたPRをDBから削除します`,
         );
 
         // 削除対象のPR詳細をログ出力
-        issuesToDelete.forEach((issue) => {
+        closedPRs.forEach((pr) => {
             console.log(
-                `削除対象: PR #${issue.github_issue_number} (ID: ${issue.issue_id})`,
+                `削除対象: PR #${pr.number} - ${pr.title} (State: ${pr.state}, Merged: ${!!pr.merged_at})`,
             );
         });
 
-        const { error: deleteError } = await supabase
+        const { error: deleteError, count } = await supabase
             .from("github_issues")
-            .delete()
-            .in("issue_id", issueIdsToDelete);
+            .delete({ count: "exact" })
+            .eq("repository_owner", owner)
+            .eq("repository_name", repo)
+            .in("github_issue_number", closedPRNumbers);
 
         if (deleteError) {
             throw deleteError;
         }
 
-        console.log(
-            `${issueIdsToDelete.length} 件のPRsを削除しました (${owner}/${repo})`,
-        );
-        return issueIdsToDelete.length;
+        const deletedCount = count || 0;
+
+        if (deletedCount > 0) {
+            console.log(
+                `${deletedCount} 件のクローズされたPRをDBから削除しました (${owner}/${repo})`,
+            );
+        }
+
+        return deletedCount;
     } catch (error) {
         console.error(`${owner}/${repo} のPR削除処理でエラー:`, error.message);
         return 0;
