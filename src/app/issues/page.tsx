@@ -1427,6 +1427,9 @@ export default function IssuesPageComponent() {
                                                         WebkitLineClamp: 3,
                                                         WebkitBoxOrient:
                                                             "vertical" as const,
+                                                        overflowWrap:
+                                                            "break-word",
+                                                        wordBreak: "break-word",
                                                     }}
                                                 >
                                                     {issue.body}
