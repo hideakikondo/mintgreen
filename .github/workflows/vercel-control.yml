@@ -16,20 +16,18 @@ jobs:
   control-vercel-project:
     runs-on: ubuntu-latest
     steps:
-      - name: Pause Vercel Project
-        if: github.event.inputs.action == 'pause'
-        run: |
-          curl -X POST "https://api.vercel.com/v1/projects/${{ secrets.VERCEL_PROJECT_ID }}/pause" 
-               -H "Authorization: Bearer ${{ secrets.VERCEL_TOKEN }}"
-        env:
-          VERCEL_TOKEN: ${{ secrets.VERCEL_TOKEN }}
-          VERCEL_PROJECT_ID: ${{ secrets.VERCEL_PROJECT_ID }}
+      - uses: actions/checkout@v4
 
-      - name: Unpause Vercel Project
-        if: github.event.inputs.action == 'unpause'
-        run: |
-          curl -X POST "https://api.vercel.com/v1/projects/${{ secrets.VERCEL_PROJECT_ID }}/unpause" \
-               -H "Authorization: Bearer ${{ secrets.VERCEL_TOKEN }}"
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: '20'
+
+      - name: Install dependencies
+        run: npm ci
+
+      - name: Run Vercel Project Control Script
+        run: node scripts/vercel-control.js ${{ github.event.inputs.action }}
         env:
           VERCEL_TOKEN: ${{ secrets.VERCEL_TOKEN }}
           VERCEL_PROJECT_ID: ${{ secrets.VERCEL_PROJECT_ID }}
