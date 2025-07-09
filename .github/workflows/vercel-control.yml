@@ -1,0 +1,40 @@
+name: Vercel Project Control
+
+on:
+  workflow_dispatch:
+    inputs:
+      action:
+        description: '実行するアクションを選択してください'
+        required: true
+        type: choice
+        options:
+          - pause
+          - unpause
+        default: 'pause'
+
+jobs:
+  control-vercel-project:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Pause Vercel Project
+        if: github.event.inputs.action == 'pause'
+        run: |
+          curl -X PATCH "https://api.vercel.com/v9/projects/${{ secrets.VERCEL_PROJECT_ID }}" \
+               -H "Authorization: Bearer ${{ secrets.VERCEL_TOKEN }}" \
+               -H "Content-Type: application/json" \
+               -d '{ "paused": true }'
+        env:
+          VERCEL_TOKEN: ${{ secrets.VERCEL_TOKEN }}
+          VERCEL_PROJECT_ID: ${{ secrets.VERCEL_PROJECT_ID }}
+
+      - name: Unpause Vercel Project
+        if: github.event.inputs.action == 'unpause'
+        run: |
+          curl -X PATCH "https://api.vercel.com/v9/projects/${{ secrets.VERCEL_PROJECT_ID }}" \
+               -H "Authorization: Bearer ${{ secrets.VERCEL_TOKEN }}" \
+               -H "Content-Type: application/json" \
+               -d '{ "paused": false }'
+        env:
+          VERCEL_TOKEN: ${{ secrets.VERCEL_TOKEN }}
+          VERCEL_PROJECT_ID: ${{ secrets.VERCEL_PROJECT_ID }}
+
