@@ -19,10 +19,8 @@ jobs:
       - name: Pause Vercel Project
         if: github.event.inputs.action == 'pause'
         run: |
-          curl -X PATCH "https://api.vercel.com/v9/projects/${{ secrets.VERCEL_PROJECT_ID }}" \
-               -H "Authorization: Bearer ${{ secrets.VERCEL_TOKEN }}" \
-               -H "Content-Type: application/json" \
-               -d '{ "commandForIgnoringBuildStep": "false" }'
+          curl -X POST "https://api.vercel.com/v1/projects/${{ secrets.VERCEL_PROJECT_ID }}/pause" 
+               -H "Authorization: Bearer ${{ secrets.VERCEL_TOKEN }}"
         env:
           VERCEL_TOKEN: ${{ secrets.VERCEL_TOKEN }}
           VERCEL_PROJECT_ID: ${{ secrets.VERCEL_PROJECT_ID }}
@@ -30,10 +28,8 @@ jobs:
       - name: Unpause Vercel Project
         if: github.event.inputs.action == 'unpause'
         run: |
-          curl -X PATCH "https://api.vercel.com/v9/projects/${{ secrets.VERCEL_PROJECT_ID }}" \
-               -H "Authorization: Bearer ${{ secrets.VERCEL_TOKEN }}" \
-               -H "Content-Type: application/json" \
-               -d '{ "commandForIgnoringBuildStep": null }'
+          curl -X POST "https://api.vercel.com/v1/projects/${{ secrets.VERCEL_PROJECT_ID }}/unpause" \
+               -H "Authorization: Bearer ${{ secrets.VERCEL_TOKEN }}"
         env:
           VERCEL_TOKEN: ${{ secrets.VERCEL_TOKEN }}
           VERCEL_PROJECT_ID: ${{ secrets.VERCEL_PROJECT_ID }}
